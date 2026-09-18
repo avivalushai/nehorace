@@ -59,7 +59,7 @@ src/shop/ui.js         # Wallet, calcCoins, showCoins, renderShop, buyItem, toas
 
 האייקונים ותמונת השיתוף מצוירים בקוד ב-`src/art/brand.js`, בעזרת אותן פונקציות ציור של המשחק. וואטסאפ והטלפון לא מריצים JavaScript, ולכן שומרים אותם כקבצים ב-`assets/`. אחרי שינוי בדמות או בעיצוב מריצים `npm run images` בתיקייה `tests`, ואפשר לראות את התוצאה ב-`tools/images.html`.
 
-`og:image` ו-`og:url` ב-`index.html` הם כתובות מלאות של האתר החי (`https://avivalushai.github.io/nehorace/`), כי וואטסאפ לא מבין כתובות יחסיות. אם הכתובת של האתר משתנה, מעדכנים את שניהם.
+`og:image` ו-`og:url` ב-`index.html` הם כתובות מלאות של האתר החי (`https://nehorace.vercel.app/`), כי וואטסאפ לא מבין כתובות יחסיות. אם הכתובת של האתר משתנה, מעדכנים את שניהם.
 
 ## דברים שכדאי לעשות בקלוד קוד
 

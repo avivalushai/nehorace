@@ -4,6 +4,10 @@
 
 המשחק בנוי מ-`index.html` (שלד המסכים), `styles/app.css`, ו-21 מודולי `ES modules` בתיקייה `src/`, בלי ספריות חיצוניות ובלי שלב בנייה. נקודת הכניסה היא `src/main.js`. הכל מצויר בקנבס בקוד, אין תמונות ואין נכסים חיצוניים. מפת המודולים נמצאת ב-`docs/ARCHITECTURE.md`.
 
+## אתר חי
+
+https://nehorace.vercel.app. כל push ל-`main` ב-GitHub (`avivalushai/nehorace`) מתפרסם אוטומטית ב-Vercel תוך פחות מדקה. אחרי העלאה מריצים `npm run test:live` בתיקייה `tests`.
+
 ## הרצה
 
 ```bash

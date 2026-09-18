@@ -27,7 +27,7 @@ fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 if (update) { fs.rmSync(BASE, { recursive: true, force: true }); fs.mkdirSync(BASE, { recursive: true }); }
 
-// SITE=https://avivalushai.github.io/nehorace/ runs against the live site instead of a local server
+// SITE=https://nehorace.vercel.app/ runs against the live site instead of a local server
 const server = process.env.SITE ? null : spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
 const URL = process.env.SITE || `http://127.0.0.1:${PORT}/index.html`;
 for (let i = 0; i < 50; i++) { try { if ((await fetch(URL)).ok) break; } catch {} await new Promise(r => setTimeout(r, 100)); }
