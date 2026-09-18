@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NehoRace: אייקונים ותמונת שיתוף</title>
+<link href="https://fonts.googleapis.com/css2?family=Karantina:wght@700&family=Secular+One&display=swap" rel="stylesheet">
+<style>
+body{margin:0;padding:20px;background:#1A0B29;color:#FFF4DC;font-family:'Secular One',Arial,sans-serif}
+h1{font-size:22px;font-weight:400}
+.row{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;margin-bottom:28px}
+figure{margin:0;display:flex;flex-direction:column;gap:6px;font-size:13px;opacity:.9}
+canvas{background:repeating-conic-gradient(#333 0 25%,#444 0 50%) 0 0/16px 16px;max-width:100%}
+</style>
+</head>
+<body>
+<h1>תצוגה מקדימה. הקבצים נוצרים מהדף הזה עם <code>npm run images</code> בתיקייה tests</h1>
+<div class="row" id="icons"></div>
+<div class="row" id="cards"></div>
+<script type="module">
+import { drawIcon, drawShareCard } from '../src/art/brand.js';
+// file name, size, options. Written to assets/ by tests/make-images.mjs
+const ICONS=[
+  ['favicon-32.png',32,{round:true,safe:.94}],
+  ['apple-touch-icon.png',180,{safe:.7}],
+  ['icon-192.png',192,{safe:.7}],
+  ['icon-512.png',512,{safe:.7}],
+  ['icon-maskable-512.png',512,{safe:.56}],
+];
+await document.fonts.load("700 40px 'Karantina'");await document.fonts.load("20px 'Secular One'");await document.fonts.ready;
+const add=(box,file,w,h,draw)=>{const f=document.createElement('figure'),cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.dataset.file=file;
+  cv.style.width=Math.min(w,600)+'px';f.append(cv,Object.assign(document.createElement('figcaption'),{textContent:`${file} (${w}x${h})`}));box.append(f);draw(cv.getContext('2d'));};
+for(const [file,S,o] of ICONS)add(document.getElementById('icons'),file,S,S,c=>drawIcon(c,S,o));
+add(document.getElementById('cards'),'share.jpg',1200,630,c=>drawShareCard(c,1200,630));
+document.body.dataset.ready='1';
+</script>
+</body>
+</html>

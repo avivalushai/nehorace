@@ -5,6 +5,9 @@
 ```
 index.html             # שלד המסכים, טוען את styles/app.css ואת src/main.js
 styles/app.css         # כל ה-CSS
+manifest.webmanifest   # שם, אייקונים ומסך מלא ל"הוספה למסך הבית"
+assets/                # אייקונים ו-share.jpg, נוצרים מהקוד (לא לערוך ידנית)
+tools/images.html      # דף תצוגה מקדימה שמצייר את האייקונים ואת תמונת השיתוף
 src/main.js            # נקודת כניסה: show (ניווט בין מסכים), drawTitle, כפתור הפתיחה, אתחול
 src/core/util.js       # צבעים ופונטים (INK, GOLD, FONT, DISP...), rand, pick, clamp, $, hash
 src/core/draw.js       # R, ln, poly, rr, circ, ell, shade, star, fitCv
@@ -14,6 +17,7 @@ src/art/neho.js        # drawNeho, hairFront, drawCap, drawChain, drawNehoBack
 src/art/dog.js         # drawDog
 src/art/vehicles.js    # drawVehicleSide, drawVehicleFront, drawVehicleRear, drawWheel
 src/art/stickers.js    # drawSticker, drawHamsa
+src/art/brand.js       # drawIcon (פרצוף הנהוראי לאייקון), drawShareCard (תמונת התצוגה המקדימה לקישור)
 src/ui/garage.js       # renderPanel, previewPart, startStage, drawComposition, step + setStep
 src/race/texts.js      # TXT: כל הקללות והמשפטים, ACTS, ZONE_ACTS, OPP_NAMES
 src/race/world.js      # PW, RACE_LEN, cx, genWorld, makePed, makeRacer, newDir, pid + resetPid
@@ -51,8 +55,15 @@ src/shop/ui.js         # Wallet, calcCoins, showCoins, renderShop, buyItem, toas
 - מיקומי המדבקות על כל כלי נמצאים ב-`SLOTS`. שינוי גיאומטריה של כלי מחייב עדכון שם.
 - כל טקסט חדש בממשק נכתב בעברית ונבדק בטלפון.
 
+## אייקונים ותצוגה מקדימה לקישור
+
+האייקונים ותמונת השיתוף מצוירים בקוד ב-`src/art/brand.js`, בעזרת אותן פונקציות ציור של המשחק. וואטסאפ והטלפון לא מריצים JavaScript, ולכן שומרים אותם כקבצים ב-`assets/`. אחרי שינוי בדמות או בעיצוב מריצים `npm run images` בתיקייה `tests`, ואפשר לראות את התוצאה ב-`tools/images.html`.
+
+כשהמשחק יעלה לכתובת קבועה, צריך להפוך את `og:image` לכתובת מלאה (למשל `https://.../assets/share.jpg`) ולהוסיף `og:url`, כי וואטסאפ לא מבין כתובות יחסיות.
+
 ## דברים שכדאי לעשות בקלוד קוד
 
 - העלאה לאתר קבוע עם כתובת שמתעדכנת בכל שינוי.
+- כפתור שיתוף עם תמונה מהמירוץ של השחקן: `navigator.share` עם קובץ תמונה מ-`drawPhoto`, ונפילה להורדה כשאין תמיכה. התמונה בתצוגה המקדימה של הקישור תמיד קבועה (`share.jpg`), כי וואטסאפ לא מריץ את המשחק.
 - מסלולים נוספים ושעות יום שונות.
 - להפוך פריטים מהחנות למשפיעים במשחק, למשל הסיוויק ככלי רכב.

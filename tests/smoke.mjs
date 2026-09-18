@@ -68,6 +68,25 @@ try {
   await page.waitForTimeout(400);
   await shot('title', { compare: true });
 
+  // ---- icons, link-preview image and manifest load and have the declared sizes ----
+  const headProblems = await page.evaluate(async () => {
+    const out = [];
+    const size = src => new Promise(res => { const im = new Image(); im.onload = () => res(`${im.naturalWidth}x${im.naturalHeight}`); im.onerror = () => res('broken'); im.src = src; });
+    const check = async (src, want, what) => { const got = await size(new URL(src, location.href).href); if (got !== want) out.push(`${what} ${src}: expected ${want}, got ${got}`); };
+    for (const l of document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]')) await check(l.getAttribute('href'), l.getAttribute('sizes') || '180x180', l.rel);
+    const og = p => document.querySelector(`meta[property="og:${p}"]`)?.content;
+    await check(og('image'), `${og('image:width')}x${og('image:height')}`, 'og:image');
+    for (const p of ['title', 'description', 'image']) if (!og(p)) out.push(`missing og:${p}`);
+    const mUrl = new URL(document.querySelector('link[rel="manifest"]').getAttribute('href'), location.href);
+    try {
+      const m = await (await fetch(mUrl)).json();
+      if (!m.icons?.some(i => i.purpose === 'maskable')) out.push('manifest: no maskable icon');
+      for (const i of m.icons || []) await check(new URL(i.src, mUrl).href, i.sizes, `manifest icon (${i.purpose})`);
+    } catch (e) { out.push(`manifest: ${e.message}`); }
+    return out;
+  });
+  headProblems.forEach(p => errors.push(`[head] ${p}`));
+
   // ---- garage: character ----
   await page.fill('#nameIn', 'בדיקה');
   await click('#startBtn');

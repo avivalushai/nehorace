@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node smoke.mjs",
     "test:quick": "node smoke.mjs --quick",
-    "test:update": "node smoke.mjs --quick --update"
+    "test:update": "node smoke.mjs --quick --update",
+    "images": "node make-images.mjs"
   },
   "devDependencies": {
     "playwright": "^1.63.0"
