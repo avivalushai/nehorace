@@ -12,27 +12,34 @@ function linkChain(c,x0,x2,y,depth,n,lw,lh,c1,c2){
     c.save();c.translate(px,py);c.rotate(Math.atan2(ty,tx));rr(c,-lw/2,-lh/2,lw,lh,lh/2);c.fillStyle=i%2?c1:c2;c.fill();c.lineWidth=1.3;c.stroke();c.restore();}
 }
 function hairColor(h){return h==='bleach'?'#F6E07A':h==='mullet'?'#3B2414':'#1B120C';}
-function drawNeho(c,L,t){
+function drawNeho(c,L,t,pose){
   t=t||0;const sk=SKIN;
   c.save();c.lineJoin='round';c.lineCap='round';c.strokeStyle=INK;c.lineWidth=3;
   const P=PANTS[L.pants],S=SHIRTS[L.shirt];
   const pb=P.short?-52:-12;
-  if(P.short){R(c,-31,-86,28,74,sk);R(c,3,-86,28,74,sk);}
-  R(c,-31,-86,28,pb+86,P.c);R(c,3,-86,28,pb+86,P.c);
-  if(L.pants==='track'){c.fillStyle='#EDEDED';for(const x of[-29,-24,21,26])c.fillRect(x,-82,3,66);}
-  if(L.pants==='ripped'){c.save();c.strokeStyle='#D6E2FA';c.lineWidth=2.5;ln(c,-25,-46,-11,-44);ln(c,-23,-40,-14,-39);ln(c,9,-58,23,-56);ln(c,11,-30,21,-29);c.restore();}
-  if(L.pants==='swim'){c.fillStyle='rgba(255,255,255,.6)';for(let i=0;i<3;i++){c.fillRect(-28+i*9,-82,3,26);c.fillRect(7+i*9,-82,3,26);}}
-  if(L.pants==='shorts'){c.fillStyle='#E7EEF9';c.fillRect(-30,-56,26,3);c.fillRect(4,-56,26,3);}
-  if(L.shoes==='flip'){R(c,-33,-13,30,9,sk);R(c,3,-13,30,9,sk);R(c,-35,-5,33,5,'#26262E');R(c,2,-5,33,5,'#26262E');c.save();c.strokeStyle='#3DA5FF';c.lineWidth=3;ln(c,-26,-12,-18,-6);ln(c,-10,-12,-18,-6);ln(c,10,-12,18,-6);ln(c,26,-12,18,-6);c.restore();}
-  else{const sc=SHOES[L.shoes];R(c,-35,-15,33,15,sc);R(c,2,-15,33,15,sc);c.fillStyle=L.shoes==='blackgold'?GOLD:'rgba(0,0,0,.22)';c.fillRect(-34,-5,31,3);c.fillRect(3,-5,31,3);
-    if(L.shoes!=='blackgold'){c.fillStyle=L.shoes==='white'?'#E02A3A':'#FFFFFF';c.fillRect(-27,-11,11,3);c.fillRect(16,-11,11,3);}}
+  // legs and shoes. pose (optional, for idle animation): {legL,legR} lifts each foot, {armL,armR} rotates each arm at the shoulder
+  const legs=()=>{
+    if(P.short){R(c,-31,-86,28,74,sk);R(c,3,-86,28,74,sk);}
+    R(c,-31,-86,28,pb+86,P.c);R(c,3,-86,28,pb+86,P.c);
+    if(L.pants==='track'){c.fillStyle='#EDEDED';for(const x of[-29,-24,21,26])c.fillRect(x,-82,3,66);}
+    if(L.pants==='ripped'){c.save();c.strokeStyle='#D6E2FA';c.lineWidth=2.5;ln(c,-25,-46,-11,-44);ln(c,-23,-40,-14,-39);ln(c,9,-58,23,-56);ln(c,11,-30,21,-29);c.restore();}
+    if(L.pants==='swim'){c.fillStyle='rgba(255,255,255,.6)';for(let i=0;i<3;i++){c.fillRect(-28+i*9,-82,3,26);c.fillRect(7+i*9,-82,3,26);}}
+    if(L.pants==='shorts'){c.fillStyle='#E7EEF9';c.fillRect(-30,-56,26,3);c.fillRect(4,-56,26,3);}
+    if(L.shoes==='flip'){R(c,-33,-13,30,9,sk);R(c,3,-13,30,9,sk);R(c,-35,-5,33,5,'#26262E');R(c,2,-5,33,5,'#26262E');c.save();c.strokeStyle='#3DA5FF';c.lineWidth=3;ln(c,-26,-12,-18,-6);ln(c,-10,-12,-18,-6);ln(c,10,-12,18,-6);ln(c,26,-12,18,-6);c.restore();}
+    else{const sc=SHOES[L.shoes];R(c,-35,-15,33,15,sc);R(c,2,-15,33,15,sc);c.fillStyle=L.shoes==='blackgold'?GOLD:'rgba(0,0,0,.22)';c.fillRect(-34,-5,31,3);c.fillRect(3,-5,31,3);
+      if(L.shoes!=='blackgold'){c.fillStyle=L.shoes==='white'?'#E02A3A':'#FFFFFF';c.fillRect(-27,-11,11,3);c.fillRect(16,-11,11,3);}}
+  };
+  if(!pose)legs();
+  else for(const side of[-1,1]){c.save();c.beginPath();c.rect(side<0?-60:0,-110,60,120);c.clip();c.translate(0,-(side<0?pose.legL:pose.legR)||0);legs();c.restore();}
   R(c,-11,-186,22,20,sk);
   const sc=S.c||sk;
   for(const ax of[-64,42]){
+    c.save();if(pose){const a=(ax<0?pose.armL:pose.armR)||0;c.translate(ax+11,-164);c.rotate(a);c.translate(-(ax+11),164);}
     if(S.sl==='long'){R(c,ax,-168,22,78,sc);if(L.shirt==='track'){c.fillStyle='#EDEDED';c.fillRect(ax<0?ax+3:ax+16,-164,3,70);}}
     else if(S.sl==='short'){R(c,ax,-140,22,50,sk);R(c,ax-1,-169,24,32,sc);if(L.shirt==='jersey'){c.fillStyle='#1B8A3C';c.fillRect(ax,-141,22,4);}}
     else R(c,ax,-168,22,78,sk);
     R(c,ax+1,-92,20,16,sk);
+    c.restore();
   }
   if(L.shirt==='none'){
     R(c,-40,-170,80,86,sk);

@@ -28,11 +28,11 @@ function drawComposition(c,w,h,o){
     const s=Math.min(h*.84/285,w*.9/(dog?290:160))*pop;
     const x0=w/2+(dog?40*s:0);
     if(dog){c.save();c.translate(x0-120*s,gy);c.scale(s*.95,s*.95);drawDog(c,L.dog,t);c.restore();}
-    c.save();c.translate(x0,gy);c.scale(s,s*breathe);drawNeho(c,L,t);c.restore();
+    c.save();c.translate(x0,gy);c.scale(s,s*breathe);drawNeho(c,L,t,o.pose);c.restore();
   }else{
     const vs=Math.min(w*.9/(dog?330:280),h*.86/232)*pop,cs=vs*.8;
     const x0=w/2+(dog?28*vs:0)+w*.05;
-    c.save();c.translate(x0+18*vs,gy-4*vs);c.scale(cs,cs*breathe);drawNeho(c,L,t);c.restore();
+    c.save();c.translate(x0+18*vs+(o.dx||0)*vs,gy-4*vs);c.scale(cs,cs*breathe);drawNeho(c,L,t,o.pose);c.restore();
     c.save();c.translate(x0,gy);c.scale(vs,vs);drawVehicleSide(c,o.vid,o.color,o.wheels,o.stickers);c.restore();
     if(dog){c.save();c.translate(x0-165*vs,gy);c.scale(vs*.72,vs*.72);drawDog(c,L.dog,t);c.restore();}
   }
