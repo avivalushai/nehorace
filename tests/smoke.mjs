@@ -232,6 +232,28 @@ try {
     expect(await page.locator('.item.owned').count() === 0, `bad data ${raw}: items shown as owned`);
   }
 
+  // ---- desktop (1440x900): one screen at a time, every step clickable ----
+  const dctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  const dp = await dctx.newPage();
+  dp.setDefaultTimeout(5000);
+  dp.on('pageerror', e => errors.push(`[desktop pageerror] ${e.message}`));
+  const visible = () => dp.evaluate(() => [...document.querySelectorAll('.screen')].filter(s => getComputedStyle(s).display !== 'none').map(s => s.id).join(','));
+  const dstep = async (name, action, want) => {
+    try { if (action) await action(); } catch (e) { errors.push(`[desktop] ${name}: ${e.message.split('\n')[0]}`); return false; }
+    await dp.waitForTimeout(400);
+    await dp.screenshot({ path: path.join(OUT, `desktop-${name}.png`) });
+    const v = await visible();
+    if (v !== want) { errors.push(`[desktop] ${name}: visible screens "${v}", expected "${want}"`); return false; }
+    return true;
+  };
+  const dclick = sel => dp.locator(sel).first().click();
+  if (await dstep('title', () => dp.goto(URL, { waitUntil: 'networkidle' }), 'title')
+    && await dstep('garage', async () => { await dclick('#startBtn'); await dclick('#songsClose'); }, 'garage')
+    && await dstep('vehicle', () => dclick('#nextBtn'), 'garage')
+    && await dstep('race', async () => { await dclick('#nextBtn'); await dclick('#nextBtn'); await dp.waitForTimeout(4000); }, 'race'))
+    await dstep('exit', () => dclick('#exitBtn'), 'garage');
+  await dctx.close();
+
   console.log(`${n} screenshots in tests/output/${update ? ', baseline updated' : ''}`);
 } catch (e) {
   errors.push(`[test stopped] ${e.message.split('\n')[0]}`);
