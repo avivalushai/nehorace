@@ -75,7 +75,10 @@ try {
     const check = async (src, want, what) => { const got = await size(new URL(src, location.href).href); if (got !== want) out.push(`${what} ${src}: expected ${want}, got ${got}`); };
     for (const l of document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]')) await check(l.getAttribute('href'), l.getAttribute('sizes') || '180x180', l.rel);
     const og = p => document.querySelector(`meta[property="og:${p}"]`)?.content;
-    await check(og('image'), `${og('image:width')}x${og('image:height')}`, 'og:image');
+    // og:image points at the live site; check the local copy of the same file
+    const site = og('url');
+    if (!site || !/^https:\/\//.test(site) || !og('image')?.startsWith(site)) out.push(`og:url/og:image must be absolute and on the same site: ${site} ${og('image')}`);
+    else await check(og('image').slice(site.length), `${og('image:width')}x${og('image:height')}`, 'og:image');
     for (const p of ['title', 'description', 'image']) if (!og(p)) out.push(`missing og:${p}`);
     const mUrl = new URL(document.querySelector('link[rel="manifest"]').getAttribute('href'), location.href);
     try {
