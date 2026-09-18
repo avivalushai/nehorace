@@ -21,6 +21,7 @@ import './shop/items.js';
 import { walletLoad } from './shop/ui.js';
 import { Stats, devAddCareer } from './core/stats.js';
 import { nextUnlock } from './core/unlocks.js';
+import { openBoard } from './ui/board.js';
 import { devQuickRace, fmt } from './race/engine.js';
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title'){renderBest();startTitle();}}
@@ -37,6 +38,7 @@ function startTitle(){
   cancelAnimationFrame(titleRAF);const f=()=>{if(!$('#title').classList.contains('on')){titleAnim=false;return;}drawTitle();titleRAF=requestAnimationFrame(f);};f();}
 const takeName=()=>{state.name=($('#nameIn').value.trim()||'נהוראי').slice(0,10);state.look.name=state.name;};
 $('#startBtn').onclick=()=>{takeName();setStep(0);show('garage');};
+$('#boardBtn').onclick=()=>{takeName();openBoard('week');};
 // personal records line on the title screen (hidden until the first race). Numbers are isolated so RTL doesn't flip them
 function renderBest(){const el=$('#bestLine');if(!Stats.races){el.hidden=true;return;}
   const num=v=>`<b>${v}</b>`,parts=[`השיא שלך: ${num(Stats.bestScore.toLocaleString('he-IL'))} נקודות`,Stats.races===1?'מירוץ אחד':`${num(Stats.races)} מירוצים`];

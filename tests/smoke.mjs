@@ -30,7 +30,8 @@ fs.mkdirSync(OUT, { recursive: true });
 if (update) { fs.rmSync(BASE, { recursive: true, force: true }); fs.mkdirSync(BASE, { recursive: true }); }
 
 // SITE=https://nehorace.vercel.app/ runs against the live site instead of a local server
-const server = process.env.SITE ? null : spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
+// the dev server runs api/*.mjs with an in-memory database, so the champions board works locally too
+const server = process.env.SITE ? null : spawn(process.execPath, [path.join(HERE, 'dev-server.mjs'), String(PORT)], { cwd: ROOT, stdio: 'ignore' });
 const URL = process.env.SITE || `http://127.0.0.1:${PORT}/index.html`;
 for (let i = 0; i < 50; i++) { try { if ((await fetch(URL)).ok) break; } catch {} await new Promise(r => setTimeout(r, 100)); }
 
@@ -240,7 +241,7 @@ try {
   await shot('dev-results');
   const s1 = await stats();
   expectR(s1?.races === 1 && s1.bestScore > 0 && s1.bestTime > 0, `after one race: ${JSON.stringify(s1)}`);
-  expectR(await page.locator('#resRec').isHidden(), 'first race should not show a "new record" badge');
+  expectR(!((await page.locator('#resRec').textContent()) || '').includes('שיא'), 'first race should not show a "new record" badge');
   await click('#garageBtn'); await click('#backBtn');
   const best = (await page.locator('#bestLine').textContent()) || '';
   expectR(await page.locator('#bestLine').isVisible() && best.includes('מירוץ אחד') && best.includes(String(s1?.bestScore)), `title best line: "${best}"`);
@@ -295,6 +296,32 @@ try {
   await click('#againBtn'); await page.waitForTimeout(5000);
   await shot('ride-wings-race');
   await click('#exitBtn');
+
+  // ---- champions board: a second player, ranks, and a name that tries to inject HTML ----
+  if (!process.env.SITE) {
+    const expectB = (ok, msg) => { if (!ok) errors.push(`[board] ${msg}`); };
+    const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
+    const p2 = await ctx2.newPage(); p2.setDefaultTimeout(10000);
+    p2.on('pageerror', e => errors.push(`[board pageerror] ${e.message}`));
+    p2.on('dialog', d => { errors.push('[board] a dialog opened: injected HTML ran'); d.dismiss(); });
+    await p2.goto(devUrl, { waitUntil: 'networkidle', timeout: 45000 });
+    await p2.fill('#nameIn', '<img src=x onerror=alert(1)>');
+    await p2.locator('#devBtn').click();
+    await p2.waitForSelector('#results.on', { timeout: 30000 });
+    await p2.waitForFunction(() => (document.querySelector('#resRec').textContent || '').includes('השבוע'), null, { timeout: 10000 }).catch(() => errors.push('[board] no weekly rank badge after the race'));
+    await p2.locator('#resBoardBtn').click();
+    await p2.waitForSelector('#boardList li', { timeout: 10000 });
+    const rows = await p2.locator('#boardList li:not(.gap)').count();
+    expectB(rows >= 2, `expected both players on the weekly board, got ${rows} rows`);
+    expectB(await p2.locator('#boardList li.me').count() === 1, 'my row is not highlighted exactly once');
+    expectB(!(await p2.locator('#boardList img').count()), 'a name was rendered as HTML');
+    await p2.screenshot({ path: path.join(OUT, 'board-week.png') });
+    await p2.locator('#boardTabs .tab').nth(1).click();
+    await p2.screenshot({ path: path.join(OUT, 'board-wins.png') });
+    const bad = await p2.request.post(URL.replace(/index\.html$/, '') + 'api/race', { data: { id: 'a'.repeat(32), name: 'x', score: 99999, pos: 1, time: 45 } });
+    expectB(bad.status() === 400, `implausible score accepted (${bad.status()})`);
+    await ctx2.close();
+  }
 
   // ---- desktop (1440x900): one screen at a time, every step clickable ----
   const dctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });

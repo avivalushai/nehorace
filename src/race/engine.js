@@ -14,6 +14,8 @@ import { ALBUM, buildAlbum, rec } from '../album/build.js';
 import { Wallet, calcCoins, ownedCount, showCoins, walletSave } from '../shop/ui.js';
 import { Stats, recordRace } from '../core/stats.js';
 import { unlockedBetween } from '../core/unlocks.js';
+import { submitRace } from '../net/leaderboard.js';
+import { openBoard } from '../ui/board.js';
 
 let race=null,rRAF=0,lastTs=0,RK=1,LW=400,LH=800;
 const rcv=$('#raceCv'),rctx=rcv.getContext('2d'),keys={};
@@ -166,6 +168,8 @@ function finishRace(){
   {const before=Stats.career,rc=recordRace({score,pos,time:P.finished?P.finishTime:0,victims}),badges=[];
     if(rc.newScore)badges.push('🏆 שיא נקודות חדש!');if(rc.newTime)badges.push('⏱️ הזמן הכי מהיר שלך!');
     const opened=unlockedBetween(before,Stats.career);opened.slice(0,3).forEach(x=>badges.push(`🔓 פתחת: ${x.label}`));if(opened.length>3)badges.push(`🔓 ועוד ${opened.length-3} פריטים`);
+    // send the race to the champions board; the weekly rank shows up as another badge when it answers
+    submitRace({name:state.name,score,pos,time:P.finishTime}).then(r=>{if(!r||!r.week||!r.week.rank)return;const el=$('#resRec'),sp=document.createElement('span');sp.textContent=`🏆 מקום ${r.week.rank} השבוע`;el.appendChild(sp);el.hidden=false;});
     const el=$('#resRec');el.innerHTML=badges.map(b=>`<span>${b}</span>`).join('');el.hidden=!badges.length;}
   const items=[['🧍','אנשים שדרסת',S.people],['🧒','ילדים',S.kids],['👴','פנסיונרים',S.seniors],['🐕','כלבים',S.dogs],['🐈','חתולים',S.cats],['🐦','יונים',S.pigeons],['🍖','מנגלים שהפכת',S.mangal],['🎯','פעילויות שהרסת',S.acts],['🗑️','רכוש ציבורי',S.property],['🌳','עצים שנכנסת בהם',S.trees],['🛴','נהוראים שדחפת',S.bumps],['🤬','קללות שחטפת',S.curses],['🌱','שניות על הדשא',Math.round(S.grass)]];
   $('#dmg').innerHTML=`<div class="big"><b>${score}</b><span>נקודות ערסיות</span></div>`+items.map(([i,l,v])=>`<div><b>${v}</b><span>${i} ${l}</span></div>`).join('');
@@ -180,6 +184,7 @@ function drawResultsStage(){const{c,w,h}=fitCv($('#resCv'));drawComposition(c,w,
 // dev shortcut (?dev in the address): simulate a whole race instantly and land on the results screen
 function devQuickRace(){startRace();for(let g=0;g<60*300&&race;g++)update(1/60);}
 $('#againBtn').onclick=startRace;
+$('#resBoardBtn').onclick=()=>openBoard('week');
 $('#garageBtn').onclick=()=>{setStep(0);show('garage');};
 
 export { race, RK, LW, LH, rctx, startRace, devQuickRace, lowerBound, fmt };

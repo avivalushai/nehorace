@@ -46,6 +46,7 @@
     <input id="nameIn" maxlength="10" value="נהוראי" autocomplete="off">
   </div>
   <button class="btn" id="startBtn">בונים נהוראי</button>
+  <button class="btn ghost" id="boardBtn">🏆 טבלת האלופים</button>
 </section>
 
 <section id="garage" class="screen">
@@ -80,6 +81,7 @@
     <div class="res-col res-money">
     <div class="coins"><div class="coins-head"><span class="coin"></span><div><b id="coinsWon">+0</b><small>מטבעות מהמירוץ</small></div><div class="wallet">בארנק<br><b id="walletNow">0</b></div></div><ul class="coin-rows" id="coinRows"></ul><button class="btn" id="shopBtn">לחנות של הפארק</button></div>
     <button class="gift" id="giftBtn"><span><b>מתנה קטנה מאירוע גדול</b><small id="giftSub">אלבום התמונות שלך מהמירוץ</small></span><span class="gift-ico">🎁</span></button>
+    <button class="btn ghost board-link" id="resBoardBtn">🏆 טבלת האלופים</button>
     </div>
     <div class="res-col res-report">
     <h2>דו״ח הנזקים שלך</h2>
@@ -93,6 +95,7 @@
   </div>
 </section>
 
+<div id="board" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2>טבלת האלופים</h2><button class="shopX" id="boardClose">סגירה</button></div><div class="tabs" id="boardTabs"></div></header><p class="board-note" id="boardNote"></p><ol class="board-list" id="boardList"></ol></div></div>
 <div id="shop" class="overlay"><div class="shop"><header class="shop-head"><div class="shop-row"><h2>החנות</h2><div class="shop-wallet"><span class="coin"></span><b id="shopCoins">0</b></div><button class="shopX" id="shopClose">סגירה</button></div><div class="tabs" id="shopTabs"></div></header><div class="shop-grid" id="shopGrid"></div></div></div>
 <div id="album" class="overlay">
   <div class="album">
