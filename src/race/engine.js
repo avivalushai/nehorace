@@ -17,7 +17,7 @@ import { recordRace } from '../core/stats.js';
 let race=null,rRAF=0,lastTs=0,RK=1,LW=400,LH=800;
 const rcv=$('#raceCv'),rctx=rcv.getContext('2d'),keys={};
 function resizeRace(){const W=innerWidth,H=innerHeight,dpr=Math.min(2,devicePixelRatio||1);rcv.width=Math.round(W*dpr);rcv.height=Math.round(H*dpr);rcv.style.width=W+'px';rcv.style.height=H+'px';const k=Math.min(W/440,H/700);RK=k*dpr;LW=W/k;LH=H/k;}
-addEventListener('resize',()=>{if(race)resizeRace();if($('#title').classList.contains('on'))drawTitle();});
+addEventListener('resize',()=>{if(race)resizeRace();if($('#title').classList.contains('on'))drawTitle();if($('#results').classList.contains('on'))drawResultsStage();});
 function startRace(){
   stopStage();show('race');resizeRace();resetPid();
   race={L:RACE_LEN,t:0,time:0,phase:'count',count:3.4,goT:0,bubbles:[],pending:[],shake:0,doneT:0,tSeg:1,
@@ -169,9 +169,10 @@ function finishRace(){
   $('#table').innerHTML=order.map((r,i)=>`<li class="${r.isPlayer?'me':''}"><span class="n">${i+1}</span><span>${r.isPlayer?r.name+' (אתה)':r.name}<small>${r.veh.name}</small></span><span>${r.knocks} נדרסו<small>${r.finished?fmt(r.finishTime,true):'לא סיים'}</small></span></li>`).join('');
   buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} תמונות מהמירוץ, באהבה מהפארק`;
   {const crow=calcCoins(pos,S),won=crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);}
-  race=null;show('results');$('#results').scrollTop=0;
-  const{c,w,h}=fitCv($('#resCv'));drawComposition(c,w,h,{mode:'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:1});
+  race=null;show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;
+  drawResultsStage();
 }
+function drawResultsStage(){const{c,w,h}=fitCv($('#resCv'));drawComposition(c,w,h,{mode:'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:1});}
 // dev shortcut (?dev in the address): simulate a whole race instantly and land on the results screen
 function devQuickRace(){startRace();for(let g=0;g<60*300&&race;g++)update(1/60);}
 $('#againBtn').onclick=startRace;
