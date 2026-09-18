@@ -214,3 +214,44 @@ button{cursor:pointer;border:0;background:none}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--gold);color:var(--ink);padding:10px 16px;border-radius:14px;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:0;transition:.25s;z-index:60;max-width:90vw;text-align:center;pointer-events:none}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){.btn{transition:none}}
+
+#keysHint{display:none;position:absolute;left:50%;bottom:22px;transform:translateX(-50%);gap:14px;align-items:center;background:rgba(26,11,41,.72);color:var(--cream);padding:8px 16px;border-radius:999px;font-size:14px;pointer-events:none;white-space:nowrap}
+#keysHint kbd{font-family:inherit;background:var(--cream);color:var(--ink);border-radius:6px;padding:1px 7px;margin-inline-start:4px;box-shadow:0 2px 0 rgba(0,0,0,.35)}
+/* ================= DESKTOP (860px and up). Phones never reach this block ================= */
+@media (min-width:860px){
+ /* title: text and form on the right, big composition on the left */
+ #title.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);grid-template-rows:1fr auto auto auto auto 1fr;column-gap:4vw;row-gap:16px;padding:32px 5vw}
+ #title .logo{grid-column:1;grid-row:2;font-size:clamp(110px,11vw,190px)}
+ #title .tag{grid-column:1;grid-row:3;font-size:19px}
+ #title .namefield{grid-column:1;grid-row:4}
+ #title .btn{grid-column:1;grid-row:5}
+ #titleCv{grid-column:2;grid-row:1/-1;width:100%;height:min(76vh,680px);border-radius:28px}
+
+ /* garage: wider panel, bigger previews */
+ #garage{grid-template-columns:1fr min(46vw,600px)}
+ .panel{padding:16px 18px 0}
+ .tabs{gap:8px;margin-bottom:14px}
+ .tab{font-size:16px;padding:9px 16px}
+ .opts{grid-template-columns:repeat(4,1fr);gap:10px}
+ .opt{font-size:14px;padding:8px 6px 10px;gap:5px}
+ .opt canvas{width:88px;height:88px}
+ .opts.swatches{grid-template-columns:repeat(6,1fr);gap:14px}
+ .opts:has(.stk){grid-template-columns:repeat(3,1fr)}
+ .opt.stk canvas{width:150px;height:56px}
+ .vcard{grid-template-columns:200px 1fr;padding:10px 14px}
+ .vcard canvas{width:200px;height:128px}
+ .vinfo h3{font-size:22px}.vinfo p{font-size:14px}
+ .stat{font-size:13px}.bar u{width:22px;height:8px}
+ .nav{padding:14px 18px}
+ .plate{top:16px;right:24px}.plate b{font-size:60px}.plate span{font-size:16px}
+
+ /* shop and album use the width */
+ .shop{width:min(100%,1080px);padding:0 24px 40px}
+ .shop-grid{grid-template-columns:repeat(4,1fr);gap:14px}
+ .album{width:min(100%,1040px)}
+ .grid{grid-template-columns:repeat(3,1fr);gap:28px 22px}
+
+ /* race: tell keyboard players how to drive */
+ #keysHint{display:flex}
+}
+@media (min-width:860px) and (hover:none){#keysHint{display:none}}

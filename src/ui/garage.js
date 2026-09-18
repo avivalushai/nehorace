@@ -46,9 +46,10 @@ function stopStage(){cancelAnimationFrame(stageRAF);}
 
 function previewPart(cv,part,val){
   const{c,w,h}=fitCv(cv);c.clearRect(0,0,w,h);const L={...state.look,[part]:val};
-  if(part==='dog'){if(val==='none'){c.fillStyle='rgba(255,244,220,.35)';c.font=`30px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText('—',w/2,h/2);return;}c.save();c.translate(w/2-6,h*.84);c.scale(.62,.62);drawDog(c,val,0);c.restore();return;}
+  const k=Math.min(w,h)/64; // previews are tuned for 64px boxes (phone); bigger boxes (desktop) scale up
+  if(part==='dog'){if(val==='none'){c.fillStyle='rgba(255,244,220,.35)';c.font=`${30*k}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText('—',w/2,h/2);return;}c.save();c.translate(w/2-6*k,h*.84);c.scale(.62*k,.62*k);drawDog(c,val,0);c.restore();return;}
   const cam={hair:[-226,.55],beard:[-214,.62],cap:[-236,.5],acc:[-214,.62],chain:[-150,.62],shirt:[-128,.4],pants:[-50,.44],shoes:[-12,.7]}[part];
-  c.save();c.translate(w/2,h/2-cam[0]*cam[1]);c.scale(cam[1],cam[1]);drawNeho(c,L,0);c.restore();
+  c.save();c.translate(w/2,h/2-cam[0]*cam[1]*k);c.scale(cam[1]*k,cam[1]*k);drawNeho(c,L,0);c.restore();
 }
 function renderPanel(){
   if(typeof Music!=='undefined'&&Music.on&&Music.target>=3)setStage(step===0?3:4);
@@ -76,7 +77,7 @@ function renderPanel(){
     tabs.style.display='';
     [['color','צבע'],['wheels','גלגלים'],['stickers','מדבקות']].forEach(([id,l])=>mkTab(l,designTab===id,()=>{designTab=id;renderPanel();}));
     if(designTab==='color'){opts.classList.add('swatches');COLORS.forEach(col=>{const b=document.createElement('button');b.className='sw'+(vColor()===col?' on':'');b.style.background=col;b.setAttribute('aria-label','צבע');b.onclick=()=>{state.color=col;pop=1;renderPanel();};opts.appendChild(b);});}
-    if(designTab==='wheels'){WHEELS.forEach(([id,l])=>{const b=document.createElement('button');b.className='opt'+(state.wheels===id?' on':'');b.innerHTML=`<canvas></canvas><span>${l}</span>`;b.onclick=()=>{state.wheels=id;pop=1;renderPanel();};opts.appendChild(b);const{c,w,h}=fitCv(b.querySelector('canvas'));c.strokeStyle=INK;drawWheel(c,w/2,h/2,24,id,false,true);});}
+    if(designTab==='wheels'){WHEELS.forEach(([id,l])=>{const b=document.createElement('button');b.className='opt'+(state.wheels===id?' on':'');b.innerHTML=`<canvas></canvas><span>${l}</span>`;b.onclick=()=>{state.wheels=id;pop=1;renderPanel();};opts.appendChild(b);const{c,w,h}=fitCv(b.querySelector('canvas'));c.strokeStyle=INK;drawWheel(c,w/2,h/2,24*Math.min(w,h)/64,id,false,true);});}
     if(designTab==='stickers'){
       const max=SLOTS[state.vid].length;const n=document.createElement('p');n.className='note';n.textContent=`נבחרו ${state.stickers.length} מתוך ${max}. לחיצה נוספת מורידה מדבקה`;opts.appendChild(n);
       STICKERS.forEach(st=>{const idx=state.stickers.indexOf(st.id);const b=document.createElement('button');b.className='opt stk'+(idx>=0?' on':'');b.setAttribute('aria-label',st.text);b.innerHTML=`${idx>=0?`<em>${idx+1}</em>`:''}<canvas></canvas>`;
