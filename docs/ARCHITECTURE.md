@@ -1,39 +1,48 @@
-# מפת הקוד ותוכנית פיצול
+# מפת הקוד
 
-כל הקוד נמצא כרגע בתוך תגית `script` אחת ב-`index.html`. הסדר בקובץ הוא: קבועים, עזרי ציור, דמויות, כלים, מסכי בחירה, מנוע מירוץ, מוזיקה, אלבום, חנות.
-
-## פיצול מוצע
+הקוד מחולק ל-`ES modules` שנטענים ישירות בדפדפן, בלי שלב בנייה. `index.html` טוען את `styles/app.css` ואת `src/main.js`, ו-`main.js` מייבא את כל שאר המודולים.
 
 ```
-index.html          # שלד, מסכים ריקים, טעינת מודולים
-styles/app.css      # כל ה-CSS
-src/main.js         # אתחול, ניווט בין מסכים
-src/core/draw.js    # R, ln, poly, rr, circ, ell, shade, star, fitCv
-src/core/state.js   # state, מצב נבחר, טעינה ושמירה
-src/art/neho.js     # drawNeho, hairFront, drawCap, drawChain, drawNehoBack
-src/art/dog.js      # drawDog
-src/art/vehicles.js # drawVehicleSide, drawVehicleFront, drawVehicleRear, drawWheel
-src/art/stickers.js # drawSticker, drawHamsa
-src/ui/garage.js    # renderPanel, previewPart, startStage, drawComposition
-src/race/world.js   # genWorld, makePed, newDir, statics
-src/race/engine.js  # startRace, update, knock, hitStatic, say, finishRace
-src/race/render.js  # render, drawRacerTop, drawPedTop, drawStatic, drawAct, drawBubble
-src/race/texts.js   # TXT: כל הקללות והמשפטים
-src/music/engine.js # musicInit, mStep, mTick, musicStart, musicStop
-src/music/songs.js  # טעינת שירים של המשתמש, setStage, playUser
-src/album/scenes.js # כל פונקציות scene*, applyFx, drawPhoto
-src/album/build.js  # rec, buildAlbum, capFor
-src/album/ui.js     # openAlbum, openLB, שמירת תמונה
-src/shop/items.js   # SHOP, TIERS, drawItem
-src/shop/ui.js      # renderShop, buyItem, calcCoins, showCoins, Wallet
+index.html             # שלד המסכים, טוען את styles/app.css ואת src/main.js
+styles/app.css         # כל ה-CSS
+src/main.js            # נקודת כניסה: show (ניווט בין מסכים), drawTitle, כפתור הפתיחה, אתחול
+src/core/util.js       # צבעים ופונטים (INK, GOLD, FONT, DISP...), rand, pick, clamp, $, hash
+src/core/draw.js       # R, ln, poly, rr, circ, ell, shade, star, fitCv
+src/core/catalog.js    # PARTS, PANTS, SHIRTS, SHOES, VEH, COLORS, WHEELS, STICKERS, SLOTS
+src/core/state.js      # state (הבחירות של השחקן), vColor
+src/art/neho.js        # drawNeho, hairFront, drawCap, drawChain, drawNehoBack
+src/art/dog.js         # drawDog
+src/art/vehicles.js    # drawVehicleSide, drawVehicleFront, drawVehicleRear, drawWheel
+src/art/stickers.js    # drawSticker, drawHamsa
+src/ui/garage.js       # renderPanel, previewPart, startStage, drawComposition, step + setStep
+src/race/texts.js      # TXT: כל הקללות והמשפטים, ACTS, ZONE_ACTS, OPP_NAMES
+src/race/world.js      # PW, RACE_LEN, cx, genWorld, makePed, makeRacer, newDir, pid + resetPid
+src/race/engine.js     # startRace, update, knock, hitStatic, say, שליטה (גרירה, מקשים, טורבו), finishRace, מסך תוצאות
+src/race/render.js     # render, drawRacerTop, drawPedTop, drawStatic, drawAct, drawBubble
+src/music/engine.js    # musicInit, mStep, mTick, musicStart, musicStop, toggleMute
+src/music/songs.js     # שירים של המשתמש, setStage, playUser, garageMusic
+src/album/scenes.js    # כל פונקציות scene*, SKIES, sky, applyFx, drawPhoto
+src/album/build.js     # rec, buildAlbum, capFor, כיתובים וזוויות צילום
+src/album/ui.js        # openAlbum, openLB, שמירת תמונה
+src/shop/items.js      # SHOP, TIERS, drawItem
+src/shop/ui.js         # Wallet, calcCoins, showCoins, renderShop, buyItem, toast, drawTrophies
 ```
 
-## סדר עבודה מומלץ
+## איך הפיצול נעשה
 
-1. להעתיק את `index.html` כמו שהוא ולוודא שהוא עובד.
-2. להוציא קודם את ה-CSS, ואז את הטקסטים (`TXT`, `SHOP`, `PARTS`), כי הם עצמאיים.
-3. להמיר לקבצי `ES modules` עם `type="module"`, מודול אחד בכל פעם, ולבדוק את המשחק אחרי כל צעד.
-4. רק בסוף, אם בכלל, להוסיף כלי בנייה.
+הקוד הועתק מהקובץ המקורי כמו שהוא, ונוספו רק שורות `import` ו-`export`. היו רק ארבעה שינויים קטנים, בלי שינוי התנהגות:
+
+- `setStep(s)` ב-`ui/garage.js`: שלושה מקומות מחוץ למוסך איפסו את `step` ישירות.
+- `pid` עבר ל-`race/world.js`, ו-`startRace` מאפס אותו דרך `resetPid()`.
+- `ALBUM` הופרד מההצהרה של `PAL`, כי כל אחד מהם שייך למודול אחר.
+- ההרחבות של רשימות הזוויות והכיתובים באלבום (`FX_OK.push`, `ANGLES_FOR`, `ANGLE_CAPS`...) עברו ל-`album/build.js`, ליד הרשימות עצמן, כדי שירוצו אחרי שהרשימות נוצרו.
+
+אחרי כל מודול שהוצא הורצה בדיקת `Playwright` במסך 390 על 844. היא עוברת על כל המסכים, בודקת שאין שגיאות ב-`console` ושאין גלילה אופקית, ומשווה פיקסל אחר פיקסל את המסכים הסטטיים לגרסה המקורית.
+
+## שני כללים של מודולים
+
+1. **ייבוא הוא לקריאה בלבד.** אי אפשר לכתוב `step=0` ממודול שמייבא את `step`. מוסיפים setter במודול שמחזיק את המשתנה.
+2. **סדר טעינה.** קוד שרץ ברמה העליונה של מודול (לא בתוך פונקציה) לא יכול לקרוא `const` ממודול שעוד לא נטען, כי יש תלויות מעגליות בין המודולים. קריאה לפונקציות היא תמיד בסדר. אתחול המשחק (`walletLoad`, `drawTitle`) נשאר בסוף `main.js`, שנטען אחרון.
 
 ## מוסכמות שחשוב לשמור
 

@@ -1,0 +1,14 @@
+{
+  "name": "nehorace-tests",
+  "private": true,
+  "type": "module",
+  "description": "Dev-only test tooling. The game itself has no dependencies.",
+  "scripts": {
+    "test": "node smoke.mjs",
+    "test:quick": "node smoke.mjs --quick",
+    "test:update": "node smoke.mjs --quick --update"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}
