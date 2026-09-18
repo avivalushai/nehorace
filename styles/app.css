@@ -242,6 +242,15 @@ button{cursor:pointer;border:0;background:none}
  .album{width:min(100%,1040px)}
  .grid{grid-template-columns:repeat(3,1fr);gap:28px 22px}
 
+ /* results: header across the top, money and album on one side, damage report and table on the other */
+ .res{width:min(100%,1240px);padding:28px 40px 40px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:36px;align-items:start}
+ .res-head{grid-column:1/-1;grid-template-columns:1fr 1.3fr;gap:24px;margin-bottom:6px}
+ .res-rank{font-size:120px}.res-title{font-size:30px}.res-time{font-size:18px}
+ #resCv{height:300px;border-radius:24px}
+ .res-report h2:first-child{margin-top:16px}
+ .dmg{grid-template-columns:repeat(3,1fr)}
+ .dmg .big{grid-column:span 2} /* 13 items + a 2-cell total fill 5 even rows */
+ .res-money{position:sticky;top:20px}
  /* race: tell keyboard players how to drive */
  #keysHint{display:flex}
 }
