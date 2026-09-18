@@ -12,7 +12,8 @@ import { Music, musicStart, musicStop } from '../music/engine.js';
 import { setStage } from '../music/songs.js';
 import { ALBUM, buildAlbum, rec } from '../album/build.js';
 import { Wallet, calcCoins, ownedCount, showCoins, walletSave } from '../shop/ui.js';
-import { recordRace } from '../core/stats.js';
+import { Stats, recordRace } from '../core/stats.js';
+import { unlockedBetween } from '../core/unlocks.js';
 
 let race=null,rRAF=0,lastTs=0,RK=1,LW=400,LH=800;
 const rcv=$('#raceCv'),rctx=rcv.getContext('2d'),keys={};
@@ -160,8 +161,9 @@ function finishRace(){
   $('#resRank').textContent=`מקום ${pos}`;$('#resTitle').textContent=titles[pos-1]||titles[5];$('#resTime').textContent=`זמן: ${fmt(P.finishTime,true)}`;
   const victims=S.people+S.kids+S.seniors+S.dogs+S.cats+S.pigeons;
   const score=S.people*10+S.kids*15+S.seniors*12+(S.dogs+S.cats+S.pigeons)*6+S.mangal*25+S.acts*15+S.property*5+S.trees*3+S.bumps*6+S.curses*2+Math.max(0,7-pos)*20;
-  {const rc=recordRace({score,pos,time:P.finished?P.finishTime:0,victims}),badges=[];
+  {const before=Stats.career,rc=recordRace({score,pos,time:P.finished?P.finishTime:0,victims}),badges=[];
     if(rc.newScore)badges.push('🏆 שיא נקודות חדש!');if(rc.newTime)badges.push('⏱️ הזמן הכי מהיר שלך!');
+    const opened=unlockedBetween(before,Stats.career);opened.slice(0,3).forEach(x=>badges.push(`🔓 פתחת: ${x.label}`));if(opened.length>3)badges.push(`🔓 ועוד ${opened.length-3} פריטים`);
     const el=$('#resRec');el.innerHTML=badges.map(b=>`<span>${b}</span>`).join('');el.hidden=!badges.length;}
   const items=[['🧍','אנשים שדרסת',S.people],['🧒','ילדים',S.kids],['👴','פנסיונרים',S.seniors],['🐕','כלבים',S.dogs],['🐈','חתולים',S.cats],['🐦','יונים',S.pigeons],['🍖','מנגלים שהפכת',S.mangal],['🎯','פעילויות שהרסת',S.acts],['🗑️','רכוש ציבורי',S.property],['🌳','עצים שנכנסת בהם',S.trees],['🛴','נהוראים שדחפת',S.bumps],['🤬','קללות שחטפת',S.curses],['🌱','שניות על הדשא',Math.round(S.grass)]];
   $('#dmg').innerHTML=`<div class="big"><b>${score}</b><span>נקודות ערסיות</span></div>`+items.map(([i,l,v])=>`<div><b>${v}</b><span>${i} ${l}</span></div>`).join('');

@@ -22,10 +22,11 @@ button{cursor:pointer;border:0;background:none}
 #title .btn{width:min(88vw,340px)}
 .best{font-size:15px;opacity:.9;max-width:34ch}
 .best b{color:var(--gold);font-weight:400;direction:ltr;unicode-bidi:isolate}
-#devBtn{position:absolute;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:3;background:rgba(26,11,41,.7);border:2px dashed rgba(255,244,220,.4);padding:6px 12px;border-radius:999px;font-size:13px}
+#devBtn,#devPts{position:absolute;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:3;background:rgba(26,11,41,.7);border:2px dashed rgba(255,244,220,.4);padding:6px 12px;border-radius:999px;font-size:13px}
 .res-rec{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .res-rec span{background:var(--pink);color:#fff;border-radius:999px;padding:4px 12px;font-size:14px}
-#devBtn[hidden],.best[hidden],.res-rec[hidden]{display:none}
+#devPts{top:calc(50px + env(safe-area-inset-top))}
+#devBtn[hidden],#devPts[hidden],.best[hidden],.res-rec[hidden]{display:none}
 
 #garage{flex-direction:column;height:100dvh}
 .steps{display:flex;gap:6px;padding:calc(8px + env(safe-area-inset-top)) 12px 4px}
@@ -60,6 +61,13 @@ button{cursor:pointer;border:0;background:none}
 .opt.stk canvas{width:100px;height:38px}
 .opt.stk{position:relative;padding-top:12px}
 .opt.stk em{position:absolute;top:4px;left:6px;font-style:normal;background:var(--gold);color:var(--ink);border-radius:50%;width:20px;height:20px;font-size:12px;line-height:20px}
+.opt.lk{position:relative}
+.opt .rar{position:absolute;top:4px;right:4px;font-style:normal;font-size:10px;line-height:1;padding:3px 6px;border-radius:99px;background:var(--rc);color:var(--ink)}
+.opt.locked canvas{filter:grayscale(.85) brightness(.55)}
+.opt.locked>span{opacity:.6}
+.opt .lock{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-style:normal;font-size:12px;white-space:nowrap;background:rgba(10,4,20,.82);color:var(--cream);border-radius:99px;padding:3px 8px;pointer-events:none}
+.opt .lock b{font-weight:400;color:var(--gold);direction:ltr;unicode-bidi:isolate}
+.vcard.locked .vinfo{opacity:.6}
 .note{grid-column:1/-1;font-size:14px;opacity:.8;text-align:right}
 .nav{display:flex;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--club2)}
 .nav .btn{flex:1}.nav .btn.ghost{flex:0 0 auto}

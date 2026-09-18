@@ -11,7 +11,9 @@ import { state, vColor } from '../core/state.js';
 import { startRace } from '../race/engine.js';
 import { Music } from '../music/engine.js';
 import { setStage } from '../music/songs.js';
-import { drawTrophies } from '../shop/ui.js';
+import { drawTrophies, toast } from '../shop/ui.js';
+import { Stats } from '../core/stats.js';
+import { isOpen, rarityOf } from '../core/unlocks.js';
 
 // ================= COMPOSITION =================
 function stageBg(c,w,h,gy){
@@ -51,6 +53,10 @@ function previewPart(cv,part,val){
   const cam={hair:[-226,.55],beard:[-214,.62],cap:[-236,.5],acc:[-214,.62],chain:[-150,.62],shirt:[-128,.4],pants:[-50,.44],shoes:[-12,.7]}[part];
   c.save();c.translate(w/2,h/2-cam[0]*cam[1]*k);c.scale(cam[1]*k,cam[1]*k);drawNeho(c,L,0);c.restore();
 }
+// rarity chip for items that unlock with career points, plus a padlock with the price while still locked
+function lockChips(req,open){if(!req)return '';const r=rarityOf(req);
+  return `<i class="rar" style="--rc:${r.col}">${r.name}</i>${open?'':`<i class="lock">🔒 <b>${req.toLocaleString('he-IL')}</b></i>`}`;}
+function lockedToast(label,req){toast(`${label} נפתח ב-${req.toLocaleString('he-IL')} נקודות קריירה. יש לך ${Stats.career.toLocaleString('he-IL')}. יאללה למירוצים!`);}
 function renderPanel(){
   if(typeof Music!=='undefined'&&Music.on&&Music.target>=3)setStage(step===0?3:4);
   document.querySelectorAll('.step').forEach(b=>{const s=+b.dataset.s;b.classList.toggle('on',s===step);b.classList.toggle('done',s<step);});
@@ -61,15 +67,15 @@ function renderPanel(){
     tabs.style.display='';
     PARTS.forEach(p=>mkTab(p.label,p.id===charTab,()=>{charTab=p.id;renderPanel();}));
     const part=PARTS.find(p=>p.id===charTab);
-    part.items.forEach(([id,label])=>{const b=document.createElement('button');b.className='opt'+(state.look[part.id]===id?' on':'');b.innerHTML=`<canvas></canvas><span>${label}</span>`;
-      b.onclick=()=>{state.look[part.id]=id;pop=1;renderPanel();};opts.appendChild(b);previewPart(b.querySelector('canvas'),part.id,id);});
+    part.items.forEach(([id,label,m])=>{const b=document.createElement('button'),req=m&&m.req,open=isOpen(req);b.className='opt'+(state.look[part.id]===id?' on':'')+(req?' lk':'')+(open?'':' locked');b.innerHTML=`<canvas></canvas><span>${label}</span>${lockChips(req,open)}`;
+      b.onclick=()=>{if(!open){lockedToast(label,req);return;}state.look[part.id]=id;pop=1;renderPanel();};opts.appendChild(b);previewPart(b.querySelector('canvas'),part.id,id);});
   }else if(step===1){
     tabs.style.display='none';opts.classList.add('cards');
     const VTAG={scooter:'הכי מהיר',bike:'הכי מאוזן',atv:'טנק של פארק'};
-    Object.values(VEH).forEach(v=>{const b=document.createElement('button'),sel=state.vid===v.id;b.className='opt vcard'+(sel?' on':'');
+    Object.values(VEH).forEach(v=>{const b=document.createElement('button'),sel=state.vid===v.id,open=isOpen(v.req);b.className='opt vcard'+(sel?' on':'')+(open?'':' locked');
       const bars=['מהירות','תאוצה','שליטה','עמידות'].map((n,i)=>`<div class="stat"><i>${n}</i><span class="bar">${[0,1,2,3,4].map(k=>`<u class="${k<v.st[i]?'f':''}"></u>`).join('')}</span></div>`).join('');
-      b.innerHTML=`<div class="vvis"><canvas></canvas><span class="vtag">${VTAG[v.id]}</span></div><div class="vinfo"><h3>${v.name}</h3><p>${v.blurb}</p>${bars}</div>`;
-      b.onclick=()=>{if(state.vid!==v.id){state.vid=v.id;state.color=null;state.stickers=state.stickers.slice(0,SLOTS[v.id].length);}pop=1;renderPanel();};
+      b.innerHTML=`<div class="vvis"><canvas></canvas>${VTAG[v.id]?`<span class="vtag">${VTAG[v.id]}</span>`:''}${lockChips(v.req,open)}</div><div class="vinfo"><h3>${v.name}</h3><p>${v.blurb}</p>${bars}</div>`;
+      b.onclick=()=>{if(!open){lockedToast(v.name,v.req);return;}if(state.vid!==v.id){state.vid=v.id;state.color=null;state.stickers=state.stickers.slice(0,SLOTS[v.id].length);}pop=1;renderPanel();};
       opts.appendChild(b);const{c,w,h}=fitCv(b.querySelector('canvas')),col=sel?vColor():v.color;
       const g=c.createRadialGradient(w/2,h*.62,4,w/2,h*.62,w*.7);g.addColorStop(0,col+'5A');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,w,h);
       ell(c,w/2,h-7,w*.44,5,'rgba(255,200,61,.2)');c.save();c.translate(w/2,h-6);const sc=Math.min(w/300,h/218);c.scale(sc,sc);drawVehicleSide(c,v.id,col,sel?state.wheels:'std',sel?state.stickers:[]);c.restore();});

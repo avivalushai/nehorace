@@ -19,7 +19,8 @@ import './album/build.js';
 import './album/ui.js';
 import './shop/items.js';
 import { walletLoad } from './shop/ui.js';
-import { Stats } from './core/stats.js';
+import { Stats, devAddCareer } from './core/stats.js';
+import { nextUnlock } from './core/unlocks.js';
 import { devQuickRace, fmt } from './race/engine.js';
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title'){renderBest();startTitle();}}
@@ -40,8 +41,11 @@ $('#startBtn').onclick=()=>{takeName();setStep(0);show('garage');};
 function renderBest(){const el=$('#bestLine');if(!Stats.races){el.hidden=true;return;}
   const num=v=>`<b>${v}</b>`,parts=[`השיא שלך: ${num(Stats.bestScore.toLocaleString('he-IL'))} נקודות`,Stats.races===1?'מירוץ אחד':`${num(Stats.races)} מירוצים`];
   if(Stats.wins)parts.push(Stats.wins===1?'ניצחון אחד':`${num(Stats.wins)} ניצחונות`);if(Stats.bestTime)parts.push(`הכי מהיר: ${num(fmt(Stats.bestTime,true))}`);
-  el.innerHTML=parts.join(' · ');el.hidden=false;}
-if(new URLSearchParams(location.search).has('dev')){$('#devBtn').hidden=false;$('#devBtn').onclick=()=>{takeName();devQuickRace();};}
+  const nx=nextUnlock();let line=parts.join(' · ')+`<br>🔓 ${num(Stats.career.toLocaleString('he-IL'))} נקודות קריירה`;
+  if(nx)line+=` · הבא: ${nx.label} (עוד ${num((nx.req-Stats.career).toLocaleString('he-IL'))})`;
+  el.innerHTML=line;el.hidden=false;}
+if(new URLSearchParams(location.search).has('dev')){$('#devBtn').hidden=false;$('#devBtn').onclick=()=>{takeName();devQuickRace();};
+  $('#devPts').hidden=false;$('#devPts').onclick=()=>{devAddCareer(5000);renderBest();};}
 walletLoad();
 
 renderBest();

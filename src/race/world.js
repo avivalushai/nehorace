@@ -13,7 +13,7 @@ let pid=0;
 function resetPid(){pid=0;}
 const HAIRC=['#1B120C','#5A3A1C','#C9A15A','#2B2B2B','#8B3A1A'];
 
-function randLook(){const L={name:''};PARTS.forEach(p=>{L[p.id]=pick(p.items)[0];});L.dog=Math.random()<.2?pick(['pitbull','pom']):'none';return L;}
+function randLook(){const L={name:''};PARTS.forEach(p=>{L[p.id]=pick(p.items.filter(it=>!it[2]||it[2].req<12000))[0];});L.dog=Math.random()<.2?pick(['pitbull','pom']):'none';return L;}
 function makeRacer(o){const V=VEH[o.vid];return Object.assign({isRacer:true,veh:V,d:0,x:0,speed:0,top:V.top,targetX:0,stun:0,turboT:0,sayCd:0,lean:0,knocks:0,finished:false,finishTime:0,bumpCd:0,solidCd:0,offset:0,offT:0,aiT:rand(6,12),careless:rand(.3,.62),ahead:false},o);}
 function makePed(type,d,x){const p={id:pid++,type,d,x,vx:0,vd:0,r:PT[type].r,m:PT[type].m,cat:PT[type].cat,turnT:0,down:false,ghost:0,nearCd:0,sayCd:0,rot:0,ph:Math.random()*6,shirt:pick(SHIRTC),hair:pick(HAIRC),fur:pick(['#8B5A2B','#D9A66B','#F2F2F2','#333333']),balloon:type==='kid'&&Math.random()<.5?pick(['#FF3D8B','#FFC83D','#3DA5FF']):null};
   if(type==='jogger'){p.vd=-rand(80,115);p.shirt=pick(['#C6FF3D','#FF3D8B','#3DF5FF']);}
