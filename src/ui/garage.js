@@ -21,6 +21,7 @@ function stageBg(c,w,h,gy){
 }
 function drawComposition(c,w,h,o){
   const t=o.t||0,gy=h*.93,pop=1+.06*(o.pop||0),breathe=1+Math.sin(t*2.2)*.008;
+  c.clearRect(0,0,w,h); // canvases are redrawn without resizing; clear so the partly covered edge column doesn't darken with every redraw
   stageBg(c,w,h,gy);if(o.trophies)drawTrophies(c,w,h,gy);
   const L=o.look,dog=L.dog&&L.dog!=='none';
   if(o.mode==='char'){

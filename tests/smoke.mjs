@@ -6,7 +6,9 @@
 //   node tests/smoke.mjs --quick    stops after the first seconds of the race (~40 s)
 //   node tests/smoke.mjs --update   rewrite tests/baseline/ after an intentional visual change
 //
-// Starts its own static server. Screenshots go to tests/output/.
+//   SITE=<url> node tests/smoke.mjs --quick   same checks against the live site
+//
+// Starts its own static server (unless SITE is set). Screenshots go to tests/output/.
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -25,8 +27,9 @@ fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 if (update) { fs.rmSync(BASE, { recursive: true, force: true }); fs.mkdirSync(BASE, { recursive: true }); }
 
-const server = spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
-const URL = `http://127.0.0.1:${PORT}/index.html`;
+// SITE=https://avivalushai.github.io/nehorace/ runs against the live site instead of a local server
+const server = process.env.SITE ? null : spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
+const URL = process.env.SITE || `http://127.0.0.1:${PORT}/index.html`;
 for (let i = 0; i < 50; i++) { try { if ((await fetch(URL)).ok) break; } catch {} await new Promise(r => setTimeout(r, 100)); }
 
 const errors = [], diffs = [], hscroll = [];
@@ -234,7 +237,7 @@ try {
   errors.push(`[test stopped] ${e.message.split('\n')[0]}`);
 } finally {
   await browser.close();
-  server.kill();
+  server?.kill();
 }
 
 const report = { errors, diffs, hscroll };
