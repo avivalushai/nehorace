@@ -20,6 +20,12 @@ button{cursor:pointer;border:0;background:none}
 .namefield input{background:rgba(0,0,0,.25);border:2px solid rgba(255,244,220,.25);border-radius:14px;padding:11px 14px;font-size:20px;-webkit-user-select:text;user-select:text}
 .namefield input:focus{border-color:var(--gold);outline:none}
 #title .btn{width:min(88vw,340px)}
+.best{font-size:15px;opacity:.9;max-width:34ch}
+.best b{color:var(--gold);font-weight:400;direction:ltr;unicode-bidi:isolate}
+#devBtn{position:absolute;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:3;background:rgba(26,11,41,.7);border:2px dashed rgba(255,244,220,.4);padding:6px 12px;border-radius:999px;font-size:13px}
+.res-rec{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.res-rec span{background:var(--pink);color:#fff;border-radius:999px;padding:4px 12px;font-size:14px}
+#devBtn[hidden],.best[hidden],.res-rec[hidden]{display:none}
 
 #garage{flex-direction:column;height:100dvh}
 .steps{display:flex;gap:6px;padding:calc(8px + env(safe-area-inset-top)) 12px 4px}
@@ -204,11 +210,12 @@ button{cursor:pointer;border:0;background:none}
 /* ================= DESKTOP (860px and up). Phones never reach this block ================= */
 @media (min-width:860px){
  /* title: text and form on the right, big composition on the left */
- #title.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);grid-template-rows:1fr auto auto auto auto 1fr;column-gap:4vw;row-gap:16px;padding:32px 5vw}
+ #title.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);grid-template-rows:1fr auto auto auto auto auto 1fr;column-gap:4vw;row-gap:16px;padding:32px 5vw}
  #title .logo{grid-column:1;grid-row:2;font-size:clamp(110px,11vw,190px)}
  #title .tag{grid-column:1;grid-row:3;font-size:19px}
- #title .namefield{grid-column:1;grid-row:4}
- #title .btn{grid-column:1;grid-row:5}
+ #title .best{grid-column:1;grid-row:4;font-size:17px}
+ #title .namefield{grid-column:1;grid-row:5}
+ #title .btn{grid-column:1;grid-row:6}
  #titleCv{grid-column:2;grid-row:1/-1;width:100%;height:min(76vh,680px);border-radius:28px}
 
  /* garage: wider panel, bigger previews */

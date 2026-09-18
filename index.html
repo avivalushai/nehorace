@@ -35,8 +35,10 @@
 <body>
 
 <section id="title" class="screen on">
+  <button id="devBtn" hidden>⚡ קיצור לתוצאות (בדיקות)</button>
   <h1 class="logo">NehoRace</h1>
   <p class="tag">המירוץ של הנהוראים בפארק. בונים נהוראי, בוחרים כלי, ודורסים את הדרך לניצחון.</p>
+  <p class="best" id="bestLine" hidden></p>
   <canvas id="titleCv"></canvas>
   <div class="namefield">
     <label for="nameIn">איך קוראים לנהוראי שלך?</label>
@@ -70,7 +72,7 @@
 <section id="results" class="screen">
   <div class="res">
     <div class="res-head">
-      <div><p class="res-rank" id="resRank"></p><p class="res-title" id="resTitle"></p><p class="res-time" id="resTime"></p></div>
+      <div><p class="res-rank" id="resRank"></p><p class="res-title" id="resTitle"></p><p class="res-time" id="resTime"></p><p class="res-rec" id="resRec" hidden></p></div>
       <canvas id="resCv"></canvas>
     </div>
     <div class="coins"><div class="coins-head"><span class="coin"></span><div><b id="coinsWon">+0</b><small>מטבעות מהמירוץ</small></div><div class="wallet">בארנק<br><b id="walletNow">0</b></div></div><ul class="coin-rows" id="coinRows"></ul><button class="btn" id="shopBtn">לחנות של הפארק</button></div>

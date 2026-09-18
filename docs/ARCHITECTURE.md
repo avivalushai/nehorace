@@ -13,6 +13,7 @@ src/core/util.js       # צבעים ופונטים (INK, GOLD, FONT, DISP...), r
 src/core/draw.js       # R, ln, poly, rr, circ, ell, shade, star, fitCv
 src/core/catalog.js    # PARTS, PANTS, SHIRTS, SHOES, VEH, COLORS, WHEELS, STICKERS, SLOTS
 src/core/state.js      # state (הבחירות של השחקן), vColor
+src/core/stats.js      # Stats: שיאים אישיים (מירוצים, ניצחונות, שיא נקודות, זמן הכי מהיר), נשמר ב-localStorage
 src/art/neho.js        # drawNeho, hairFront, drawCap, drawChain, drawNehoBack
 src/art/dog.js         # drawDog
 src/art/vehicles.js    # drawVehicleSide, drawVehicleFront, drawVehicleRear, drawWheel
@@ -24,7 +25,7 @@ src/race/world.js      # PW, RACE_LEN, cx, genWorld, makePed, makeRacer, newDir,
 src/race/engine.js     # startRace, update, knock, hitStatic, say, שליטה (גרירה, מקשים, טורבו), finishRace, מסך תוצאות
 src/race/render.js     # render, drawRacerTop, drawPedTop, drawStatic, drawAct, drawBubble
 src/music/engine.js    # musicInit, mStep, mTick, musicStart, musicStop, toggleMute
-src/music/songs.js     # שירים של המשתמש, setStage, playUser, garageMusic
+src/music/songs.js     # מוזיקה לכל שלב: setStage, playUser, garageMusic (מוכן לשירים מורשים שיצורפו למשחק)
 src/album/scenes.js    # כל פונקציות scene*, SKIES, sky, applyFx, drawPhoto
 src/album/build.js     # rec, buildAlbum, capFor, כיתובים וזוויות צילום
 src/album/ui.js        # openAlbum, openLB, שמירת תמונה

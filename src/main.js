@@ -19,8 +19,10 @@ import './album/build.js';
 import './album/ui.js';
 import './shop/items.js';
 import { walletLoad } from './shop/ui.js';
+import { Stats } from './core/stats.js';
+import { devQuickRace, fmt } from './race/engine.js';
 
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title')startTitle();}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title'){renderBest();startTitle();}}
 // on the title screen the Nehorai idles: steps in place, drifts along the deck, swings his arms and waves now and then.
 // Static (t=0, no pose) when the player prefers reduced motion
 let titleAnim=false,titleT0=0,titleRAF=0;
@@ -32,9 +34,17 @@ function startTitle(){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches){titleAnim=false;drawTitle();return;}
   if(!titleAnim){titleAnim=true;titleT0=performance.now();}
   cancelAnimationFrame(titleRAF);const f=()=>{if(!$('#title').classList.contains('on')){titleAnim=false;return;}drawTitle();titleRAF=requestAnimationFrame(f);};f();}
-$('#startBtn').onclick=()=>{state.name=($('#nameIn').value.trim()||'נהוראי').slice(0,10);state.look.name=state.name;setStep(0);show('garage');};
+const takeName=()=>{state.name=($('#nameIn').value.trim()||'נהוראי').slice(0,10);state.look.name=state.name;};
+$('#startBtn').onclick=()=>{takeName();setStep(0);show('garage');};
+// personal records line on the title screen (hidden until the first race). Numbers are isolated so RTL doesn't flip them
+function renderBest(){const el=$('#bestLine');if(!Stats.races){el.hidden=true;return;}
+  const num=v=>`<b>${v}</b>`,parts=[`השיא שלך: ${num(Stats.bestScore.toLocaleString('he-IL'))} נקודות`,Stats.races===1?'מירוץ אחד':`${num(Stats.races)} מירוצים`];
+  if(Stats.wins)parts.push(Stats.wins===1?'ניצחון אחד':`${num(Stats.wins)} ניצחונות`);if(Stats.bestTime)parts.push(`הכי מהיר: ${num(fmt(Stats.bestTime,true))}`);
+  el.innerHTML=parts.join(' · ');el.hidden=false;}
+if(new URLSearchParams(location.search).has('dev')){$('#devBtn').hidden=false;$('#devBtn').onclick=()=>{takeName();devQuickRace();};}
 walletLoad();
 
+renderBest();
 startTitle();
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{drawTitle();if($('#garage').classList.contains('on'))renderPanel();});
 

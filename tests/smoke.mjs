@@ -227,6 +227,36 @@ try {
     expect(await page.locator('.item.owned').count() === 0, `bad data ${raw}: items shown as owned`);
   }
 
+  // ---- ?dev shortcut and personal records ----
+  const devUrl = URL + (URL.includes('?') ? '&' : '?') + 'dev';
+  const stats = () => page.evaluate(() => JSON.parse(localStorage.getItem('nehorace-stats') || 'null'));
+  const expectR = (ok, msg) => { if (!ok) errors.push(`[records] ${msg}`); };
+  await page.goto(devUrl, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.evaluate(() => localStorage.removeItem('nehorace-stats'));
+  await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
+  expectR(await page.locator('#bestLine').isHidden(), 'best line visible before any race');
+  await click('#devBtn');
+  await page.waitForSelector('#results.on', { timeout: 30000 });
+  await shot('dev-results');
+  const s1 = await stats();
+  expectR(s1?.races === 1 && s1.bestScore > 0 && s1.bestTime > 0, `after one race: ${JSON.stringify(s1)}`);
+  expectR(await page.locator('#resRec').isHidden(), 'first race should not show a "new record" badge');
+  await click('#garageBtn'); await click('#backBtn');
+  const best = (await page.locator('#bestLine').textContent()) || '';
+  expectR(await page.locator('#bestLine').isVisible() && best.includes('מירוץ אחד') && best.includes(String(s1?.bestScore)), `title best line: "${best}"`);
+  await shot('title-with-best');
+  // a worse previous record must be beaten and announced
+  await page.evaluate(() => localStorage.setItem('nehorace-stats', JSON.stringify({ races: 3, wins: 0, podiums: 0, bestScore: 1, bestTime: 9999, victims: 0 })));
+  await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
+  await click('#devBtn');
+  await page.waitForSelector('#results.on', { timeout: 30000 });
+  const rec = (await page.locator('#resRec').textContent()) || '';
+  expectR(rec.includes('שיא נקודות חדש') && rec.includes('הכי מהיר'), `new record badge: "${rec}"`);
+  expectR((await stats())?.races === 4, `races after second run: ${JSON.stringify(await stats())}`);
+  await shot('dev-results-new-record');
+  await page.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
+  expectR(await page.locator('#devBtn').isHidden(), 'dev button visible without ?dev');
+
   // ---- desktop (1440x900): one screen at a time, every step clickable ----
   const dctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const dp = await dctx.newPage();
