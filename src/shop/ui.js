@@ -5,8 +5,18 @@ import { SHOP, SHOP_TABS, drawItem, tierOf } from './items.js';
 
 // ================= COINS + SHOP =================
 const Wallet={coins:0,inv:{}};
-async function walletLoad(){try{if(window.storage){const r=await window.storage.get('nehorace-wallet',false);if(r&&r.value){const o=JSON.parse(r.value);Wallet.coins=o.coins||0;Wallet.inv=o.inv||{};}}}catch(e){}updWalletUI();}
-async function walletSave(){try{if(window.storage)await window.storage.set('nehorace-wallet',JSON.stringify({coins:Wallet.coins,inv:Wallet.inv}),false);}catch(e){}}
+// saved in localStorage; window.storage (claude.ai artifacts only) is a fallback. storage can be blocked (private mode), so every access is guarded
+const WALLET_KEY='nehorace-wallet';
+function walletApply(raw){if(!raw)return false;const o=JSON.parse(raw);if(!o||typeof o!=='object')return false;
+  Wallet.coins=Number.isFinite(o.coins)&&o.coins>0?Math.floor(o.coins):0;Wallet.inv={};
+  if(o.inv&&typeof o.inv==='object')for(const[id,n]of Object.entries(o.inv))if(Number.isFinite(n)&&n>0)Wallet.inv[id]=Math.floor(n);return true;}
+async function walletLoad(){
+  let ok=false;try{ok=walletApply(localStorage.getItem(WALLET_KEY));}catch(e){}
+  if(!ok)try{if(window.storage){const r=await window.storage.get(WALLET_KEY,false);if(r&&walletApply(r.value))walletSave();}}catch(e){}
+  updWalletUI();}
+async function walletSave(){const data=JSON.stringify({coins:Wallet.coins,inv:Wallet.inv});
+  try{localStorage.setItem(WALLET_KEY,data);}catch(e){}
+  try{if(window.storage)await window.storage.set(WALLET_KEY,data,false);}catch(e){}}
 const PLACE_COINS=[300,200,150,100,70,50];
 function calcCoins(pos,S){S=S||{};const rows=[['🏁',`מקום ${pos} במירוץ`,PLACE_COINS[pos-1]||40]];const add=(ic,l,n,per)=>{if(n>0)rows.push([ic,`${n} ${l}`,n*per]);};
   add('🧍','אנשים שדרסת',S.people||0,15);add('🧒','ילדים',S.kids||0,20);add('👴','פנסיונרים',S.seniors||0,18);add('🐾','חיות',(S.dogs||0)+(S.cats||0)+(S.pigeons||0),8);

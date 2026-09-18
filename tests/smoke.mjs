@@ -42,6 +42,7 @@ try {
     Math.random = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   });
   const page = await ctx.newPage();
+  page.setDefaultTimeout(10000);
   page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`[console.${m.type()}] ${m.text()}`); });
   page.on('pageerror', e => errors.push(`[pageerror] ${e.message}`));
   page.on('requestfailed', r => { if (!r.url().includes('fonts.g')) errors.push(`[requestfailed] ${r.url()}`); });
@@ -162,7 +163,53 @@ try {
     await click('#backBtn');
     await shot('back-to-title');
   }
+  if (!quick) {
+    // coins won in the race must be saved
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('nehorace-wallet') || 'null'));
+    const shown = +(await page.locator('#walletNow').textContent()).replace(/\D/g, '');
+    if (!saved || saved.coins !== shown) errors.push(`[wallet] after race: saved ${JSON.stringify(saved)} but screen shows ${shown}`);
+  }
+
+  // ---- wallet persistence (fresh page, localStorage) ----
+  const wallet = () => page.evaluate(() => JSON.parse(localStorage.getItem('nehorace-wallet') || 'null'));
+  const shopCoins = async () => +(await page.locator('#shopCoins').textContent()).replace(/\D/g, '');
+  const toGarageShop = async () => {
+    await page.reload({ waitUntil: 'networkidle' });
+    await click('#startBtn');
+    await page.waitForSelector('#songsSheet.on'); await click('#songsClose');
+    await click('#gShopBtn');
+  };
+  const expect = (ok, msg) => { if (!ok) errors.push(`[wallet] ${msg}`); };
+  await page.evaluate(() => localStorage.setItem('nehorace-wallet', JSON.stringify({ coins: 1000, inv: { civic: 1 } })));
+  await toGarageShop();
+  expect(await shopCoins() === 1000, `restored coins: expected 1000, got ${await shopCoins()}`);
+  expect(await page.locator('.item.owned[data-id="civic"]').count() === 1, 'restored civic is not shown as owned');
+  await page.locator('.item[data-id="seeds"] .buy').click();
+  await page.locator('.item[data-id="redbull"] .buy').click();
+  await shot('wallet-bought');
+  await click('#shopClose');
+  await shot('wallet-trophy-in-garage');
+  await toGarageShop();
+  expect(await shopCoins() === 915, `after buying and reloading: expected 915, got ${await shopCoins()}`);
+  const w1 = await wallet();
+  expect(w1?.inv?.seeds === 1 && w1?.inv?.redbull === 1 && w1?.inv?.civic === 1, `inventory after reload: ${JSON.stringify(w1)}`);
+  // a red bull is used at the start of the race, and that must be saved too
+  await click('#shopClose');
+  await click('#nextBtn'); await click('#nextBtn'); await click('#nextBtn');
+  await page.waitForTimeout(500);
+  expect(!(await wallet())?.inv?.redbull, `red bull not consumed: ${JSON.stringify(await wallet())}`);
+  await click('#exitBtn');
+  // corrupted or hostile data must not break the game
+  for (const raw of ['{not json', '{"coins":"lots","inv":{"civic":-3,"x":"y"}}', 'null']) {
+    await page.evaluate(r => localStorage.setItem('nehorace-wallet', r), raw);
+    await toGarageShop();
+    expect(await shopCoins() === 0, `bad data ${raw}: expected 0 coins, got ${await shopCoins()}`);
+    expect(await page.locator('.item.owned').count() === 0, `bad data ${raw}: items shown as owned`);
+  }
+
   console.log(`${n} screenshots in tests/output/${update ? ', baseline updated' : ''}`);
+} catch (e) {
+  errors.push(`[test stopped] ${e.message.split('\n')[0]}`);
 } finally {
   await browser.close();
   server.kill();
