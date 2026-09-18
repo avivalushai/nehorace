@@ -51,23 +51,13 @@
     <button class="step" data-s="1">כלי</button>
     <button class="step" data-s="2">עיצוב הכלי</button>
   </nav>
-  <div class="stage"><canvas id="stageCv"></canvas><button id="gMuteBtn">🔊 מוזיקה</button><button id="songsBtn">🎵 השירים שלי</button><button id="gShopBtn">🛒 החנות</button><div class="plate"><b id="plateName"></b><span id="plateSub"></span></div></div>
+  <div class="stage"><canvas id="stageCv"></canvas><button id="gMuteBtn">🔊 מוזיקה</button><button id="gShopBtn">🛒 החנות</button><div class="plate"><b id="plateName"></b><span id="plateSub"></span></div></div>
   <div class="panel">
     <div class="tabs" id="tabs"></div>
     <div class="opts" id="opts"></div>
   </div>
   <div class="nav"><button class="btn ghost" id="backBtn">חזרה</button><button class="btn" id="nextBtn">המשך</button></div>
 </section>
-
-<div id="songsSheet" role="dialog" aria-modal="true" aria-labelledby="songsTitle">
-  <div class="sheet">
-    <h2 id="songsTitle">השירים שלך</h2>
-    <p>בוחרים קבצי שירים מהטלפון או מהמחשב, ולכל שלב אפשר שיר אחר. שלב שאין לו שיר משלו מקבל את השיר של כל המשחק.</p>
-    <div id="songRows"></div>
-    <label class="chk"><input type="checkbox" id="procChk">להשמיע את המוזיקה המובנית בשלבים שאין להם שיר</label>
-    <button class="btn" id="songsClose">סגירה</button>
-  </div>
-</div>
 
 <section id="race" class="screen">
   <canvas id="raceCv"></canvas>

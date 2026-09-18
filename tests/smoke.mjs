@@ -98,9 +98,6 @@ try {
   // ---- garage: character ----
   await page.fill('#nameIn', 'בדיקה');
   await click('#startBtn');
-  await page.waitForSelector('#songsSheet.on'); // opens by itself on the first visit
-  await shot('songs-auto-prompt', { compare: true });
-  await click('#songsClose');
   await shot('garage-char', { compare: true });
   const charTabs = await page.locator('#tabs .tab').count();
   for (let i = 0; i < charTabs; i++) {
@@ -110,9 +107,6 @@ try {
     await page.waitForTimeout(500);
     await shot(`char-tab${i}`, { compare: true });
   }
-  await click('#songsBtn');
-  await shot('songs-sheet', { compare: true });
-  await click('#songsClose');
   await click('#gShopBtn');
   await shot('shop-from-garage', { compare: true });
   await click('#shopClose');
@@ -203,7 +197,6 @@ try {
   const toGarageShop = async () => {
     await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
     await click('#startBtn');
-    await page.waitForSelector('#songsSheet.on'); await click('#songsClose');
     await click('#gShopBtn');
   };
   const expect = (ok, msg) => { if (!ok) errors.push(`[wallet] ${msg}`); };
@@ -250,7 +243,7 @@ try {
   };
   const dclick = sel => dp.locator(sel).first().click();
   if (await dstep('title', () => dp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 }), 'title')
-    && await dstep('garage', async () => { await dclick('#startBtn'); await dclick('#songsClose'); }, 'garage')
+    && await dstep('garage', () => dclick('#startBtn'), 'garage')
     && await dstep('vehicle', () => dclick('#nextBtn'), 'garage')
     && await dstep('race', async () => { await dclick('#nextBtn'); await dclick('#nextBtn'); await dp.waitForTimeout(4000); }, 'race'))
     await dstep('exit', () => dclick('#exitBtn'), 'garage');
