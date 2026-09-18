@@ -3,13 +3,14 @@ import { DISP, FONT, GOLD, GOLD2, HAIRDK, INK, PINK, SKIN, clamp, hash } from '.
 import { R, circ, ell, ln, poly, rr, shade, star } from '../core/draw.js';
 import { SHIRTS, STICKERS } from '../core/catalog.js';
 import { drawNeho, drawNehoBack } from '../art/neho.js';
-import { drawDog } from '../art/dog.js';
+import { drawDog, dogFur } from '../art/dog.js';
 import { drawVehicleFront, drawVehicleRear, drawVehicleSide, tube } from '../art/vehicles.js';
 import { drawSticker } from '../art/stickers.js';
 import { state, vColor } from '../core/state.js';
 import { HAIRC, SHIRTC } from '../race/world.js';
 import { fmt } from '../race/engine.js';
-import { drawAct, drawPedTop, drawRacerTop, drawStatic } from '../race/render.js';
+import { drawAct, drawPedTop, drawStatic } from '../race/render.js';
+import { drawRacerTop } from '../art/racer-top.js';
 import { ACT_NAME, HUMAN_T, VNAME } from './build.js';
 
 const SKIES=[
@@ -89,7 +90,7 @@ function phBubble(c,text,x,y,kind,w,h,avoid){
 }
 function speedLines(c,x0,x1,y0,y1,t){c.save();c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=3;c.lineCap='round';for(let i=0;i<8;i++){const y=y0+(y1-y0)*hash(i,3),len=40+hash(i,7)*70,x=x0+((t*520+hash(i,5)*400)%Math.max(1,x1-x0));ln(c,x,y,x+len,y);}c.restore();}
 function dust(c,x0,x1,y,t,r){for(let i=0;i<7;i++){const k=((t*.9+i/7)%1),x=x0+(x1-x0)*((i/7+t*.35)%1);c.fillStyle=`rgba(217,196,154,${.7*(1-k)})`;c.beginPath();c.arc(x,y-k*r*1.5,r*(.5+k),0,7);c.fill();}}
-const LIFT={scooter:44,bike:62,atv:58};
+const LIFT={scooter:44,bike:62,atv:58,tmax:52,bigpit:118,wings:30};
 function riderSide(c,x,y,vs,t,o){
   c.save();c.translate(x,y);c.rotate(o.lean==null?-.05:o.lean);c.scale(vs,vs);
   c.save();c.translate(18,-(LIFT[o.vid]||44));c.scale(.8,.8);drawNeho(c,{...o.look,mood:o.mood},t);c.restore();
@@ -201,7 +202,7 @@ function sceneDrone(c,w,h,ph,t){
   if(ph.type==='pass'){c.save();c.translate(-22,40);drawRacerTop(c,{look:ph.opp.look,vid:ph.opp.vid,color:ph.opp.color,lean:.12,turboT:0},t);c.restore();}
   if(ph.type==='prop'){c.save();c.translate(-38,-46);if(ph.kind==='mangal')drawStatic(c,{type:'mangal',broken:true,bt:1,sitters:3,hue:'#D62839'},t,0);else if(ph.kind==='cart')drawStatic(c,{type:'cart',broken:true},t,0);else drawAct(c,{kind:ph.kind,broken:true,bt:1,seed:2,ph:0},t);c.restore();}
   if(ph.type==='tree'){c.save();c.translate(-6,-34);drawStatic(c,{type:'tree',r:24,hue:.2},t,1);c.restore();orbitStars(c,0,-8,10,t,3);}
-  if(state.look.dog!=='none'){c.save();c.translate(20,12);drawPedTop(c,{type:'dog',id:1,vx:0,vd:1,ph:t*12,fur:state.look.dog==='pom'?'#F7F2EA':'#8C7B6B'},t);c.restore();}
+  if(state.look.dog!=='none'){c.save();c.translate(20,12);drawPedTop(c,{type:'dog',id:1,vx:0,vd:1,ph:t*12,fur:dogFur(state.look.dog)},t);c.restore();}
   drawRacerTop(c,{look:state.look,vid:state.vid,color:vColor(),lean:Math.sin(t*3)*.08,turboT:ph.type==='turbo'?1:0},t);
   if(ph.type==='knock'){const k=(t%2.6)/2.6;c.save();c.translate(-12-k*26,-24-k*44);drawPedTop(c,{...ph.ped,id:3,vx:0,vd:0,ph:0,down:true,rot:t*7},t);c.restore();}
   c.restore();

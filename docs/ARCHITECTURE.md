@@ -7,17 +7,22 @@ index.html             # שלד המסכים, טוען את styles/app.css וא�
 styles/app.css         # כל ה-CSS
 manifest.webmanifest   # שם, אייקונים ומסך מלא ל"הוספה למסך הבית"
 assets/                # אייקונים ו-share.jpg, נוצרים מהקוד (לא לערוך ידנית)
+tools/catalog.html     # קטלוג: כל פריט מקדימה ומאחורה, כל כלי מכל הכיוונים
 tools/images.html      # דף תצוגה מקדימה שמצייר את האייקונים ואת תמונת השיתוף
 src/main.js            # נקודת כניסה: show (ניווט בין מסכים), drawTitle, כפתור הפתיחה, אתחול
 src/core/util.js       # צבעים ופונטים (INK, GOLD, FONT, DISP...), rand, pick, clamp, $, hash
 src/core/draw.js       # R, ln, poly, rr, circ, ell, shade, star, fitCv
 src/core/catalog.js    # PARTS, PANTS, SHIRTS, SHOES, VEH, COLORS, WHEELS, STICKERS, SLOTS
 src/core/state.js      # state (הבחירות של השחקן), vColor
+src/core/unlocks.js    # פתיחת פריטים לפי נקודות קריירה, דרגות נדירות, מה נפתח עכשיו ומה הבא
 src/core/stats.js      # Stats: שיאים אישיים (מירוצים, ניצחונות, שיא נקודות, זמן הכי מהיר), נשמר ב-localStorage
 src/art/neho.js        # drawNeho, hairFront, drawCap, drawChain, drawNehoBack
 src/art/dog.js         # drawDog
 src/art/vehicles.js    # drawVehicleSide, drawVehicleFront, drawVehicleRear, drawWheel
 src/art/stickers.js    # drawSticker, drawHamsa
+src/art/wardrobe.js    # הפריטים שנפתחים: תספורות, זקנים, כובעים, שרשראות, חולצות, מכנסיים, נעליים ואביזרים (hooks בתוך drawNeho)
+src/art/rides.js       # הכלים שנפתחים: טי-מקס, פיטבול ענק, כנפי השכינה, מכל הכיוונים
+src/art/racer-top.js   # drawRacerTop: רוכב וכלי במבט מלמעלה במירוץ
 src/art/brand.js       # drawIcon (פרצוף הנהוראי לאייקון), drawShareCard (תמונת התצוגה המקדימה לקישור)
 src/ui/garage.js       # renderPanel, previewPart, startStage, drawComposition, step + setStep
 src/race/texts.js      # TXT: כל הקללות והמשפטים, ACTS, ZONE_ACTS, OPP_NAMES
@@ -55,6 +60,17 @@ src/shop/ui.js         # Wallet, calcCoins, showCoins, renderShop, buyItem, toas
 - מערכת הצירים במירוץ: `d` זה מרחק קדימה, `x` זה סטייה לצדדים, ו-`cx(d)` מחזיר את מרכז השביל.
 - מיקומי המדבקות על כל כלי נמצאים ב-`SLOTS`. שינוי גיאומטריה של כלי מחייב עדכון שם.
 - כל טקסט חדש בממשק נכתב בעברית ונבדק בטלפון.
+
+## פריטים שנפתחים
+
+פריט בקטלוג הוא `[id,label]` (פתוח תמיד) או `[id,label,{req}]`, כאשר `req` הוא נקודות הקריירה שצריך (סכום הנקודות מכל המירוצים). כלים משתמשים ב-`VEH[id].req`. הדרגה (רגיל, שווה, נדיר, אפי, אגדי) נגזרת מ-`req` ב-`core/unlocks.js`.
+
+**הוספת פריט חדש:**
+1. מוסיפים אותו ל-`PARTS` ב-`core/catalog.js` עם `req`. חולצה, מכנסיים ונעליים צריכים גם רשומה ב-`SHIRTS`, `PANTS` או `SHOES`.
+2. מציירים אותו ב-`art/wardrobe.js`, בפונקציה של הקטגוריה (ולכלב ב-`drawDogX` ב-`art/dog.js`). לצייר גם מאחורה (`hairBackX`, `capBackX`) ומלמעלה (`topHeadX`) כשרלוונטי.
+3. בודקים ב-`tools/catalog.html` (http://localhost:8765/tools/catalog.html).
+
+**כלי חדש:** רשומה ב-`VEH` (סטטיסטיקות, `req`, ולפי הצורך `lift` לגובה הרוכב, `behind` כשהכלי מאחורי הרוכב, `noWheels`, `flies`, `turboLen`), מיקומי מדבקות ב-`SLOTS`, `LIFT` ב-`album/scenes.js`, וציור בכל הכיוונים ב-`art/rides.js`.
 
 ## אייקונים ותצוגה מקדימה לקישור
 

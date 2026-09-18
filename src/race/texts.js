@@ -41,6 +41,17 @@ TXT.act={
  guitar:["זה היה סולו יא בהמה!","שברת לי ת'מיתר!","עכשיו לא אגיע לאייל גולן!"],
 };
 TXT.actNear=["לאט יא מטורף!","יש פה משפחות יא בהמה!","סע על השביל יא אפס!","יאללה נהוראי, סע!","תביא אחי, תביא!","כוס אמ*ק איזה רעש"];
+// lines for the unlockable rides: pedestrians hit by them, and the player's turbo
+TXT.rideHit={
+ tmax:["עם טי-מקס בשביל הליכה?!","יא ערס עם קטנוע!","זה שביל, לא כביש החוף!","הרעש של הקטנוע הזה!"],
+ bigpit:["הכלב! הכלב!","מי מחזיק את המפלצת הזאת?!","הוא אמר לי שהוא לא נושך!","זה כלב או סוס?!","הוא אכל לי את הכריך!"],
+ wings:["מלאך דרס אותי!","ראיתי אור לבן!","זה נס או תאונה?!","הוא עף! הוא עף!","אמאלה, השמיים נפתחו!"],
+};
+TXT.rideTurbo={
+ tmax:["טי-מקס בפול גז!","תשמעו ת'אגזוז!","אין על היפני!"],
+ bigpit:["תביא, טייסון, תביא!","רוץ, מאמי, רוץ!","הווו!"],
+ wings:["עולים לשמיים!","כנפיים, יאללה!","מי עוצר אותי עכשיו?!"],
+};
 const ACTS={juggle:{col:12,people:1,cat:'people'},frisbee:{col:34,people:2,cat:'people'},sunbathe:{col:26,people:2,cat:'people'},football:{col:30,people:3,cat:'kids'},sheshbesh:{col:22,people:2,cat:'seniors'},nargila:{col:24,people:3,cat:'people'},yoga:{col:22,people:2,cat:'people'},guitar:{col:18,people:2,cat:'people'}};
 const ZONE_ACTS=[['frisbee','juggle','yoga','guitar','sunbathe'],['sheshbesh','nargila','guitar','football','sunbathe'],['football','sunbathe','frisbee','juggle','nargila','yoga']];
 const OPP_NAMES=['שון','אושר','מושיקו','ליאור','אלמוג','נתנאל','דודו','בר','עידן'];

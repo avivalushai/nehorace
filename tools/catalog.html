@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NehoRace: קטלוג פריטים</title>
+<link href="https://fonts.googleapis.com/css2?family=Karantina:wght@700&family=Secular+One&display=swap" rel="stylesheet">
+<style>
+body{margin:0;padding:20px;background:#1A0B29;color:#FFF4DC;font-family:'Secular One',Arial,sans-serif}
+h1{font-size:24px;font-weight:400;margin:0 0 4px}h2{font-size:20px;font-weight:400;color:#FFC83D;margin:26px 0 10px}
+.row{display:flex;flex-wrap:wrap;gap:12px}
+figure{margin:0;background:#2E1447;border-radius:14px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;border-top:3px solid var(--rc,#8FA3BF)}
+figcaption{text-align:center;line-height:1.2}figcaption small{display:block;opacity:.7;font-size:11px}
+canvas{display:block}
+</style>
+</head>
+<body>
+<h1>קטלוג הפריטים של NehoRace</h1>
+<p>כל פריט מקדימה ומאחורה, וכל כלי מכל הכיוונים. הקובץ מצייר עם אותן פונקציות של המשחק.</p>
+<div id="out"></div>
+<script type="module">
+import { PARTS, VEH } from '../src/core/catalog.js';
+import { drawNeho, drawNehoBack } from '../src/art/neho.js';
+import { drawDog } from '../src/art/dog.js';
+import { drawVehicleSide, drawVehicleFront, drawVehicleRear } from '../src/art/vehicles.js';
+import { drawRacerTop } from '../src/art/racer-top.js';
+import { rarityOf } from '../src/core/unlocks.js';
+const BASE={hair:'fade',beard:'stubble',cap:'none',chain:'cuban',shirt:'track',pants:'track',shoes:'white',dog:'none',acc:'none',name:'נהוראי'};
+const out=document.getElementById('out');
+const cv=(w,h)=>{const c=document.createElement('canvas');c.width=w*2;c.height=h*2;c.style.width=w+'px';c.style.height=h+'px';const x=c.getContext('2d');x.scale(2,2);return[c,x];};
+const bg=(x,w,h)=>{const g=x.createRadialGradient(w/2,h*.3,4,w/2,h*.5,w);g.addColorStop(0,'#6E2FA3');g.addColorStop(1,'#2A1242');x.fillStyle=g;x.fillRect(0,0,w,h);};
+const fig=(row,canvases,label,req)=>{const f=document.createElement('figure');if(req)f.style.setProperty('--rc',rarityOf(req).col);const r=document.createElement('div');r.style.display='flex';r.style.gap='4px';canvases.forEach(c=>r.append(c));
+  const cap=document.createElement('figcaption');cap.innerHTML=`${label}<small>${req?`${rarityOf(req).name} · ${req.toLocaleString('he-IL')} נק׳`:'פתוח'}</small>`;f.append(r,cap);row.append(f);};
+// head zoom for head items, full body for the rest
+const HEAD=['hair','beard','cap','acc'];
+for(const p of PARTS){
+  const h=document.createElement('h2');h.textContent=`${p.label} (${p.items.length})`;out.append(h);const row=document.createElement('div');row.className='row';out.append(row);
+  for(const [id,label,m] of p.items){
+    const L={...BASE,[p.id]:id};const list=[];
+    if(p.id==='dog'){const[c,x]=cv(150,110);bg(x,150,110);if(id!=='none'){x.save();x.translate(70,100);x.scale(.9,.9);drawDog(x,id,0);x.restore();}list.push(c);}
+    else if(HEAD.includes(p.id)){for(const back of[0,1]){const[c,x]=cv(100,110);bg(x,100,110);x.save();x.translate(50,228);x.scale(.8,.8);(back?drawNehoBack:drawNeho)(x,L,0);x.restore();list.push(c);}}
+    else{for(const back of[0,1]){const[c,x]=cv(84,150);bg(x,84,150);x.save();x.translate(42,146);x.scale(.5,.5);(back?drawNehoBack:drawNeho)(x,L,0);x.restore();list.push(c);}}
+    fig(row,list,label,m&&m.req);
+  }
+}
+const h=document.createElement('h2');h.textContent=`כלים (${Object.keys(VEH).length})`;out.append(h);const row=document.createElement('div');row.className='row';out.append(row);
+for(const v of Object.values(VEH)){
+  const list=[];
+  {const[c,x]=cv(220,150);bg(x,220,150);x.save();x.translate(110,146);x.scale(.44,.44);const lf=v.lift||0,rider=()=>{x.save();x.translate(18,-4-lf);x.scale(.8,.8);drawNeho(x,BASE,0);x.restore();},veh=()=>drawVehicleSide(x,v.id,v.color,'gold',['hamsa','nachman']);if(v.behind){veh();rider();}else{rider();veh();}x.restore();list.push(c);}
+  {const[c,x]=cv(110,150);bg(x,110,150);x.save();x.translate(55,145);x.scale(.5,.5);drawVehicleFront(x,v.id,v.color);x.restore();list.push(c);}
+  {const[c,x]=cv(110,150);bg(x,110,150);x.save();x.translate(55,145);x.scale(.5,.5);drawVehicleRear(x,v.id,v.color,'full',['hamsa']);x.restore();list.push(c);}
+  {const[c,x]=cv(70,150);x.fillStyle='#E8D6A6';x.fillRect(0,0,70,150);x.save();x.translate(35,75);x.scale(2,2);drawRacerTop(x,{look:BASE,vid:v.id,color:v.color,lean:0,turboT:0});x.restore();list.push(c);}
+  fig(row,list,v.name,v.req);
+}
+document.body.dataset.ready='1';
+</script>
+</body>
+</html>

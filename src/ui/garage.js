@@ -3,7 +3,7 @@ import { show } from '../main.js';
 import { $, FONT, INK } from '../core/util.js';
 import { ell, fitCv } from '../core/draw.js';
 import { COLORS, PARTS, SLOTS, STICKERS, VEH, WHEELS } from '../core/catalog.js';
-import { drawNeho } from '../art/neho.js';
+import { drawNeho, drawNehoBack } from '../art/neho.js';
 import { drawDog } from '../art/dog.js';
 import { drawVehicleSide, drawWheel } from '../art/vehicles.js';
 import { drawSticker } from '../art/stickers.js';
@@ -30,12 +30,17 @@ function drawComposition(c,w,h,o){
     const s=Math.min(h*.84/285,w*.9/(dog?290:160))*pop;
     const x0=w/2+(dog?40*s:0);
     if(dog){c.save();c.translate(x0-120*s,gy);c.scale(s*.95,s*.95);drawDog(c,L.dog,t);c.restore();}
-    c.save();c.translate(x0,gy);c.scale(s,s*breathe);drawNeho(c,L,t,o.pose);c.restore();
+    // with a back-of-the-head haircut the Nehorai turns around for 2 seconds every 6 to show it off
+    const turned=BACK_HAIR.has(L.hair)&&t%6>4;
+    c.save();c.translate(x0,gy);c.scale(s,s*breathe);(turned?drawNehoBack:drawNeho)(c,L,t,o.pose);c.restore();
   }else{
-    const vs=Math.min(w*.9/(dog?330:280),h*.86/232)*pop,cs=vs*.8;
+    // rides the rider stands on (lift) need more headroom; the original vehicles have lift 0
+    const lift=(VEH[o.vid]&&VEH[o.vid].lift)||0,vs=Math.min(w*.9/(dog?330:280),h*.86/Math.max(232,lift+232))*pop,cs=vs*.8;
     const x0=w/2+(dog?28*vs:0)+w*.05;
-    c.save();c.translate(x0+18*vs+(o.dx||0)*vs,gy-4*vs);c.scale(cs,cs*breathe);drawNeho(c,L,t,o.pose);c.restore();
-    c.save();c.translate(x0,gy);c.scale(vs,vs);drawVehicleSide(c,o.vid,o.color,o.wheels,o.stickers);c.restore();
+    const veh=()=>{c.save();c.translate(x0,gy);c.scale(vs,vs);drawVehicleSide(c,o.vid,o.color,o.wheels,o.stickers);c.restore();};
+    if(VEH[o.vid]&&VEH[o.vid].behind)veh(); // wings sit behind the rider
+    c.save();c.translate(x0+18*vs+(o.dx||0)*vs,gy-(4+lift)*vs);c.scale(cs,cs*breathe);drawNeho(c,L,t,o.pose);c.restore();
+    if(!(VEH[o.vid]&&VEH[o.vid].behind))veh();
     if(dog){c.save();c.translate(x0-165*vs,gy);c.scale(vs*.72,vs*.72);drawDog(c,L.dog,t);c.restore();}
   }
 }
@@ -46,12 +51,15 @@ function startStage(){cancelAnimationFrame(stageRAF);const cv=$('#stageCv');cons
   const f=now=>{const{c,w,h}=fitCv(cv);pop=Math.max(0,pop-.06);drawComposition(c,w,h,{trophies:true,mode:step===0?'char':'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:reduce?0:(now-t0)/1000,pop});stageRAF=requestAnimationFrame(f);};stageRAF=requestAnimationFrame(f);}
 function stopStage(){cancelAnimationFrame(stageRAF);}
 
+const BACK_HAIR=new Set(['eyal']); // haircuts whose point is the back of the head
 function previewPart(cv,part,val){
   const{c,w,h}=fitCv(cv);c.clearRect(0,0,w,h);const L={...state.look,[part]:val};
   const k=Math.min(w,h)/64; // previews are tuned for 64px boxes (phone); bigger boxes (desktop) scale up
   if(part==='dog'){if(val==='none'){c.fillStyle='rgba(255,244,220,.35)';c.font=`${30*k}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText('—',w/2,h/2);return;}c.save();c.translate(w/2-6*k,h*.84);c.scale(.62*k,.62*k);drawDog(c,val,0);c.restore();return;}
   const cam={hair:[-226,.55],beard:[-214,.62],cap:[-236,.5],acc:[-214,.62],chain:[-150,.62],shirt:[-128,.4],pants:[-50,.44],shoes:[-12,.7]}[part];
-  c.save();c.translate(w/2,h/2-cam[0]*cam[1]*k);c.scale(cam[1]*k,cam[1]*k);drawNeho(c,L,0);c.restore();
+  // hair shaved into the back of the head is previewed from behind
+  const back=part==='hair'&&BACK_HAIR.has(val);
+  c.save();c.translate(w/2,h/2-cam[0]*cam[1]*k);c.scale(cam[1]*k,cam[1]*k);(back?drawNehoBack:drawNeho)(c,L,0);c.restore();
 }
 // rarity chip for items that unlock with career points, plus a padlock with the price while still locked
 function lockChips(req,open){if(!req)return '';const r=rarityOf(req);
@@ -71,7 +79,7 @@ function renderPanel(){
       b.onclick=()=>{if(!open){lockedToast(label,req);return;}state.look[part.id]=id;pop=1;renderPanel();};opts.appendChild(b);previewPart(b.querySelector('canvas'),part.id,id);});
   }else if(step===1){
     tabs.style.display='none';opts.classList.add('cards');
-    const VTAG={scooter:'הכי מהיר',bike:'הכי מאוזן',atv:'טנק של פארק'};
+    const VTAG={scooter:'הכי מהיר',bike:'הכי מאוזן',atv:'טנק של פארק',tmax:'קטנוע',bigpit:'חי ונושם',wings:'עף'};
     Object.values(VEH).forEach(v=>{const b=document.createElement('button'),sel=state.vid===v.id,open=isOpen(v.req);b.className='opt vcard'+(sel?' on':'')+(open?'':' locked');
       const bars=['מהירות','תאוצה','שליטה','עמידות'].map((n,i)=>`<div class="stat"><i>${n}</i><span class="bar">${[0,1,2,3,4].map(k=>`<u class="${k<v.st[i]?'f':''}"></u>`).join('')}</span></div>`).join('');
       b.innerHTML=`<div class="vvis"><canvas></canvas>${VTAG[v.id]?`<span class="vtag">${VTAG[v.id]}</span>`:''}${lockChips(v.req,open)}</div><div class="vinfo"><h3>${v.name}</h3><p>${v.blurb}</p>${bars}</div>`;
@@ -81,12 +89,15 @@ function renderPanel(){
       ell(c,w/2,h-7,w*.44,5,'rgba(255,200,61,.2)');c.save();c.translate(w/2,h-6);const sc=Math.min(w/300,h/218);c.scale(sc,sc);drawVehicleSide(c,v.id,col,sel?state.wheels:'std',sel?state.stickers:[]);c.restore();});
   }else{
     tabs.style.display='';
-    [['color','צבע'],['wheels','גלגלים'],['stickers','מדבקות']].forEach(([id,l])=>mkTab(l,designTab===id,()=>{designTab=id;renderPanel();}));
+    // rides without wheels (the pitbull, the wings) have no wheels tab
+    const V=VEH[state.vid],dtabs=[['color','צבע'],['wheels','גלגלים'],['stickers','מדבקות']].filter(([id])=>!(id==='wheels'&&V.noWheels));
+    if(!dtabs.some(([id])=>id===designTab))designTab='color';
+    dtabs.forEach(([id,l])=>mkTab(l,designTab===id,()=>{designTab=id;renderPanel();}));
     if(designTab==='color'){opts.classList.add('swatches');COLORS.forEach(col=>{const b=document.createElement('button');b.className='sw'+(vColor()===col?' on':'');b.style.background=col;b.setAttribute('aria-label','צבע');b.onclick=()=>{state.color=col;pop=1;renderPanel();};opts.appendChild(b);});}
     if(designTab==='wheels'){WHEELS.forEach(([id,l])=>{const b=document.createElement('button');b.className='opt'+(state.wheels===id?' on':'');b.innerHTML=`<canvas></canvas><span>${l}</span>`;b.onclick=()=>{state.wheels=id;pop=1;renderPanel();};opts.appendChild(b);const{c,w,h}=fitCv(b.querySelector('canvas'));c.strokeStyle=INK;drawWheel(c,w/2,h/2,24*Math.min(w,h)/64,id,false,true);});}
     if(designTab==='stickers'){
-      const max=SLOTS[state.vid].length;const n=document.createElement('p');n.className='note';n.textContent=`נבחרו ${state.stickers.length} מתוך ${max}. לחיצה נוספת מורידה מדבקה`;opts.appendChild(n);
-      STICKERS.forEach(st=>{const idx=state.stickers.indexOf(st.id);const b=document.createElement('button');b.className='opt stk'+(idx>=0?' on':'');b.setAttribute('aria-label',st.text);b.innerHTML=`${idx>=0?`<em>${idx+1}</em>`:''}<canvas></canvas>`;
+      const max=SLOTS[state.vid].length;const n=document.createElement('p');n.className='note';n.textContent=max?`נבחרו ${state.stickers.length} מתוך ${max}. לחיצה נוספת מורידה מדבקה`:'על כנפי השכינה לא מדביקים מדבקות.';opts.appendChild(n);
+      if(max)STICKERS.forEach(st=>{const idx=state.stickers.indexOf(st.id);const b=document.createElement('button');b.className='opt stk'+(idx>=0?' on':'');b.setAttribute('aria-label',st.text);b.innerHTML=`${idx>=0?`<em>${idx+1}</em>`:''}<canvas></canvas>`;
         b.onclick=()=>{const i=state.stickers.indexOf(st.id);if(i>=0)state.stickers.splice(i,1);else{if(state.stickers.length>=max)state.stickers.shift();state.stickers.push(st.id);}pop=1;renderPanel();};
         opts.appendChild(b);const{c,w,h}=fitCv(b.querySelector('canvas'));c.strokeStyle=INK;drawSticker(c,st,w/2,h/2,w-8,h-6,0);});
     }

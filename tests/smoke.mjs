@@ -257,6 +257,45 @@ try {
   await page.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
   expectR(await page.locator('#devBtn').isHidden(), 'dev button visible without ?dev');
 
+  // ---- unlocks: locked items refuse, unlocked items work in a race and in every album photo ----
+  const expectU = (ok, msg) => { if (!ok) errors.push(`[unlocks] ${msg}`); };
+  await page.goto(devUrl, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.evaluate(() => localStorage.setItem('nehorace-stats', JSON.stringify({ races: 1, career: 0 })));
+  await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
+  await click('#startBtn');
+  expectU(await page.locator('#opts .opt.locked').count() >= 7, 'new haircuts should be locked with 0 career points');
+  await page.locator('#opts .opt.locked').first().click();
+  expectU(!(await page.locator('#opts .opt.on.locked').count()), 'a locked item got selected');
+  await shot('locked-hair');
+  // unlock everything and dress up in the rarest item of every category
+  await page.goto(devUrl, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.evaluate(() => localStorage.setItem('nehorace-stats', JSON.stringify({ races: 1, career: 99999 })));
+  for (const vid of [3, 4, 5]) { // T-Max, giant pitbull, wings
+    await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
+    await click('#startBtn');
+    expectU(!(await page.locator('#opts .opt.locked').count()), 'items still locked with 99,999 points');
+    const tabs = await page.locator('#tabs .tab').count();
+    for (let i = 0; i < tabs; i++) { await page.locator('#tabs .tab').nth(i).click(); await page.locator('#opts .opt').last().click(); }
+    if (vid === 3) await shot('rarest-look');
+    await click('#nextBtn');
+    await page.locator('#opts .vcard').nth(vid).click();
+    await click('#nextBtn');
+    await shot(`ride-${vid}-design`);
+    await click('#backBtn'); await click('#backBtn'); await click('#backBtn'); // back to the title, look kept
+    await click('#devBtn');
+    await page.waitForSelector('#results.on', { timeout: 30000 });
+    await shot(`ride-${vid}-results`);
+    await click('#giftBtn'); await page.waitForTimeout(400);
+    await page.locator('#albumGrid .pol').first().click();
+    const np = await page.locator('#albumGrid .pol').count();
+    for (let i = 1; i < np; i++) { await click('#lbNext'); await page.waitForTimeout(120); }
+    await click('#lbClose'); await click('#albumClose');
+  }
+  // the race itself with the wings, for a few seconds
+  await click('#againBtn'); await page.waitForTimeout(5000);
+  await shot('ride-wings-race');
+  await click('#exitBtn');
+
   // ---- desktop (1440x900): one screen at a time, every step clickable ----
   const dctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const dp = await dctx.newPage();

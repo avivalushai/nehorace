@@ -49,11 +49,12 @@ function knock(p,r,dx,dd){
   const len=Math.hypot(dx,dd)||1,k=.5+r.speed/450*(r.turboT>0?1.5:1);
   p.down=true;p.downT=2.2+Math.random();p.kvx=dx/len*120*k+rand(-40,40);p.kvd=r.speed*.5+dd/len*60;p.spin=rand(-9,9);p.byPlayer=!!r.isPlayer;
   r.speed*=1-r.veh.hitPen*p.m;r.stun=Math.max(r.stun,.3*p.m);r.knocks++;
-  if(r.isPlayer){race.stats[p.cat]++;race.shake=Math.max(race.shake,4*p.m+1.5);const tx=say(p,TXT.hit[p.type],true,true);rec({type:'knock',ped:{type:p.type,shirt:p.shirt,hair:p.hair,balloon:p.balloon,fur:p.fur},text:tx,speed:Math.round(sp0*.09)});if(Math.random()<.6)race.pending.push({t:.6,owner:r,list:TXT.pHit});}
+  if(r.isPlayer){race.stats[p.cat]++;race.shake=Math.max(race.shake,4*p.m+1.5);const rl=TXT.rideHit[r.vid],tx=say(p,rl&&(p.type==='adult'||p.type==='kid'||p.type==='senior'||p.type==='jogger')&&Math.random()<.5?rl:TXT.hit[p.type],true,true);rec({type:'knock',ped:{type:p.type,shirt:p.shirt,hair:p.hair,balloon:p.balloon,fur:p.fur},text:tx,speed:Math.round(sp0*.09)});if(Math.random()<.6)race.pending.push({t:.6,owner:r,list:TXT.pHit});}
   else if(Math.random()<.35)say(p,TXT.hit[p.type]);
 }
 function hitStatic(s,r,dx){
   const me=r.isPlayer,sp0=Math.round(r.speed*.09);
+  if(r.veh.flies&&FLY_OVER.has(s.type))return; // the wings fly over trees, lamps, benches and bins
   if(s.type==='tree'||s.type==='lamp'){
     if(r.solidCd>0)return;r.solidCd=.6;r.speed*=r.veh.id==='atv'?.55:.3;r.stun=.6;r.x+=(dx>0?-1:1)*10;if(me){r.targetX=r.x;race.stats.trees++;race.shake=9;const my=say(r,TXT.pTree,false,true);rec({type:'tree',my,speed:0});}return;}
   s.broken=true;s.bt=0;r.speed*=1-r.veh.hitPen*s.m;r.stun=Math.max(r.stun,.25);
@@ -144,7 +145,8 @@ rcv.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id||!race)re
 const endDrag=e=>{if(drag&&e.pointerId===drag.id)drag=null;};rcv.addEventListener('pointerup',endDrag);rcv.addEventListener('pointercancel',endDrag);
 addEventListener('keydown',e=>{if(!race)return;if(e.key==='ArrowLeft'||e.key==='a')keys.left=true;if(e.key==='ArrowRight'||e.key==='d')keys.right=true;if(e.key===' '){e.preventDefault();useTurbo();}if(e.key==='Escape')exitRace();});
 addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='a')keys.left=false;if(e.key==='ArrowRight'||e.key==='d')keys.right=false;});
-function useTurbo(){if(!race||race.phase!=='race'||race.tSeg<=0||race.player.turboT>0)return;race.tSeg--;race.player.turboT=2.3;updPips();const my=say(race.player,TXT.pTurbo,false,true);if(!race.moments.some(m=>m.type==='turbo'))rec({type:'turbo',my});}
+const FLY_OVER=new Set(['tree','lamp','bench','bin']);
+function useTurbo(){if(!race||race.phase!=='race'||race.tSeg<=0||race.player.turboT>0)return;race.tSeg--;race.player.turboT=race.player.veh.turboLen||2.3;updPips();const my=say(race.player,(TXT.rideTurbo[race.player.vid])||TXT.pTurbo,false,true);if(!race.moments.some(m=>m.type==='turbo'))rec({type:'turbo',my});}
 $('#turboBtn').addEventListener('pointerdown',e=>{e.preventDefault();useTurbo();});
 function exitRace(){cancelAnimationFrame(rRAF);musicStop();race=null;setStep(0);show('garage');}
 $('#exitBtn').onclick=exitRace;

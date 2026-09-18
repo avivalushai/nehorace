@@ -68,12 +68,14 @@ button{cursor:pointer;border:0;background:none}
 .opt .lock{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-style:normal;font-size:12px;white-space:nowrap;background:rgba(10,4,20,.82);color:var(--cream);border-radius:99px;padding:3px 8px;pointer-events:none}
 .opt .lock b{font-weight:400;color:var(--gold);direction:ltr;unicode-bidi:isolate}
 .vcard.locked .vinfo{opacity:.6}
+.vvis .rar{position:absolute;top:5px;left:5px;right:auto;font-style:normal;font-size:11px;line-height:1;padding:3px 7px;border-radius:99px;background:var(--rc);color:var(--ink)}
 .note{grid-column:1/-1;font-size:14px;opacity:.8;text-align:right}
 .nav{display:flex;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--club2)}
 .nav .btn{flex:1}.nav .btn.ghost{flex:0 0 auto}
 @media (min-width:860px){
  #garage.on{display:grid}
- #garage{grid-template-columns:1fr 440px;grid-template-rows:auto 1fr auto}
+ #garage{grid-template-columns:1fr 440px;grid-template-rows:auto minmax(0,1fr) auto}
+ .panel{min-height:0} /* long option lists scroll inside the panel instead of stretching the screen */
  .steps{grid-column:1/-1}.stage{grid-column:1;grid-row:2/4}
  .panel{grid-column:2;grid-row:2;height:auto;border-radius:0}
  .nav{grid-column:2;grid-row:3}
