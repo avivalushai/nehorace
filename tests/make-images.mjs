@@ -2,13 +2,15 @@
 //   node tests/make-images.mjs      (or: cd tests && npm run images)
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
+import net from 'node:net';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'assets');
-const PORT = 8900 + Math.floor(Math.random() * 99);
+// ask the OS for a port nobody is using (a random one once collided with another local server)
+const PORT = +process.env.PORT || await new Promise(res => { const s = net.createServer().listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => res(p)); }); });
 const server = spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
 const URL = `http://127.0.0.1:${PORT}/tools/images.html`;
 for (let i = 0; i < 50; i++) { try { if ((await fetch(URL)).ok) break; } catch {} await new Promise(r => setTimeout(r, 100)); }

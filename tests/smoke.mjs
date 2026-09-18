@@ -11,6 +11,7 @@
 // Starts its own static server (unless SITE is set). Screenshots go to tests/output/.
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
+import net from 'node:net';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,7 +22,8 @@ const OUT = path.join(HERE, 'output');
 const BASE = path.join(HERE, 'baseline');
 const quick = process.argv.includes('--quick');
 const update = process.argv.includes('--update');
-const PORT = +(process.env.PORT || 8700 + Math.floor(Math.random() * 200));
+// ask the OS for a port nobody is using (a random one once collided with another local server)
+const PORT = +process.env.PORT || await new Promise(res => { const s = net.createServer().listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => res(p)); }); });
 
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
@@ -66,7 +68,7 @@ try {
   }
   const click = sel => page.locator(sel).first().click();
 
-  await page.goto(URL, { waitUntil: 'networkidle' });
+  await page.goto(URL, { waitUntil: 'networkidle', timeout: 45000 }); // Google Fonts can be slow
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(400);
   await shot('title', { compare: true });
@@ -199,7 +201,7 @@ try {
   const wallet = () => page.evaluate(() => JSON.parse(localStorage.getItem('nehorace-wallet') || 'null'));
   const shopCoins = async () => +(await page.locator('#shopCoins').textContent()).replace(/\D/g, '');
   const toGarageShop = async () => {
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
     await click('#startBtn');
     await page.waitForSelector('#songsSheet.on'); await click('#songsClose');
     await click('#gShopBtn');
@@ -247,7 +249,7 @@ try {
     return true;
   };
   const dclick = sel => dp.locator(sel).first().click();
-  if (await dstep('title', () => dp.goto(URL, { waitUntil: 'networkidle' }), 'title')
+  if (await dstep('title', () => dp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 }), 'title')
     && await dstep('garage', async () => { await dclick('#startBtn'); await dclick('#songsClose'); }, 'garage')
     && await dstep('vehicle', () => dclick('#nextBtn'), 'garage')
     && await dstep('race', async () => { await dclick('#nextBtn'); await dclick('#nextBtn'); await dp.waitForTimeout(4000); }, 'race'))
