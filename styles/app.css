@@ -103,13 +103,15 @@ button{cursor:pointer;border:0;background:none}
 #results{background:var(--club)}
 #results.on{display:block;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .res{width:min(100%,560px);margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}
-.res-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center}
-#resCv{width:100%;height:200px}
-.res-rank{font-family:var(--display);font-size:84px;line-height:.8;color:var(--gold);text-shadow:4px 4px 0 var(--pink)}
+/* the stage is the background of the whole header, with round corners like the cards */
+.res-head{position:relative;display:grid;grid-template-columns:58% 1fr;gap:10px;align-items:center;min-height:230px;padding:16px;border-radius:22px;overflow:hidden}
+.res-head>div{position:relative;z-index:1}
+#resCv{position:absolute;inset:0;width:100%;height:100%}
+.res-rank{white-space:nowrap;font-family:var(--display);font-size:84px;line-height:.8;color:var(--gold);text-shadow:4px 4px 0 var(--pink)}
 .res-title{font-size:22px}
 .res-time{opacity:.75;font-size:15px}
 .res h2{font-size:20px;font-weight:400;margin:18px 0 8px;color:var(--gold)}
-.verdict{margin-top:10px;font-size:17px;background:rgba(255,200,61,.12);border-right:4px solid var(--gold);padding:10px 12px;border-radius:8px}
+.verdict{margin-top:10px;font-size:17px;background:rgba(255,200,61,.12);border-right:4px solid var(--gold);padding:10px 12px;border-radius:14px}
 .table{list-style:none;display:flex;flex-direction:column;gap:6px}
 .table li{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;background:var(--club2);border-radius:12px;padding:9px 12px;font-size:15px}
 .table li.me{box-shadow:inset 0 0 0 2px var(--gold)}
@@ -146,7 +148,7 @@ button{cursor:pointer;border:0;background:none}
 #lbCap{color:var(--ink);font-size:17px;text-align:center;margin-top:8px}
 .lbnav,.lbacts{display:flex;gap:10px;align-items:center;color:#fff}
 .lbnav button,.lbacts button{background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:9px 16px;font-size:15px}
-.lbacts button.pri{background:var(--gold);color:var(--ink)}
+.lbacts button.wa{font-size:16px;padding:10px 20px}
 .coin{display:inline-block;width:.95em;height:.95em;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFF1A8,#F2B81E 60%,#C9870F);box-shadow:inset 0 0 0 2px #B07A10;vertical-align:-.12em;margin-inline-end:5px;flex:0 0 auto}
 .coins{margin-top:16px;background:var(--club2);border-radius:18px;padding:14px;border:2px solid rgba(255,200,61,.35)}
 .coins-head{display:flex;align-items:center;gap:12px}
@@ -210,7 +212,7 @@ button{cursor:pointer;border:0;background:none}
 .bar u{width:15px;height:7px}
 .bar u.f{background:linear-gradient(90deg,var(--mint),#A6F7D0)}
 #shop.on{background:radial-gradient(130% 55% at 50% 0%,#4F2180 0%,var(--club) 65%)}
-.shop-head{background:rgba(46,20,71,.94);backdrop-filter:blur(6px)}
+.shop-head{background:rgba(46,20,71,.94);backdrop-filter:blur(6px);top:calc(8px + env(safe-area-inset-top));margin-top:calc(8px + env(safe-area-inset-top));padding:14px 14px 10px;border-radius:22px}
 .shop-head h2{text-shadow:0 0 14px rgba(255,61,139,.55),2px 2px 0 var(--pink)}
 .tcount{font-size:11px;opacity:.7;margin-inline-start:2px}
 .goal{grid-column:1/-1;display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:center;background:linear-gradient(135deg,rgba(255,200,61,.2),rgba(255,61,139,.18));border:2px solid rgba(255,200,61,.5);border-radius:18px;padding:10px 12px;margin-bottom:4px}
@@ -237,7 +239,9 @@ button{cursor:pointer;border:0;background:none}
 @keyframes popb{0%{transform:scale(1)}40%{transform:scale(1.06);box-shadow:0 0 0 3px var(--gold),0 0 30px rgba(255,200,61,.6)}100%{transform:scale(1)}}
 #board.on{display:block;background:radial-gradient(130% 55% at 50% 0%,#4F2180 0%,var(--club) 65%);overflow-y:auto}
 .board{width:min(100%,560px);margin:0 auto;padding:0 14px calc(28px + env(safe-area-inset-bottom))}
-.board-head{position:sticky;top:0;z-index:2;background:rgba(46,20,71,.94);backdrop-filter:blur(6px);padding:calc(12px + env(safe-area-inset-top)) 0 4px;margin-bottom:6px}
+.board-head{position:sticky;top:calc(8px + env(safe-area-inset-top));z-index:2;background:rgba(46,20,71,.94);backdrop-filter:blur(6px);padding:14px 14px 12px;margin:calc(8px + env(safe-area-inset-top)) 0 8px;border-radius:22px}
+.board-head .tabs{margin-bottom:0}
+.podium{border-radius:22px}
 .board-head h2{font-family:var(--display);font-size:clamp(30px,9vw,48px);line-height:.9;color:var(--gold);flex:1;font-weight:700;text-shadow:0 0 14px rgba(255,61,139,.55),2px 2px 0 var(--pink)}
 .board-note{font-size:14px;opacity:.8;margin:4px 2px 10px}
 .board-list{list-style:none;display:flex;flex-direction:column;gap:6px}
@@ -297,7 +301,7 @@ button{cursor:pointer;border:0;background:none}
  /* results, like the garage: stage with the Nehorai on the right, scrolling panel and action bar on the left */
  #results.on{display:grid;grid-template-columns:1fr min(46vw,600px);grid-template-rows:1fr auto;height:100dvh;overflow:hidden}
  .res{display:contents}
- .res-head{grid-column:1;grid-row:1/3;position:relative;display:block;min-height:0}
+ .res-head{grid-column:1;grid-row:1/3;position:relative;display:block;min-height:0;padding:0;border-radius:0}
  #resCv{position:absolute;inset:0;width:100%;height:100%}
  .res-head>div{position:absolute;top:24px;right:32px;z-index:1;text-align:right;pointer-events:none}
  .res-rank{font-size:110px}.res-title{font-size:30px}.res-time{font-size:18px}

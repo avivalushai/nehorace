@@ -16,15 +16,17 @@ import { Stats } from '../core/stats.js';
 import { isOpen, rarityOf } from '../core/unlocks.js';
 
 // ================= COMPOSITION =================
-function stageBg(c,w,h,gy){
-  const g=c.createRadialGradient(w/2,h*.22,10,w/2,h*.55,Math.max(w,h)*.8);g.addColorStop(0,'#6E2FA3');g.addColorStop(1,'#2A1242');c.fillStyle=g;c.fillRect(0,0,w,h);
-  c.fillStyle='rgba(255,255,255,.05)';c.beginPath();c.moveTo(w/2-30,0);c.lineTo(w/2+30,0);c.lineTo(w/2+w*.38,gy);c.lineTo(w/2-w*.38,gy);c.closePath();c.fill();
-  const ry=Math.max(8,h*.04);ell(c,w/2,gy,w*.4,ry,'rgba(255,200,61,.16)');c.save();c.strokeStyle='rgba(255,200,61,.45)';c.lineWidth=2;c.beginPath();c.ellipse(w/2,gy,w*.4,ry,0,0,7);c.stroke();c.restore();
+function stageBg(c,w,h,gy,fx=w/2,fw=w){
+  const g=c.createRadialGradient(fx,h*.22,10,fx,h*.55,Math.max(w,h)*.8);g.addColorStop(0,'#6E2FA3');g.addColorStop(1,'#2A1242');c.fillStyle=g;c.fillRect(0,0,w,h);
+  c.fillStyle='rgba(255,255,255,.05)';c.beginPath();c.moveTo(fx-30,0);c.lineTo(fx+30,0);c.lineTo(fx+fw*.38,gy);c.lineTo(fx-fw*.38,gy);c.closePath();c.fill();
+  const ry=Math.max(8,h*.04);ell(c,fx,gy,fw*.4,ry,'rgba(255,200,61,.16)');c.save();c.strokeStyle='rgba(255,200,61,.45)';c.lineWidth=2;c.beginPath();c.ellipse(fx,gy,fw*.4,ry,0,0,7);c.stroke();c.restore();
 }
 function drawComposition(c,w,h,o){
   const t=o.t||0,gy=h*.93,pop=1+.06*(o.pop||0),breathe=1+Math.sin(t*2.2)*.008;
   c.clearRect(0,0,w,h); // canvases are redrawn without resizing; clear so the partly covered edge column doesn't darken with every redraw
-  stageBg(c,w,h,gy);if(o.trophies)drawTrophies(c,w,h,gy);
+  // o.focus={x,w}: draw the figure in that part of the stage (the background still fills everything)
+  const fx=o.focus?o.focus.x:w/2,fw=o.focus?o.focus.w:w;
+  stageBg(c,w,h,gy,fx,fw);if(o.trophies)drawTrophies(c,w,h,gy);
   const L=o.look,dog=L.dog&&L.dog!=='none';
   if(o.mode==='char'){
     const s=Math.min(h*.84/285,w*.9/(dog?290:160))*pop;
@@ -35,8 +37,8 @@ function drawComposition(c,w,h,o){
     c.save();c.translate(x0,gy);c.scale(s,s*breathe);(turned?drawNehoBack:drawNeho)(c,L,t,o.pose);c.restore();
   }else{
     // rides the rider stands on (lift) need more headroom; the original vehicles have lift 0
-    const lift=(VEH[o.vid]&&VEH[o.vid].lift)||0,vs=Math.min(w*.9/(dog?330:280),h*.86/Math.max(232,lift+232))*pop,cs=vs*.8;
-    const x0=w/2+(dog?28*vs:0)+w*.05;
+    const lift=(VEH[o.vid]&&VEH[o.vid].lift)||0,vs=Math.min(fw*.9/(dog?330:280),h*.86/Math.max(232,lift+232))*pop,cs=vs*.8;
+    const x0=fx+(dog?28*vs:0)+fw*.05;
     const veh=()=>{c.save();c.translate(x0,gy);c.scale(vs,vs);drawVehicleSide(c,o.vid,o.color,o.wheels,o.stickers);c.restore();};
     if(VEH[o.vid]&&VEH[o.vid].behind)veh(); // wings sit behind the rider
     c.save();c.translate(x0+18*vs+(o.dx||0)*vs,gy-(4+lift)*vs);c.scale(cs,cs*breathe);drawNeho(c,L,t,o.pose);c.restore();

@@ -27,7 +27,7 @@ $('#lbClose').onclick=closeLB;$('#lbNext').onclick=()=>lbGo(1);$('#lbPrev').oncl
 $('#lbCv').addEventListener('pointerdown',e=>{lbX=e.clientX;});
 $('#lbCv').addEventListener('pointerup',e=>{if(lbX==null)return;const dx=e.clientX-lbX;lbX=null;if(Math.abs(dx)>40)lbGo(dx<0?1:-1);});
 addEventListener('keydown',e=>{if(!$('#lightbox').classList.contains('on'))return;if(e.key==='ArrowLeft')lbGo(1);if(e.key==='ArrowRight')lbGo(-1);if(e.key==='Escape')closeLB();});
-// the magnet as a picture: the photo, its caption, and where it's from
+// the magnet as a picture to send: the photo, its caption, and where it's from
 function photoCanvas(){
   const W=1080,H=1540,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   c.fillStyle='#FFFFFF';c.fillRect(0,0,W,H);c.save();c.translate(40,40);drawPhoto(c,1000,1250,ALBUM[lbI],1.0);c.restore();
@@ -36,7 +36,4 @@ function photoCanvas(){
   c.fillStyle='#8A7A99';c.font=`28px ${FONT}`;c.direction='ltr';c.fillText(SITE.replace('https://',''),W/2,1496);
   return cv;
 }
-$('#lbSave').onclick=()=>{
-  const a=document.createElement('a');a.href=photoCanvas().toDataURL('image/png');a.download=`nehorace-${lbI+1}.png`;document.body.appendChild(a);a.click();a.remove();
-};
 $('#lbShare').onclick=()=>shareImage(photoCanvas(),`מגנט מהמירוץ של ${state.name}: ${ALBUM[lbI].caption}. בואו למירוץ של הנהוראים בפארק`,`nehorace-${lbI+1}.png`);

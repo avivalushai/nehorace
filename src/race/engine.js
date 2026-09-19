@@ -184,7 +184,8 @@ function finishRace(){
   race=null;show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;
   drawResultsStage();
 }
-function drawResultsStage(){const{c,w,h}=fitCv($('#resCv'));drawComposition(c,w,h,{mode:'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:1});}
+// on a phone the stage is the background of the whole header: the Nehorai stands on the left, the place and badges on the right
+function drawResultsStage(){const{c,w,h}=fitCv($('#resCv')),wide=matchMedia('(min-width:860px)').matches;drawComposition(c,w,h,{focus:wide?null:{x:w*.21,w:w*.42},mode:'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:1});}
 // dev shortcut (?dev in the address): simulate a whole race instantly and land on the results screen
 function devQuickRace(){startRace();for(let g=0;g<60*300&&race;g++)update(1/60);}
 $('#againBtn').onclick=startRace;
