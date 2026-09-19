@@ -51,6 +51,8 @@ try {
   const TEST_ID = id => { try { localStorage.setItem('nehorace-player', id); } catch (e) {} };
   await ctx.addInitScript(TEST_ID, 'e2e00000000000000000000000000001');
   const page = await ctx.newPage();
+  // analytics are only sent from the live site by real browsers, never from a test
+  page.on('request', r => { if (r.url().includes('amplitude.com')) errors.push(`[analytics] a test sent events to ${r.url()}`); });
   page.setDefaultTimeout(10000);
   page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`[console.${m.type()}] ${m.text()}`); });
   page.on('pageerror', e => errors.push(`[pageerror] ${e.message}`));
@@ -168,6 +170,14 @@ try {
     await click('#shareBtn');
     const shared = await page.evaluate(() => window.__shared);
     if (!(shared.length === 1 && shared[0].startsWith('https://wa.me/?text=') && decodeURIComponent(shared[0]).includes('nehorace.vercel.app'))) errors.push(`[share] race share opened ${JSON.stringify(shared)}`);
+    // the events Amplitude would get (kept in window.__amp outside the live site)
+    const amp = await page.evaluate(() => window.__amp.map(e => e.event_type));
+    for (const ev of ['game_opened', 'build_nehorai_clicked', 'choose_vehicle_clicked', 'design_vehicle_clicked', 'start_race_clicked', 'race_finished', 'results_button_clicked'])
+      if (!amp.includes(ev)) errors.push(`[analytics] no ${ev} event (got ${[...new Set(amp)].join(', ')})`);
+    const picks = await page.evaluate(() => window.__amp.find(e => e.event_type === 'choose_vehicle_clicked'));
+    if (!picks || !(picks.event_properties.changes >= 1) || !picks.event_properties.hair) errors.push(`[analytics] choose_vehicle_clicked should count the changes and carry the look: ${JSON.stringify(picks && picks.event_properties)}`);
+    const fin = await page.evaluate(() => window.__amp.find(e => e.event_type === 'race_finished'));
+    if (!fin || !(fin.event_properties.position >= 1) || !/^[a-f0-9]{32}$/.test(fin.device_id) || JSON.stringify(fin).includes('בודק')) errors.push(`[analytics] bad race_finished ${JSON.stringify(fin)}`);
     // my garage: what opened with career points, the rides, and what was bought
     await click('#myGarageBtn');
     await page.waitForTimeout(400);

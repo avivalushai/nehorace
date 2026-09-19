@@ -15,6 +15,7 @@ api/leaderboard.mjs    # GET: 20 המובילים בכל טבלה, עם הלוק
 api/name.mjs           # GET: האם השם פנוי. POST: תפיסת השם לשחקן (ושחרור הקודם)
 api/admin.mjs          # POST: הסרת שחקן לפי שם וחסימתו (דורש ADMIN_TOKEN)
 src/net/leaderboard.js # צד המשחק: מזהה שחקן, שליחת מירוץ, קריאת הטבלה
+src/net/analytics.js   # track: אירועי Amplitude, נשלחים רק מהאתר החי (הרשימה ב-CLAUDE.md)
 src/ui/board.js        # מסך טבלת האלופים: פודיום, ודמות קטנה ליד כל שורה
 src/ui/share.js        # שיתוף בוואטסאפ: shareImage, shareRace, drawRaceCard
 src/ui/collection.js   # "המוסך": רק מה שהשחקן השיג: פריטים וכלים שנפתחו בנקודות, ומה שנקנה בחנות

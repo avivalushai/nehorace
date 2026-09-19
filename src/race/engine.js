@@ -15,6 +15,7 @@ import { Wallet, calcCoins, ownedCount, showCoins, walletSave, toast } from '../
 import { shareRace } from '../ui/share.js';
 import { Stats, recordRace } from '../core/stats.js';
 import { unlockedBetween } from '../core/unlocks.js';
+import { track } from '../net/analytics.js';
 import { submitRace } from '../net/leaderboard.js';
 import { openBoard } from '../ui/board.js';
 
@@ -178,7 +179,8 @@ function finishRace(){
   $('#verdict').textContent=victims===0?'עברת את כל הפארק בלי לגעת באף אחד. בטוח שאתה נהוראי?':victims<5?'התחלה יפה. העירייה עוד לא שמה לב':victims<13?'יש כבר שלוש תלונות בקבוצת הווטסאפ של השכונה':victims<26?'המשטרה בדרך, והיא לא שמחה':'הפארק סגור עד להודעה חדשה. אגדה.';
   $('#table').innerHTML=order.map((r,i)=>`<li class="${r.isPlayer?'me':''}"><span class="n">${i+1}</span><span>${r.isPlayer?r.name+' (אתה)':r.name}<small>${r.veh.name}</small></span><span>${r.knocks} נדרסו<small>${r.finished?fmt(r.finishTime,true):'לא סיים'}</small></span></li>`).join('');
   buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} מגנטים מהמירוץ, באהבה מהפארק`;
-  {const crow=calcCoins(pos,S),won=crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);}
+  {const crow=calcCoins(pos,S),won=crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);
+    track('race_finished',{position:pos,score,race_time:Math.round(P.finishTime*10)/10,victims,coins:won,vehicle:state.vid,career_points:Stats.career});}
   race=null;show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;
   drawResultsStage();
 }
@@ -186,6 +188,9 @@ function finishRace(){
 function drawResultsStage(){const{c,w,h}=fitCv($('#resCv')),wide=matchMedia('(min-width:860px)').matches;drawComposition(c,w,h,{focus:wide?null:{x:w*.21,w:w*.42},mode:'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:1});}
 // dev shortcut (?dev in the address): simulate a whole race instantly and land on the results screen
 function devQuickRace(){startRace();for(let g=0;g<60*300&&race;g++)update(1/60);}
+// every button on the results screen, one event with the button's name
+const RES_BTN={againBtn:'again',garageBtn:'change_nehorai',shopBtn:'shop',shareBtn:'whatsapp',giftBtn:'album',myGarageBtn:'my_garage',resBoardBtn:'leaderboard'};
+$('#results').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&RES_BTN[b.id])track('results_button_clicked',{button:RES_BTN[b.id]});},true);
 $('#againBtn').onclick=startRace;
 $('#resBoardBtn').onclick=()=>openBoard('week');
 $('#garageBtn').onclick=()=>{setStep(0);show('garage');};

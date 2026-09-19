@@ -35,6 +35,15 @@ node tests/dev-server.mjs   # ואז http://localhost:8765
 - **שיאים:** `src/core/stats.js` שומר ב-`localStorage` (`nehorace-stats`) מירוצים, ניצחונות, שיא נקודות וזמן הכי מהיר. מוצג במסך הפתיחה, ו"שיא חדש" מוצג במסך התוצאות.
 - **פריטים שנפתחים:** כל קטגוריה בבניית הנהוראי כוללת לפחות 10 פריטים. החדשים נפתחים לפי נקודות קריירה, יש 3 כלים שנפתחים (טי-מקס, פיטבול ענק, כנפי השכינה), והכל פתוח למי שבחר קודם. פרטים ב-`docs/ARCHITECTURE.md`. במצב `?dev` יש כפתור שמוסיף 5,000 נקודות.
 - **טבלת האלופים:** פונקציות שרת ב-`api/` (Vercel) ו-Upstash Redis דרך fetch, בלי ספריות. שחקן מזוהה במזהה אקראי ששמור בדפדפן (`nehorace-player`), בלי התחברות, ומופיע בשם הנהוראי שלו ועם הנהוראי שבנה (בפודיום ובכל שורה). יש טבלה שבועית (המירוץ הכי טוב, מתאפס ביום ראשון לפי שעון ישראל) וטבלת ניצחונות של כל הזמנים. פרטים ב-`docs/ARCHITECTURE.md`.
+- **אנליטיקה (Amplitude):** `src/net/analytics.js` שולח אירועים ב-fetch ל-HTTP API של Amplitude (מרכז הנתונים באירופה), בלי SDK. השחקן מזוהה באותו מזהה אקראי של טבלת האלופים, ולא נשלחים שמות. אירועים נשלחים רק מהאתר החי, אף פעם לא מ-localhost, מ-`?dev` או מדפדפן אוטומטי (הבדיקות). בכל מקום אחר הם נשמרים רק ב-`window.__amp`, והבדיקה בודקת אותם שם. קישור ששותף בוואטסאפ מסתיים ב-`?from=wa`. האירועים:
+  - `game_opened`: כניסה למשחק (`returning`, `has_saved_name`, `device`, `from`).
+  - `build_nehorai_clicked`: "בונים נהוראי" במסך הפתיחה (`result`: `ok`, `no_name` או `name_taken`).
+  - `title_leaderboard_clicked`: טבלת האלופים במסך הפתיחה.
+  - `choose_vehicle_clicked`: "לבחירת כלי" (`changes` בשלב, וכל פריטי הנהוראי).
+  - `design_vehicle_clicked`: "לעיצוב הכלי" (`changes`, `vehicle`).
+  - `start_race_clicked`: "יאללה למירוץ" (`changes`, `vehicle`, `color`, `wheels`, `stickers`).
+  - `race_finished`: סיום מירוץ (`position`, `score`, `race_time`, `victims`, `coins`, `vehicle`, `career_points`).
+  - `results_button_clicked`: כל כפתור במסך התוצאות (`button`).
 - **כלכלה:** `calcCoins`, `renderShop`, `buyItem`. הארנק (מטבעות וקניות) נשמר ב-`localStorage` תחת המפתח `nehorace-wallet`, ו-`window.storage` של Claude משמש רק כגיבוי. הנתונים נבדקים בטעינה, כך שמידע פגום מתאפס לארנק ריק ולא שובר את המשחק.
 
 ## כללי עבודה

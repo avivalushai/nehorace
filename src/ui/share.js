@@ -12,7 +12,7 @@ function fileOf(cv,name){
   return new File([a],name,{type:'image/png'});
 }
 function shareImage(cv,text,name){
-  const file=fileOf(cv,name),msg=`${text}\n${SITE}`;
+  const file=fileOf(cv,name),msg=`${text}\n${SITE}/?from=wa`; // ?from=wa: Amplitude counts who came from a shared link
   if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],text:msg}).catch(()=>{});return;}
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank','noopener');
 }

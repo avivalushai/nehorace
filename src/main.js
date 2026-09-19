@@ -25,6 +25,7 @@ import { openBoard } from './ui/board.js';
 import './ui/share.js';
 import './ui/collection.js';
 import { checkName, claimName } from './net/leaderboard.js';
+import { track } from './net/analytics.js';
 import { devQuickRace, fmt } from './race/engine.js';
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title'){renderBest();startTitle();}}
@@ -56,12 +57,14 @@ function nameHint(){
 }
 $('#nameIn').addEventListener('input',nameHint);
 $('#startBtn').onclick=async()=>{
-  if(suffix().length<2){setHint('✗ צריך להוסיף שם אחרי נהוראי, לפחות 2 אותיות. למשל: נהוראי המלך','bad');$('#nameIn').focus();return;}
+  const click=result=>track('build_nehorai_clicked',{result,returning:!!Stats.races});
+  if(suffix().length<2){click('no_name');setHint('✗ צריך להוסיף שם אחרי נהוראי, לפחות 2 אותיות. למשל: נהוראי המלך','bad');$('#nameIn').focus();return;}
   const r=await claimName(fullName());
-  if(r&&r.taken){setHint(`✗ ${fullName()} כבר תפוס. נסו שם אחר`,'bad');$('#nameIn').focus();return;}
+  if(r&&r.taken){click('name_taken');setHint(`✗ ${fullName()} כבר תפוס. נסו שם אחר`,'bad');$('#nameIn').focus();return;}
+  click('ok');
   takeName();try{localStorage.setItem(NAME_KEY,suffix());}catch(e){}setStep(0);show('garage');
 };
-$('#boardBtn').onclick=()=>{takeName();openBoard('week');};
+$('#boardBtn').onclick=()=>{track('title_leaderboard_clicked');takeName();openBoard('week');};
 nameHint();
 
 // personal records line on the title screen (hidden until the first race). Numbers are isolated so RTL doesn't flip them
@@ -74,6 +77,8 @@ function renderBest(){const el=$('#bestLine');if(!Stats.races){el.hidden=true;re
 if(new URLSearchParams(location.search).has('dev')){$('#devBtn').hidden=false;$('#devBtn').onclick=()=>{if(!suffix())$('#nameIn').value='בדיקות';takeName();devQuickRace();};
   $('#devPts').hidden=false;$('#devPts').onclick=()=>{devAddCareer(5000);renderBest();};}
 walletLoad();
+// ?from=wa marks players who came from a link shared on WhatsApp
+track('game_opened',{returning:!!Stats.races,has_saved_name:!!suffix(),device:matchMedia('(min-width:860px)').matches?'desktop':'phone',from:new URLSearchParams(location.search).get('from')||'direct'});
 
 renderBest();
 startTitle();
