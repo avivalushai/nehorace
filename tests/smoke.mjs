@@ -47,6 +47,9 @@ try {
     let a = 1234567;
     Math.random = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   });
+  // a fixed player id, so the test's name ("נהוראי בודק") stays the test's own on the live site between runs
+  const TEST_ID = id => { try { localStorage.setItem('nehorace-player', id); } catch (e) {} };
+  await ctx.addInitScript(TEST_ID, 'e2e00000000000000000000000000001');
   const page = await ctx.newPage();
   page.setDefaultTimeout(10000);
   page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`[console.${m.type()}] ${m.text()}`); });
@@ -99,7 +102,7 @@ try {
   headProblems.forEach(p => errors.push(`[head] ${p}`));
 
   // ---- garage: character ----
-  await page.fill('#nameIn', 'בדיקה');
+  await page.fill('#nameIn', 'בודק');
   await start();
   await shot('garage-char', { compare: true });
   const charTabs = await page.locator('#tabs .tab').count();
@@ -216,7 +219,7 @@ try {
   const shopCoins = async () => +(await page.locator('#shopCoins').textContent()).replace(/\D/g, '');
   const toGarageShop = async () => {
     await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
-    if (await page.inputValue('#nameIn') !== 'בדיקה') errors.push('[name] the name was not remembered after a reload');
+    if (await page.inputValue('#nameIn') !== 'בודק') errors.push('[name] the name was not remembered after a reload');
     await start();
     await click('#gShopBtn');
   };
@@ -283,7 +286,7 @@ try {
   await page.goto(devUrl, { waitUntil: 'networkidle', timeout: 45000 });
   await page.evaluate(() => localStorage.setItem('nehorace-stats', JSON.stringify({ races: 1, career: 0 })));
   await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
-  await page.fill('#nameIn', 'בדיקה');
+  await page.fill('#nameIn', 'בודק');
   await start();
   expectU(await page.locator('#opts .opt.locked').count() >= 7, 'new haircuts should be locked with 0 career points');
   await page.locator('#opts .opt.locked').first().click();
@@ -294,7 +297,7 @@ try {
   await page.evaluate(() => localStorage.setItem('nehorace-stats', JSON.stringify({ races: 1, career: 99999 })));
   for (const vid of [3, 4, 5]) { // T-Max, giant pitbull, wings
     await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
-    await page.fill('#nameIn', 'בדיקה');
+    await page.fill('#nameIn', 'בודק');
     await start();
     expectU(!(await page.locator('#opts .opt.locked').count()), 'items still locked with 99,999 points');
     const tabs = await page.locator('#tabs .tab').count();
@@ -329,7 +332,7 @@ try {
     await p2.goto(devUrl, { waitUntil: 'networkidle', timeout: 45000 });
     await p2.locator('#startBtn').click();
     expectB(await p2.locator('#title.on').count() === 1, 'started without adding a name after נהוראי');
-    await p2.fill('#nameIn', 'בדיקה'); // player 1's name
+    await p2.fill('#nameIn', 'בודק'); // player 1's name
     await p2.waitForFunction(() => document.querySelector('#nameHint').classList.contains('bad'), null, { timeout: 5000 }).catch(() => errors.push('[board] a taken name was not flagged while typing'));
     await p2.locator('#startBtn').click(); await p2.waitForTimeout(400);
     expectB(await p2.locator('#title.on').count() === 1, 'a taken name got through');
@@ -358,6 +361,7 @@ try {
 
   // ---- desktop (1440x900): one screen at a time, every step clickable ----
   const dctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  await dctx.addInitScript(TEST_ID, 'e2e00000000000000000000000000002');
   const dp = await dctx.newPage();
   dp.setDefaultTimeout(5000);
   dp.on('pageerror', e => errors.push(`[desktop pageerror] ${e.message}`));
@@ -372,7 +376,7 @@ try {
   };
   const dclick = sel => dp.locator(sel).first().click();
   if (await dstep('title', () => dp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 }), 'title')
-    && await dstep('garage', async () => { await dp.fill('#nameIn', 'מחשב'); await dclick('#startBtn'); }, 'garage')
+    && await dstep('garage', async () => { await dp.fill('#nameIn', 'בודק מחשב'); await dclick('#startBtn'); }, 'garage')
     && await dstep('vehicle', () => dclick('#nextBtn'), 'garage')
     && await dstep('race', async () => { await dclick('#nextBtn'); await dclick('#nextBtn'); await dp.waitForTimeout(4000); }, 'race'))
     await dstep('exit', () => dclick('#exitBtn'), 'garage');
