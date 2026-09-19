@@ -17,7 +17,7 @@ api/admin.mjs          # POST: הסרת שחקן לפי שם וחסימתו (ד�
 src/net/leaderboard.js # צד המשחק: מזהה שחקן, שליחת מירוץ, קריאת הטבלה
 src/ui/board.js        # מסך טבלת האלופים: פודיום, ודמות קטנה ליד כל שורה
 src/ui/share.js        # שיתוף בוואטסאפ: shareImage, shareRace, drawRaceCard
-src/ui/collection.js   # "המוסך שלי": מה שנפתח בנקודות, הכלים, ומה שנקנה בחנות
+src/ui/collection.js   # "המוסך": רק מה שהשחקן השיג: פריטים וכלים שנפתחו בנקודות, ומה שנקנה בחנות
 src/main.js            # נקודת כניסה: show (ניווט בין מסכים), drawTitle, כפתור הפתיחה, אתחול
 src/core/util.js       # צבעים ופונטים (INK, GOLD, FONT, DISP...), rand, pick, clamp, $, hash
 src/core/draw.js       # R, ln, poly, rr, circ, ell, shade, star, fitCv

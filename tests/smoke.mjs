@@ -171,11 +171,11 @@ try {
     // my garage: what opened with career points, the rides, and what was bought
     await click('#myGarageBtn');
     await page.waitForTimeout(400);
-    if (!(await page.locator('#mgGrid .mg-card').count())) errors.push('[garage] my garage is empty');
+    // only what was earned: a first race opens nothing yet, so every tab is empty and nothing locked shows up
+    if (await page.locator('#mgGrid .mg-card').count()) errors.push('[garage] items shown before any were earned');
     await shot('my-garage');
     await page.locator('#mgTabs .tab').nth(1).click();
-    if (await page.locator('#mgGrid .mg-card').count() !== 6) errors.push('[garage] expected all 6 rides in my garage');
-    await shot('my-garage-rides');
+    if (await page.locator('#mgGrid .mg-card').count()) errors.push('[garage] rides shown before any were earned');
     await page.locator('#mgTabs .tab').nth(2).click();
     await click('#myGarageClose');
     await click('#shopBtn');
@@ -317,6 +317,13 @@ try {
     for (let i = 1; i < np; i++) { await click('#lbNext'); await page.waitForTimeout(120); }
     await click('#lbClose'); await click('#albumClose');
   }
+  // with everything opened, the garage holds every earned item and the 3 rides that unlock
+  await click('#myGarageBtn'); await page.waitForTimeout(400);
+  expectU(await page.locator('#mgGrid .mg-card').count() >= 50, 'my garage should hold every unlocked item (53)');
+  await shot('my-garage-full');
+  await page.locator('#mgTabs .tab').nth(1).click();
+  expectU(await page.locator('#mgGrid .mg-card').count() === 3, 'my garage should hold the 3 unlocked rides');
+  await click('#myGarageClose');
   // the race itself with the wings, for a few seconds
   await click('#againBtn'); await page.waitForTimeout(5000);
   await shot('ride-wings-race');

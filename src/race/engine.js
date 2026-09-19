@@ -13,7 +13,6 @@ import { setStage } from '../music/songs.js';
 import { ALBUM, buildAlbum, rec } from '../album/build.js';
 import { Wallet, calcCoins, ownedCount, showCoins, walletSave, toast } from '../shop/ui.js';
 import { shareRace } from '../ui/share.js';
-import { garageSummary } from '../ui/collection.js';
 import { Stats, recordRace } from '../core/stats.js';
 import { unlockedBetween } from '../core/unlocks.js';
 import { submitRace } from '../net/leaderboard.js';
@@ -180,7 +179,6 @@ function finishRace(){
   $('#table').innerHTML=order.map((r,i)=>`<li class="${r.isPlayer?'me':''}"><span class="n">${i+1}</span><span>${r.isPlayer?r.name+' (אתה)':r.name}<small>${r.veh.name}</small></span><span>${r.knocks} נדרסו<small>${r.finished?fmt(r.finishTime,true):'לא סיים'}</small></span></li>`).join('');
   buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} מגנטים מהמירוץ, באהבה מהפארק`;
   {const crow=calcCoins(pos,S),won=crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);}
-  $('#myGarageSub').textContent=garageSummary();
   race=null;show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;
   drawResultsStage();
 }
