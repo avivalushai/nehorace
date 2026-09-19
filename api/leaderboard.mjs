@@ -1,9 +1,9 @@
-// GET /api/leaderboard?id=<player id>: top 20 of the weekly board and of the wins board, plus the
+// GET /api/leaderboard?id=<player id>: top 50 of the weekly board and of the wins board, plus the
 // asking player's own rank. Player ids are never sent back; rows carry a name, a "me" flag, and the
 // player's Nehorai look (drawn on the podium and next to every row).
 import { hasDb, pipeline, json, weekKey, KEYS, isId } from './_lib.mjs';
 
-const TOP=20;
+const TOP=50;
 const pairs=flat=>{const out=[];for(let i=0;i<flat.length;i+=2)out.push([flat[i],+flat[i+1]]);return out;};
 
 export async function GET(req){
