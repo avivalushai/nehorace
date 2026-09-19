@@ -117,24 +117,25 @@ button{cursor:pointer;border:0;background:none}
 .table li.me{box-shadow:inset 0 0 0 2px var(--gold)}
 .table li small{opacity:.7;font-size:12px;display:block}
 .table .n{font-family:var(--display);font-size:28px;color:var(--gold)}
-.res-actions{display:flex;gap:10px;margin-top:18px}
-.res-actions .btn{flex:1}
+.res-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.res-actions .btn{font-size:15px;padding:12px 6px;white-space:nowrap}
 .gift{display:flex;gap:14px;align-items:center;width:100%;margin-top:16px;background:var(--gold);color:var(--ink);border-radius:18px;padding:14px 16px;text-align:right;box-shadow:0 5px 0 var(--gold2);position:relative;overflow:hidden}
 .gift:before{content:'';position:absolute;top:0;bottom:0;left:58px;width:14px;background:var(--pink)}
-.btn.wa{width:100%;margin-top:14px;background:#25D366;color:#0B3B22;box-shadow:0 4px 0 #128C4A}
-.btn.wa:active{box-shadow:0 1px 0 #128C4A}
 .lbacts button.wa{background:#25D366;color:#0B3B22}
 .res-score{margin-top:6px;font-size:15px}.res-score b{font-family:var(--display);font-size:30px;color:var(--pink);direction:ltr;unicode-bidi:isolate}
 /* the album gift and the garage side by side, under the WhatsApp button */
-.gift-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
-.gift-row .gift{margin:0;flex-direction:column;align-items:stretch;gap:6px;padding:12px 12px 14px}
+.gift-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.gift-row .gift{margin:0;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:4px;padding:10px 9px 16px;border-radius:16px}
 .gift-row .gift:before{left:auto;right:0;top:auto;bottom:0;height:10px;width:100%}
-.gift-row .gift-ico{order:0;margin:0;font-size:34px}
-.gift-row .gift b{font-size:27px;line-height:.9}
-.gift-row .gift small{display:block;font-size:12.5px;line-height:1.3;margin-top:4px}
+.gift-row .gift-ico{order:0;margin:0;font-size:28px}
+.gift-row .gift b{font-size:23px;line-height:.9}
+.gift-row .gift small{display:block;font-size:11.5px;line-height:1.25;margin-top:4px}
 .garage-link{background:var(--mint);box-shadow:0 5px 0 #23A46E}
 .garage-link:before{background:var(--gold)}
 .garage-link:active{box-shadow:0 2px 0 #23A46E}
+.wa-link{background:#25D366;box-shadow:0 5px 0 #128C4A}
+.wa-link:before{background:var(--cream)}
+.wa-link:active{box-shadow:0 2px 0 #128C4A}
 .gift:active{transform:translateY(3px);box-shadow:0 2px 0 var(--gold2)}
 .gift-ico{font-size:42px;line-height:1;position:relative;z-index:1;margin-inline-start:auto;order:2}
 .gift b{display:block;font-family:var(--display);font-size:36px;line-height:.95}
@@ -259,7 +260,6 @@ button{cursor:pointer;border:0;background:none}
 .podium{display:block;width:100%;height:250px;margin:4px 0 8px}
 .board-empty{text-align:center;opacity:.85;padding:26px 0}
 .board-you{font-size:13px;opacity:.7;margin-top:12px;text-align:center}
-.board-link{width:100%;margin-top:12px}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--gold);color:var(--ink);padding:10px 16px;border-radius:14px;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:0;transition:.25s;z-index:60;max-width:90vw;text-align:center;pointer-events:none}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){.btn{transition:none}}
@@ -309,8 +309,7 @@ button{cursor:pointer;border:0;background:none}
  #resCv{position:absolute;inset:0;width:100%;height:100%}
  .res-head>div{position:absolute;top:24px;right:32px;z-index:1;text-align:right;pointer-events:none}
  .res-rank{font-size:110px}.res-title{font-size:30px}.res-time{font-size:18px}
- .res-panel{grid-column:2;grid-row:1;overflow-y:auto;background:var(--club2);padding:6px 18px 18px}
- .res-actions{grid-column:2;grid-row:2;background:var(--club2);margin:0;padding:14px 18px;box-shadow:0 -8px 16px rgba(0,0,0,.18)}
+ .res-panel{grid-column:2;grid-row:1/3;overflow-y:auto;background:var(--club2);padding:6px 18px 18px}
  /* race: tell keyboard players how to drive */
  #keysHint{display:flex}
 }

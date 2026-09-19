@@ -23,7 +23,7 @@ function stageBg(c,w,h,gy,fx=w/2,fw=w){
   const ry=Math.max(8,h*.04);ell(c,fx,gy,fw*.4,ry,'rgba(255,200,61,.16)');c.save();c.strokeStyle='rgba(255,200,61,.45)';c.lineWidth=2;c.beginPath();c.ellipse(fx,gy,fw*.4,ry,0,0,7);c.stroke();c.restore();
 }
 function drawComposition(c,w,h,o){
-  const t=o.t||0,gy=h*.93,pop=1+.06*(o.pop||0),breathe=1+Math.sin(t*2.2)*.008;
+  const t=o.t||0,gy=h*(o.floor||.93),pop=1+.06*(o.pop||0),breathe=1+Math.sin(t*2.2)*.008;
   c.clearRect(0,0,w,h); // canvases are redrawn without resizing; clear so the partly covered edge column doesn't darken with every redraw
   // o.focus={x,w}: draw the figure in that part of the stage (the background still fills everything)
   const fx=o.focus?o.focus.x:w/2,fw=o.focus?o.focus.w:w;
@@ -53,7 +53,7 @@ const changes=[0,0,0];
 function setStep(s){step=s;changes.fill(0);}
 
 function startStage(){cancelAnimationFrame(stageRAF);const cv=$('#stageCv');const t0=performance.now();const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const f=now=>{const{c,w,h}=fitCv(cv);pop=Math.max(0,pop-.06);drawComposition(c,w,h,{trophies:true,mode:step===0?'char':'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:reduce?0:(now-t0)/1000,pop});stageRAF=requestAnimationFrame(f);};stageRAF=requestAnimationFrame(f);}
+  const f=now=>{const{c,w,h}=fitCv(cv);pop=Math.max(0,pop-.06);drawComposition(c,w,h,{floor:.88/* room between the stage floor and the panel */,trophies:true,mode:step===0?'char':'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:reduce?0:(now-t0)/1000,pop});stageRAF=requestAnimationFrame(f);};stageRAF=requestAnimationFrame(f);}
 function stopStage(){cancelAnimationFrame(stageRAF);}
 
 const BACK_HAIR=new Set(['eyal']); // haircuts whose point is the back of the head

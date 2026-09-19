@@ -178,7 +178,7 @@ function finishRace(){
   {const card={pos,score,title:titles[pos-1]||titles[5]};$('#shareBtn').onclick=()=>shareRace(card);}
   $('#verdict').textContent=victims===0?'עברת את כל הפארק בלי לגעת באף אחד. בטוח שאתה נהוראי?':victims<5?'התחלה יפה. העירייה עוד לא שמה לב':victims<13?'יש כבר שלוש תלונות בקבוצת הווטסאפ של השכונה':victims<26?'המשטרה בדרך, והיא לא שמחה':'הפארק סגור עד להודעה חדשה. אגדה.';
   $('#table').innerHTML=order.map((r,i)=>`<li class="${r.isPlayer?'me':''}"><span class="n">${i+1}</span><span>${r.isPlayer?r.name+' (אתה)':r.name}<small>${r.veh.name}</small></span><span>${r.knocks} נדרסו<small>${r.finished?fmt(r.finishTime,true):'לא סיים'}</small></span></li>`).join('');
-  buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} מגנטים מהמירוץ, באהבה מהפארק`;
+  buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} מגנטים מהמירוץ`;
   {const crow=calcCoins(pos,S),won=crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);
     track('race_finished',{position:pos,score,race_time:Math.round(P.finishTime*10)/10,victims,coins:won,vehicle:state.vid,career_points:Stats.career});}
   race=null;show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;

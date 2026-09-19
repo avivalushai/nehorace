@@ -51,8 +51,8 @@ try {
   const TEST_ID = id => { try { localStorage.setItem('nehorace-player', id); } catch (e) {} };
   await ctx.addInitScript(TEST_ID, 'e2e00000000000000000000000000001');
   const page = await ctx.newPage();
-  // analytics are only sent from the live site by real browsers, never from a test
-  page.on('request', r => { if (r.url().includes('amplitude.com')) errors.push(`[analytics] a test sent events to ${r.url()}`); });
+  // events from tests do reach Amplitude, marked as tests
+  page.on('request', r => { if (r.url().includes('amplitude.com') && !(r.postData() || '').includes('"is_test":true')) errors.push('[analytics] an event from a test is not marked is_test'); });
   page.setDefaultTimeout(10000);
   page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`[console.${m.type()}] ${m.text()}`); });
   page.on('pageerror', e => errors.push(`[pageerror] ${e.message}`));
@@ -170,7 +170,7 @@ try {
     await click('#shareBtn');
     const shared = await page.evaluate(() => window.__shared);
     if (!(shared.length === 1 && shared[0].startsWith('https://wa.me/?text=') && decodeURIComponent(shared[0]).includes('nehorace.vercel.app'))) errors.push(`[share] race share opened ${JSON.stringify(shared)}`);
-    // the events Amplitude would get (kept in window.__amp outside the live site)
+    // the events sent to Amplitude (also kept in window.__amp)
     const amp = await page.evaluate(() => window.__amp.map(e => e.event_type));
     for (const ev of ['game_opened', 'build_nehorai_clicked', 'choose_vehicle_clicked', 'design_vehicle_clicked', 'start_race_clicked', 'race_finished', 'results_button_clicked'])
       if (!amp.includes(ev)) errors.push(`[analytics] no ${ev} event (got ${[...new Set(amp)].join(', ')})`);
