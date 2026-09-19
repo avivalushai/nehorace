@@ -28,12 +28,12 @@ function drawRaceCard(c,W,H,r){
   c.direction='rtl';c.textAlign='center';c.textBaseline='middle';
   c.fillStyle=GOLD;c.font=`700 ${H*.08}px ${DISP}`;c.fillText(`מקום ${r.pos}: ${r.title}`,W/2,H*.81,W*.9);
   c.fillStyle='#FFF4DC';c.font=`${H*.034}px ${FONT}`;c.fillText(`${state.name} · ${r.score.toLocaleString('he-IL')} נקודות ערסיות`,W/2,H*.868,W*.9);
-  c.globalAlpha=.8;c.font=`${H*.027}px ${FONT}`;c.fillText('חושבים שתעקפו אותי? בואו למירוץ',W/2,H*.912,W*.9);
+  c.globalAlpha=.8;c.font=`${H*.027}px ${FONT}`;c.fillText('חושב שתגבר? בוא בוא כנסס נראה אותך',W/2,H*.912,W*.9);
   c.globalAlpha=1;c.fillStyle=GOLD;c.direction='ltr';c.fillText(SITE.replace('https://',''),W/2,H*.954);
 }
 function shareRace(r){
   const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;drawRaceCard(cv.getContext('2d'),W,H,r);
-  shareImage(cv,`${state.name} סיים במקום ${r.pos} במירוץ של הנהוראים בפארק, עם ${r.score.toLocaleString('he-IL')} נקודות ערסיות. חושבים שתעקפו אותי?`,'nehorace.png');
+  shareImage(cv,`${state.name} סיים במקום ${r.pos} במירוץ של הנהוראים בפארק, עם ${r.score.toLocaleString('he-IL')} נקודות ערסיות. חושב שתגבר? בוא בוא כנסס נראה אותך`,'nehorace.png');
 }
 
 export { SITE, shareImage, shareRace, drawRaceCard };
