@@ -20,6 +20,9 @@ function run([cmd, ...a]) {
   switch (cmd.toUpperCase()) {
     case 'ECHO': return a[0];
     case 'SET': { const [k, v, ...o] = a; const nx = o.includes('NX'), ex = o.indexOf('EX'); if (nx && live(k) !== undefined) return null; db.set(k, v); if (ex >= 0) exp.set(k, Date.now() + +o[ex + 1] * 1000); return 'OK'; }
+    case 'GET': { const v = live(a[0]); return typeof v === 'string' ? v : null; }
+    case 'DEL': return db.delete(a[0]) ? 1 : 0;
+    case 'HGET': return hash(a[0]).get(a[1]) ?? null;
     case 'INCR': { const v = (+live(a[0]) || 0) + 1; db.set(a[0], String(v)); return v; }
     case 'EXPIRE': return db.has(a[0]) ? (exp.set(a[0], Date.now() + +a[1] * 1000), 1) : 0;
     case 'SISMEMBER': { const s = live(a[0]); return s instanceof Set && s.has(a[1]) ? 1 : 0; }

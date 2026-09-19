@@ -5,12 +5,16 @@ import { rr, fitCv } from '../core/draw.js';
 import { PARTS } from '../core/catalog.js';
 import { state } from '../core/state.js';
 import { drawNeho } from '../art/neho.js';
+import { drawDog } from '../art/dog.js';
 import { fetchBoard } from '../net/leaderboard.js';
 
 let boardTab='week',data=null,podRAF=0;
 // another player's look from the server: keep only item ids this game knows, fall back to the default for the rest
 const DEFAULT_LOOK={hair:'fade',beard:'stubble',cap:'none',chain:'cuban',shirt:'track',pants:'track',shoes:'white',dog:'none',acc:'shades'};
-function safeLook(l,name){const out={...DEFAULT_LOOK,name};PARTS.forEach(p=>{const v=l&&l[p.id];if(p.items.some(([id])=>id===v))out[p.id]=v;});out.dog='none';return out;}
+function safeLook(l,name){const out={...DEFAULT_LOOK,name};PARTS.forEach(p=>{const v=l&&l[p.id];if(p.items.some(([id])=>id===v))out[p.id]=v;});if(!l)out.dog='none';return out;}
+// a row's little portrait: the player's Nehorai from the chest up
+function drawAvatar(cv,look,name){const{c,w,h}=fitCv(cv);c.clearRect(0,0,w,h);const s=h/118;
+  c.save();c.beginPath();c.arc(w/2,h/2,Math.min(w,h)/2,0,7);c.fillStyle='#4F2180';c.fill();c.clip();c.translate(w/2,h/2+208*s);c.scale(s,s);drawNeho(c,{...safeLook(look,name),dog:'none'},0);c.restore();}
 // top 3 standing on a podium: 2nd, 1st (tallest, waving), 3rd
 function drawPodium(cv,top,t){
   const{c,w,h}=fitCv(cv);c.clearRect(0,0,w,h);
@@ -23,9 +27,12 @@ function drawPodium(cv,top,t){
     if(!r)return;
     const s=Math.min((base-bh-26)/300,bw/190),feet=base-bh;
     const pose=rank===0?{armR:-2.5+Math.sin(t*6)*.25,armL:.1,legL:0,legR:0}:undefined;
-    c.save();c.translate(x,feet);c.scale(s,s);drawNeho(c,{...safeLook(r.look,r.name),mood:rank===0?'win':undefined},t,pose);c.restore();
+    const L=safeLook(r.look,r.name);
+    if(L.dog!=='none'){c.save();c.translate(x-bw*.28,feet);c.scale(s*.8,s*.8);drawDog(c,L.dog,t);c.restore();}
+    c.save();c.translate(x+(L.dog!=='none'?bw*.08:0),feet);c.scale(s,s);drawNeho(c,{...L,dog:'none',mood:rank===0?'win':undefined},t,pose);c.restore();
     c.save();c.font=`${Math.max(12,Math.round(bw*.1))}px ${FONT}`;c.textAlign='center';c.textBaseline='bottom';c.direction='rtl';
-    const label=r.name.length>9?r.name.slice(0,9)+'…':r.name;c.lineWidth=4;c.strokeStyle='rgba(26,11,41,.9)';c.strokeText(label,x,feet-300*s-4);c.fillStyle='#FFF4DC';c.fillText(label,x,feet-300*s-4);c.restore();
+    // everyone is נהוראי, so the podium shows what comes after it
+    const nm=r.name.replace(/^נהוראי\s*/,'')||r.name,label=nm.length>10?nm.slice(0,10)+'…':nm;c.lineWidth=4;c.strokeStyle='rgba(26,11,41,.9)';c.strokeText(label,x,feet-300*s-4);c.fillStyle='#FFF4DC';c.fillText(label,x,feet-300*s-4);c.restore();
   });
 }
 const TABS=[['week','השבוע'],['wins','הכי הרבה ניצחונות']];
@@ -34,9 +41,10 @@ const num=v=>v.toLocaleString('he-IL');
 
 function row(r,unit){const li=document.createElement('li');li.className=r.me?'me':'';
   const rank=document.createElement('span');rank.className='n';rank.textContent=MEDAL[r.rank-1]||r.rank;
+  const av=document.createElement('canvas');av.className='av';
   const name=document.createElement('span');name.className='nm';name.textContent=r.name+(r.me?' (אתה)':'');
   const score=document.createElement('b');score.textContent=unit(r.score);
-  li.append(rank,name,score);return li;}
+  li.append(rank,av,name,score);return li;}
 function render(){
   const tabs=$('#boardTabs'),list=$('#boardList'),note=$('#boardNote'),pod=$('#boardPodium');tabs.innerHTML='';list.innerHTML='';pod.innerHTML='';
   TABS.forEach(([id,l])=>{const b=document.createElement('button');b.className='tab'+(boardTab===id?' on':'');b.textContent=l;b.onclick=()=>{boardTab=id;render();};tabs.appendChild(b);});
@@ -50,8 +58,9 @@ function render(){
   if(B.top.length){const cv=document.createElement('canvas');cv.className='podium';pod.appendChild(cv);
     const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,t0=performance.now();
     const f=now=>{if(!cv.isConnected||!$('#board').classList.contains('on'))return;drawPodium(cv,B.top,reduce?0:(now-t0)/1000);if(!reduce)podRAF=requestAnimationFrame(f);};f(t0);}
-  B.top.forEach(r=>list.appendChild(row(r,unit)));
-  if(B.me&&!B.top.some(r=>r.me)){const gap=document.createElement('li');gap.className='gap';gap.textContent='⋯';list.appendChild(gap);list.appendChild(row({rank:B.me.rank,name:state.name,score:B.me.score,me:true},unit));}
+  const avatar=(li,r)=>{list.appendChild(li);drawAvatar(li.querySelector('.av'),r.look,r.name);};
+  B.top.forEach(r=>avatar(row(r,unit),r));
+  if(B.me&&!B.top.some(r=>r.me)){const gap=document.createElement('li');gap.className='gap';gap.textContent='⋯';list.appendChild(gap);const me={rank:B.me.rank,name:state.name,score:B.me.score,me:true,look:state.look};avatar(row(me,unit),me);}
   const you=document.createElement('p');you.className='board-you';you.textContent=`בטבלה אתה מופיע בשם של הנהוראי שלך: ${state.name}`;list.appendChild(you);
 }
 async function openBoard(tab){

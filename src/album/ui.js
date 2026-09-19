@@ -4,6 +4,7 @@ import { fitCv } from '../core/draw.js';
 import { state } from '../core/state.js';
 import { drawPhoto } from './scenes.js';
 import { ALBUM } from './build.js';
+import { shareImage, SITE } from '../ui/share.js';
 
 // ---------- album + lightbox UI ----------
 let lbI=0,lbRAF=0,lbT0=0,lbX=null;
@@ -26,10 +27,16 @@ $('#lbClose').onclick=closeLB;$('#lbNext').onclick=()=>lbGo(1);$('#lbPrev').oncl
 $('#lbCv').addEventListener('pointerdown',e=>{lbX=e.clientX;});
 $('#lbCv').addEventListener('pointerup',e=>{if(lbX==null)return;const dx=e.clientX-lbX;lbX=null;if(Math.abs(dx)>40)lbGo(dx<0?1:-1);});
 addEventListener('keydown',e=>{if(!$('#lightbox').classList.contains('on'))return;if(e.key==='ArrowLeft')lbGo(1);if(e.key==='ArrowRight')lbGo(-1);if(e.key==='Escape')closeLB();});
-$('#lbSave').onclick=()=>{
-  const W=1080,H=1500,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+// the magnet as a picture: the photo, its caption, and where it's from
+function photoCanvas(){
+  const W=1080,H=1540,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   c.fillStyle='#FFFFFF';c.fillRect(0,0,W,H);c.save();c.translate(40,40);drawPhoto(c,1000,1250,ALBUM[lbI],1.0);c.restore();
-  c.fillStyle=INK;c.font=`46px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText(ALBUM[lbI].caption,W/2,1360);
+  c.fillStyle=INK;c.font=`46px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText(ALBUM[lbI].caption,W/2,1360,W-80);
   c.fillStyle='#B3831D';c.font=`34px ${FONT}`;c.fillText('מתנה קטנה מאירוע גדול',W/2,1440);
-  const a=document.createElement('a');a.href=cv.toDataURL('image/png');a.download=`nehorace-${lbI+1}.png`;document.body.appendChild(a);a.click();a.remove();
+  c.fillStyle='#8A7A99';c.font=`28px ${FONT}`;c.direction='ltr';c.fillText(SITE.replace('https://',''),W/2,1496);
+  return cv;
+}
+$('#lbSave').onclick=()=>{
+  const a=document.createElement('a');a.href=photoCanvas().toDataURL('image/png');a.download=`nehorace-${lbI+1}.png`;document.body.appendChild(a);a.click();a.remove();
 };
+$('#lbShare').onclick=()=>shareImage(photoCanvas(),`מגנט מהמירוץ של ${state.name}: ${ALBUM[lbI].caption}. בואו למירוץ של הנהוראים בפארק`,`nehorace-${lbI+1}.png`);

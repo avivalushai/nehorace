@@ -1,6 +1,6 @@
 // GET /api/leaderboard?id=<player id>: top 20 of the weekly board and of the wins board, plus the
-// asking player's own rank. Player ids are never sent back; rows carry a name, a "me" flag, and for the
-// top 3 (the podium) the player's Nehorai look.
+// asking player's own rank. Player ids are never sent back; rows carry a name, a "me" flag, and the
+// player's Nehorai look (drawn on the podium and next to every row).
 import { hasDb, pipeline, json, weekKey, KEYS, isId } from './_lib.mjs';
 
 const TOP=20;
@@ -16,11 +16,10 @@ export async function GET(req){
     me?['ZREVRANK',KEYS.wins,me]:['ECHO',''],me?['ZSCORE',KEYS.wins,me]:['ECHO',''],
   ]);
   const W=pairs(weekTop),N=pairs(winsTop),ids=[...new Set([...W,...N].map(([m])=>m))];
-  const podium=[...new Set([...W.slice(0,3),...N.slice(0,3)].map(([m])=>m))];
-  const [names,looks]=ids.length?await pipeline([['HMGET',KEYS.names,...ids],['HMGET',KEYS.looks,...(podium.length?podium:['-'])]]):[[],[]];
+  const [names,looks]=ids.length?await pipeline([['HMGET',KEYS.names,...ids],['HMGET',KEYS.looks,...ids]]):[[],[]];
   const nameOf=Object.fromEntries(ids.map((m,i)=>[m,names[i]||'נהוראי']));
-  const lookOf=Object.fromEntries(podium.map((m,i)=>{try{return[m,JSON.parse(looks[i])];}catch{return[m,null];}}));
-  const rows=list=>list.map(([m,s],i)=>({rank:i+1,name:nameOf[m],score:s,me:m===me,...(i<3&&lookOf[m]?{look:lookOf[m]}:{})}));
+  const lookOf=Object.fromEntries(ids.map((m,i)=>{try{return[m,JSON.parse(looks[i])];}catch{return[m,null];}}));
+  const rows=list=>list.map(([m,s],i)=>({rank:i+1,name:nameOf[m],score:s,me:m===me,...(lookOf[m]?{look:lookOf[m]}:{})}));
   const mine=(r,s)=>me&&r!==null&&r!==''?{rank:+r+1,score:+s}:null;
   return json({week:{start:wk,top:rows(W),me:mine(wr,ws)},wins:{top:rows(N),me:mine(nr,ns)}});
 }

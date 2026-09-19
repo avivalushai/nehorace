@@ -11,7 +11,9 @@ import { render } from './render.js';
 import { Music, musicStart, musicStop } from '../music/engine.js';
 import { setStage } from '../music/songs.js';
 import { ALBUM, buildAlbum, rec } from '../album/build.js';
-import { Wallet, calcCoins, ownedCount, showCoins, walletSave } from '../shop/ui.js';
+import { Wallet, calcCoins, ownedCount, showCoins, walletSave, toast } from '../shop/ui.js';
+import { shareRace } from '../ui/share.js';
+import { garageSummary } from '../ui/collection.js';
 import { Stats, recordRace } from '../core/stats.js';
 import { unlockedBetween } from '../core/unlocks.js';
 import { submitRace } from '../net/leaderboard.js';
@@ -169,14 +171,16 @@ function finishRace(){
     if(rc.newScore)badges.push('🏆 שיא נקודות חדש!');if(rc.newTime)badges.push('⏱️ הזמן הכי מהיר שלך!');
     const opened=unlockedBetween(before,Stats.career);opened.slice(0,3).forEach(x=>badges.push(`🔓 פתחת: ${x.label}`));if(opened.length>3)badges.push(`🔓 ועוד ${opened.length-3} פריטים`);
     // send the race to the champions board; the weekly rank shows up as another badge when it answers
-    submitRace({name:state.name,score,pos,time:P.finishTime,look:(({name,...l})=>l)(state.look)}).then(r=>{if(!r||!r.week||!r.week.rank)return;const el=$('#resRec'),sp=document.createElement('span');sp.textContent=`🏆 מקום ${r.week.rank} השבוע`;el.appendChild(sp);el.hidden=false;});
+    submitRace({name:state.name,score,pos,time:P.finishTime,look:(({name,...l})=>l)(state.look)}).then(r=>{if(r&&(r.nameTaken||r.nameRequired)){toast(r.nameTaken?`השם ${state.name} כבר תפוס, אז המירוץ לא נכנס לטבלה. בחרו שם אחר במסך הפתיחה`:'כדי להיכנס לטבלת האלופים צריך להוסיף שם אחרי נהוראי');return;}if(!r||!r.week||!r.week.rank)return;const el=$('#resRec'),sp=document.createElement('span');sp.textContent=`🏆 מקום ${r.week.rank} השבוע`;el.appendChild(sp);el.hidden=false;});
     const el=$('#resRec');el.innerHTML=badges.map(b=>`<span>${b}</span>`).join('');el.hidden=!badges.length;}
-  const items=[['🧍','אנשים שדרסת',S.people],['🧒','ילדים',S.kids],['👴','פנסיונרים',S.seniors],['🐕','כלבים',S.dogs],['🐈','חתולים',S.cats],['🐦','יונים',S.pigeons],['🍖','מנגלים שהפכת',S.mangal],['🎯','פעילויות שהרסת',S.acts],['🗑️','רכוש ציבורי',S.property],['🌳','עצים שנכנסת בהם',S.trees],['🛴','נהוראים שדחפת',S.bumps],['🤬','קללות שחטפת',S.curses],['🌱','שניות על הדשא',Math.round(S.grass)]];
-  $('#dmg').innerHTML=`<div class="big"><b>${score}</b><span>נקודות ערסיות</span></div>`+items.map(([i,l,v])=>`<div><b>${v}</b><span>${i} ${l}</span></div>`).join('');
+  // what you ran over is listed once, with the coins it earned; the score goes up top
+  $('#resScore').innerHTML=`<b>${score.toLocaleString('he-IL')}</b> נקודות ערסיות`;
+  {const card={pos,score,title:titles[pos-1]||titles[5]};$('#shareBtn').onclick=()=>shareRace(card);}
   $('#verdict').textContent=victims===0?'עברת את כל הפארק בלי לגעת באף אחד. בטוח שאתה נהוראי?':victims<5?'התחלה יפה. העירייה עוד לא שמה לב':victims<13?'יש כבר שלוש תלונות בקבוצת הווטסאפ של השכונה':victims<26?'המשטרה בדרך, והיא לא שמחה':'הפארק סגור עד להודעה חדשה. אגדה.';
   $('#table').innerHTML=order.map((r,i)=>`<li class="${r.isPlayer?'me':''}"><span class="n">${i+1}</span><span>${r.isPlayer?r.name+' (אתה)':r.name}<small>${r.veh.name}</small></span><span>${r.knocks} נדרסו<small>${r.finished?fmt(r.finishTime,true):'לא סיים'}</small></span></li>`).join('');
-  buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} תמונות מהמירוץ, באהבה מהפארק`;
+  buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} מגנטים מהמירוץ, באהבה מהפארק`;
   {const crow=calcCoins(pos,S),won=crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);}
+  $('#myGarageSub').textContent=garageSummary();
   race=null;show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;
   drawResultsStage();
 }

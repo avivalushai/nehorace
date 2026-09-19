@@ -295,7 +295,7 @@ function sceneWanted(c,w,h,ph,t){
   c.fillStyle='#5A2E12';c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.font=`${h*.12}px ${DISP}`;c.fillText('מבוקש',w/2,h*.12);
   c.font=`${h*.032}px ${FONT}`;c.fillText('חי או על קורקינט',w/2,h*.2);
   const fx=w*.22,fy=h*.24,fw=w*.56,fh=h*.36;c.strokeStyle='#5A2E12';c.lineWidth=4;R(c,fx,fy,fw,fh,'#D8C08E');c.save();c.beginPath();c.rect(fx,fy,fw,fh);c.clip();portrait(c,w/2,fy+fh*.34,fh/180,state.look,0,null);c.restore();c.strokeRect(fx,fy,fw,fh);
-  c.fillStyle='#5A2E12';c.font=`${h*.07}px ${DISP}`;c.fillText(state.name,w/2,h*.67);
+  c.fillStyle='#5A2E12';c.font=`${h*.07}px ${DISP}`;c.fillText(state.name,w/2,h*.67,w*.62);
   const S=ph.S||{};c.font=`${h*.03}px ${FONT}`;c.fillText(`על דריסת ${S.people||0} אנשים, ${S.kids||0} ילדים ו-${(S.dogs||0)+(S.cats||0)+(S.pigeons||0)} חיות`,w/2,h*.74);
   c.fillText(`והרס של ${(S.mangal||0)+(S.acts||0)} אירועים משפחתיים בפארק`,w/2,h*.785);
   c.font=`${h*.05}px ${DISP}`;c.fillText('פרס: 20 ש״ח ושווארמה בלאפה',w/2,h*.86);c.restore();
@@ -319,7 +319,7 @@ function sceneMugshot(c,w,h,ph,t){
   const s=h/260;portrait(c,w/2,h*.2,s,state.look,t,'angry');
   const bx=w*.16,by=h*.64,bw=w*.68,bh=h*.22;c.strokeStyle=INK;c.lineWidth=3;R(c,bx,by,bw,bh,'#111');
   const num=4000+Math.floor(((ph.rv||[.3])[0])*5000);c.fillStyle='#fff';c.textAlign='center';c.direction='rtl';c.font=`${h*.03}px ${FONT}`;c.fillText('משטרת הפארק',w/2,by+bh*.2);
-  c.font=`${h*.07}px ${DISP}`;c.fillText(state.name,w/2,by+bh*.52);c.direction='ltr';c.font=`${h*.035}px ${FONT}`;c.fillText(String(num),w/2,by+bh*.83);
+  c.font=`${h*.07}px ${DISP}`;c.fillText(state.name,w/2,by+bh*.52,w*.5);c.direction='ltr';c.font=`${h*.035}px ${FONT}`;c.fillText(String(num),w/2,by+bh*.83);
   const k=t%2.6;if(k<.12){c.fillStyle=`rgba(255,255,255,${.9-k*7})`;c.fillRect(0,0,w,h);}
 }
 function sceneGroup(c,w,h,ph,t){
@@ -423,7 +423,7 @@ function sceneMagnet(c,w,h,ph,t){
   c.font=`${w*.05}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';for(let i=0;i<14;i++){c.fillStyle=i%2?'rgba(255,61,139,.35)':'rgba(255,255,255,.7)';c.fillText('♥',hash(i,51)*w,hash(i,53)*h);}
   const m=w*.07,ih=h*.7;c.save();rr(c,m,m,w-2*m,ih,16);c.clip();drawInner(c,m,m,w-2*m,ih,ph,t,ph.inner||'side');c.restore();
   c.save();c.strokeStyle='#fff';c.lineWidth=5;rr(c,m,m,w-2*m,ih,16);c.stroke();c.restore();
-  c.fillStyle='#B3316B';c.font=`${w*.085}px ${DISP}`;c.textBaseline='top';c.direction='rtl';c.fillText(`האירוע של ${state.name}`,w/2,m+ih+h*.02);
+  c.fillStyle='#B3316B';c.font=`${w*.085}px ${DISP}`;c.textBaseline='top';c.direction='rtl';c.fillText(`האירוע של ${state.name}`,w/2,m+ih+h*.02,w-m*2);
   const d=new Date();c.fillStyle='#6B2E4A';c.font=`${w*.036}px ${FONT}`;c.fillText(`${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}   פארק העיר`,w/2,m+ih+h*.105);
   c.save();c.strokeStyle=GOLD2;c.lineWidth=3;c.beginPath();c.arc(w*.14,h*.9,w*.03,0,7);c.stroke();c.beginPath();c.arc(w*.18,h*.9,w*.03,0,7);c.stroke();c.restore();
   c.fillStyle='rgba(107,46,74,.7)';c.font=`${w*.024}px ${FONT}`;c.fillText('צילום: הפקות הפארק',w/2,h*.955);
@@ -435,7 +435,7 @@ function sceneLineup(c,w,h,ph,t){
   for(let i=0;i<7;i++){const y=h*.88-i*h*.11;ln(c,0,y,w,y);c.fillText(String(140+i*10),w*.015,y-h*.015);}
   const L=ph.lineup||[],n=L.length||1,s=Math.min(h/410,w/(n*150));
   L.forEach((p,i)=>{const x=w*(i+.5)/n;c.save();c.translate(x,h*.9);c.scale(s,s);c.strokeStyle=INK;c.lineWidth=3;drawNeho(c,{...p.look,mood:p.isPlayer?'win':'angry'},t);
-    if(p.isPlayer){R(c,-54,-150,108,46,'#111');c.fillStyle='#fff';c.font=`18px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText(String(p.name).slice(0,8),0,-136);c.font=`14px ${FONT}`;c.direction='ltr';c.fillText(`0${ph.pos||1}-2026`,0,-116);}
+    if(p.isPlayer){R(c,-54,-150,108,46,'#111');c.fillStyle='#fff';c.font=`18px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText(String(p.name),0,-136,100);c.font=`14px ${FONT}`;c.direction='ltr';c.fillText(`0${ph.pos||1}-2026`,0,-116);}
     c.restore();c.save();c.fillStyle=INK;c.font=`${w*.05}px ${DISP}`;c.textAlign='center';c.direction='ltr';c.textBaseline='alphabetic';c.fillText(String(i+1),x,h*.975);c.restore();});
   const fl=Math.max(0,1-(t%2.6)*4);if(fl>0){c.fillStyle=`rgba(255,255,255,${fl*.8})`;c.fillRect(0,0,w,h);}
 }

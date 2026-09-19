@@ -43,8 +43,8 @@
   <canvas id="titleCv"></canvas>
   <div class="namefield">
     <label for="nameIn">איך קוראים לנהוראי שלך?</label>
-    <input id="nameIn" maxlength="10" value="נהוראי" autocomplete="off">
-    <small class="name-hint" id="nameHint">💡 תנו שם לנהוראי, כדי שיזהו אתכם בטבלת האלופים</small>
+    <div class="name-row"><span class="name-fixed">נהוראי</span><input id="nameIn" maxlength="10" placeholder="המלך" autocomplete="off"></div>
+    <small class="name-hint" id="nameHint"></small>
   </div>
   <button class="btn" id="startBtn">בונים נהוראי</button>
   <button class="btn ghost" id="boardBtn">🏆 טבלת האלופים</button>
@@ -75,21 +75,21 @@
 <section id="results" class="screen">
   <div class="res">
     <div class="res-head">
-      <div><p class="res-rank" id="resRank"></p><p class="res-title" id="resTitle"></p><p class="res-time" id="resTime"></p><p class="res-rec" id="resRec" hidden></p></div>
+      <div><p class="res-rank" id="resRank"></p><p class="res-title" id="resTitle"></p><p class="res-time" id="resTime"></p><p class="res-score" id="resScore"></p><p class="res-rec" id="resRec" hidden></p></div>
       <canvas id="resCv"></canvas>
     </div>
     <div class="res-panel">
     <div class="res-col res-money">
     <div class="coins"><div class="coins-head"><span class="coin"></span><div><b id="coinsWon">+0</b><small>מטבעות מהמירוץ</small></div><div class="wallet">בארנק<br><b id="walletNow">0</b></div></div><ul class="coin-rows" id="coinRows"></ul><button class="btn" id="shopBtn">לחנות של הפארק</button></div>
-    <button class="gift" id="giftBtn"><span><b>מתנה קטנה מאירוע גדול</b><small id="giftSub">אלבום התמונות שלך מהמירוץ</small></span><span class="gift-ico">🎁</span></button>
+    <button class="btn wa" id="shareBtn">📲 שיתוף בוואטסאפ</button>
+    <button class="gift" id="giftBtn"><span><b>מתנה קטנה מאירוע גדול</b><small id="giftSub">מגנטים מהמירוץ, באהבה מהפארק</small></span><span class="gift-ico">🎁</span></button>
     <button class="btn ghost board-link" id="resBoardBtn">🏆 טבלת האלופים</button>
     </div>
     <div class="res-col res-report">
-    <h2>דו״ח הנזקים שלך</h2>
-    <div class="dmg" id="dmg"></div>
     <p class="verdict" id="verdict"></p>
     <h2>טבלת המירוץ</h2>
     <ol class="table" id="table"></ol>
+    <button class="gift garage-link" id="myGarageBtn"><span><b>המוסך שלי</b><small id="myGarageSub">כל מה שזכית בו, שמור במקום אחד</small></span><span class="gift-ico">🏠</span></button>
     </div>
     </div>
     <div class="res-actions"><button class="btn" id="againBtn">עוד סיבוב</button><button class="btn ghost" id="garageBtn">לשנות נהוראי</button></div>
@@ -98,6 +98,7 @@
 
 <div id="board" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2>טבלת האלופים</h2><button class="shopX" id="boardClose">סגירה</button></div><div class="tabs" id="boardTabs"></div></header><p class="board-note" id="boardNote"></p><div id="boardPodium"></div><ol class="board-list" id="boardList"></ol></div></div>
 <div id="shop" class="overlay"><div class="shop"><header class="shop-head"><div class="shop-row"><h2>החנות</h2><div class="shop-wallet"><span class="coin"></span><b id="shopCoins">0</b></div><button class="shopX" id="shopClose">סגירה</button></div><div class="tabs" id="shopTabs"></div></header><div class="shop-grid" id="shopGrid"></div></div></div>
+<div id="myGarage" class="overlay"><div class="shop"><header class="shop-head"><div class="shop-row"><h2>המוסך שלי</h2><button class="shopX" id="myGarageClose">סגירה</button></div><p class="board-note" id="mgNote"></p><div class="tabs" id="mgTabs"></div></header><div class="mg-grid" id="mgGrid"></div></div></div>
 <div id="album" class="overlay">
   <div class="album">
     <header><button class="albumX" id="albumClose">סגירה</button><h2>מתנה קטנה<br>מאירוע גדול</h2><p class="sub" id="albumSub"></p><p class="hint">לוחצים על תמונה כדי לראות אותה בתנועה</p></header>
@@ -107,7 +108,7 @@
 <div id="lightbox" class="overlay" role="dialog" aria-modal="true">
   <figure class="lbframe"><canvas id="lbCv"></canvas><figcaption id="lbCap"></figcaption></figure>
   <div class="lbnav"><button id="lbPrev">הקודמת</button><span id="lbCount"></span><button id="lbNext">הבאה</button></div>
-  <div class="lbacts"><button id="lbClose">חזרה לאלבום</button><button class="pri" id="lbSave">שמירת התמונה</button></div>
+  <div class="lbacts"><button id="lbClose">חזרה</button><button class="pri" id="lbSave">שמירה</button><button class="wa" id="lbShare">📲 וואטסאפ</button></div>
 </div>
 
 <script type="module" src="src/main.js"></script>

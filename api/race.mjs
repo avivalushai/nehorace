@@ -1,7 +1,7 @@
 // POST /api/race: a finished race. Updates the weekly board (best single-race score this week)
 // and the all-time wins board, then returns the player's ranks.
 // Body: {id, name, score, pos, time, look}. Scores come from the browser, so they are sanity-checked and rate limited.
-import { hasDb, pipeline, json, weekKey, KEYS, isId, cleanName, cleanLook, clientIp } from './_lib.mjs';
+import { hasDb, pipeline, json, weekKey, KEYS, isId, cleanName, cleanLook, clientIp, hasSuffix, claimName } from './_lib.mjs';
 
 const MAX_SCORE=3000;          // a great race is around 1,000 "street points"
 const MIN_TIME=30,MAX_TIME=300; // the track takes about 45 seconds
@@ -22,6 +22,9 @@ export async function POST(req){
   ]);
   if(banned)return json({error:'banned'},403);
   if(fresh===null||ipCount>IP_PER_HOUR)return json({error:'too-fast'},429);
+  // only named players who own their name get on the board (a plain answer, so the browser doesn't log an error)
+  if(!hasSuffix(name))return json({nameRequired:true});
+  if(!(await claimName(id,name)))return json({nameTaken:true,name});
   const cmds=[
     ['EXPIRE',KEYS.ipRate(clientIp(req),hour),'3600'],
     ['HSET',KEYS.names,id,name],

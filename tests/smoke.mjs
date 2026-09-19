@@ -68,6 +68,8 @@ try {
     else if (!fs.readFileSync(bf).equals(buf)) diffs.push(`${file}: differs from baseline`);
   }
   const click = sel => page.locator(sel).first().click();
+  // starting checks the name with the server first, so wait for the garage to open
+  const start = async () => { await click('#startBtn'); await page.waitForSelector('#garage.on', { timeout: 10000 }); };
 
   await page.goto(URL, { waitUntil: 'networkidle', timeout: 45000 }); // Google Fonts can be slow
   await page.evaluate(() => document.fonts.ready);
@@ -98,7 +100,7 @@ try {
 
   // ---- garage: character ----
   await page.fill('#nameIn', 'בדיקה');
-  await click('#startBtn');
+  await start();
   await shot('garage-char', { compare: true });
   const charTabs = await page.locator('#tabs .tab').count();
   for (let i = 0; i < charTabs; i++) {
@@ -158,6 +160,21 @@ try {
     await page.waitForTimeout(1600);
     await shot('results');
     await shot('results-full', { full: true });
+    // sharing: no share sheet in a headless browser, so WhatsApp opens with the text and the link
+    await page.evaluate(() => { window.__shared = []; window.open = u => { window.__shared.push(u); }; });
+    await click('#shareBtn');
+    const shared = await page.evaluate(() => window.__shared);
+    if (!(shared.length === 1 && shared[0].startsWith('https://wa.me/?text=') && decodeURIComponent(shared[0]).includes('nehorace.vercel.app'))) errors.push(`[share] race share opened ${JSON.stringify(shared)}`);
+    // my garage: what opened with career points, the rides, and what was bought
+    await click('#myGarageBtn');
+    await page.waitForTimeout(400);
+    if (!(await page.locator('#mgGrid .mg-card').count())) errors.push('[garage] my garage is empty');
+    await shot('my-garage');
+    await page.locator('#mgTabs .tab').nth(1).click();
+    if (await page.locator('#mgGrid .mg-card').count() !== 6) errors.push('[garage] expected all 6 rides in my garage');
+    await shot('my-garage-rides');
+    await page.locator('#mgTabs .tab').nth(2).click();
+    await click('#myGarageClose');
     await click('#shopBtn');
     await shot('shop');
     const buy = page.locator('.buy:not([disabled])');
@@ -172,6 +189,8 @@ try {
     await page.locator('#albumGrid .pol').first().click();
     await page.waitForTimeout(800);
     await shot('lightbox');
+    await click('#lbShare');
+    if ((await page.evaluate(() => window.__shared.length)) !== 2) errors.push('[share] album photo share did nothing');
     const np = await page.locator('#albumGrid .pol').count();
     for (let i = 1; i < np; i++) { await click('#lbNext'); await page.waitForTimeout(250); }
     await shot('lightbox-last');
@@ -197,7 +216,8 @@ try {
   const shopCoins = async () => +(await page.locator('#shopCoins').textContent()).replace(/\D/g, '');
   const toGarageShop = async () => {
     await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
-    await click('#startBtn');
+    if (await page.inputValue('#nameIn') !== 'בדיקה') errors.push('[name] the name was not remembered after a reload');
+    await start();
     await click('#gShopBtn');
   };
   const expect = (ok, msg) => { if (!ok) errors.push(`[wallet] ${msg}`); };
@@ -263,7 +283,8 @@ try {
   await page.goto(devUrl, { waitUntil: 'networkidle', timeout: 45000 });
   await page.evaluate(() => localStorage.setItem('nehorace-stats', JSON.stringify({ races: 1, career: 0 })));
   await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
-  await click('#startBtn');
+  await page.fill('#nameIn', 'בדיקה');
+  await start();
   expectU(await page.locator('#opts .opt.locked').count() >= 7, 'new haircuts should be locked with 0 career points');
   await page.locator('#opts .opt.locked').first().click();
   expectU(!(await page.locator('#opts .opt.on.locked').count()), 'a locked item got selected');
@@ -273,7 +294,8 @@ try {
   await page.evaluate(() => localStorage.setItem('nehorace-stats', JSON.stringify({ races: 1, career: 99999 })));
   for (const vid of [3, 4, 5]) { // T-Max, giant pitbull, wings
     await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
-    await click('#startBtn');
+    await page.fill('#nameIn', 'בדיקה');
+    await start();
     expectU(!(await page.locator('#opts .opt.locked').count()), 'items still locked with 99,999 points');
     const tabs = await page.locator('#tabs .tab').count();
     for (let i = 0; i < tabs; i++) { await page.locator('#tabs .tab').nth(i).click(); await page.locator('#opts .opt').last().click(); }
@@ -305,6 +327,13 @@ try {
     p2.on('pageerror', e => errors.push(`[board pageerror] ${e.message}`));
     p2.on('dialog', d => { errors.push('[board] a dialog opened: injected HTML ran'); d.dismiss(); });
     await p2.goto(devUrl, { waitUntil: 'networkidle', timeout: 45000 });
+    await p2.locator('#startBtn').click();
+    expectB(await p2.locator('#title.on').count() === 1, 'started without adding a name after נהוראי');
+    await p2.fill('#nameIn', 'בדיקה'); // player 1's name
+    await p2.waitForFunction(() => document.querySelector('#nameHint').classList.contains('bad'), null, { timeout: 5000 }).catch(() => errors.push('[board] a taken name was not flagged while typing'));
+    await p2.locator('#startBtn').click(); await p2.waitForTimeout(400);
+    expectB(await p2.locator('#title.on').count() === 1, 'a taken name got through');
+    await p2.screenshot({ path: path.join(OUT, 'name-taken.png') });
     await p2.fill('#nameIn', '<img src=x onerror=alert(1)>');
     await p2.locator('#devBtn').click();
     await p2.waitForSelector('#results.on', { timeout: 30000 });
@@ -318,6 +347,7 @@ try {
     expectB(await p2.locator('#boardPodium canvas.podium').count() === 1, 'no podium above the weekly board');
     const podLooks = await p2.evaluate(async () => (await (await fetch('api/leaderboard')).json()).week.top.filter(r => r.look).length);
     expectB(podLooks >= 2, `podium looks missing from the api (${podLooks})`);
+    expectB(await p2.locator('#boardList canvas.av').count() === rows, 'every row should show its Nehorai');
     await p2.screenshot({ path: path.join(OUT, 'board-week.png') });
     await p2.locator('#boardTabs .tab').nth(1).click();
     await p2.screenshot({ path: path.join(OUT, 'board-wins.png') });
@@ -342,7 +372,7 @@ try {
   };
   const dclick = sel => dp.locator(sel).first().click();
   if (await dstep('title', () => dp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 }), 'title')
-    && await dstep('garage', () => dclick('#startBtn'), 'garage')
+    && await dstep('garage', async () => { await dp.fill('#nameIn', 'מחשב'); await dclick('#startBtn'); }, 'garage')
     && await dstep('vehicle', () => dclick('#nextBtn'), 'garage')
     && await dstep('race', async () => { await dclick('#nextBtn'); await dclick('#nextBtn'); await dp.waitForTimeout(4000); }, 'race'))
     await dstep('exit', () => dclick('#exitBtn'), 'garage');

@@ -19,8 +19,12 @@ button{cursor:pointer;border:0;background:none}
 .namefield label{font-size:14px;opacity:.75}
 .namefield input{background:rgba(0,0,0,.25);border:2px solid rgba(255,244,220,.25);border-radius:14px;padding:11px 14px;font-size:20px;-webkit-user-select:text;user-select:text}
 .namefield input:focus{border-color:var(--gold);outline:none}
-.name-hint{font-size:13px;color:var(--gold);opacity:.9}
-.name-hint[hidden]{display:none}
+.name-row{display:flex;align-items:stretch;background:rgba(0,0,0,.25);border:2px solid rgba(255,244,220,.25);border-radius:14px;overflow:hidden}
+.name-row:focus-within{border-color:var(--gold)}
+.name-fixed{display:flex;align-items:center;padding:0 12px 0 8px;font-size:20px;color:var(--gold);background:rgba(255,200,61,.1);border-inline-end:1px solid rgba(255,244,220,.2)}
+.namefield .name-row input{flex:1;min-width:0;background:none;border:0;border-radius:0}
+.name-hint{font-size:13px;color:var(--gold);opacity:.9;min-height:1.3em}
+.name-hint.ok{color:var(--mint)}.name-hint.bad{color:#FF8FB8}
 #title .btn{width:min(88vw,340px)}
 .best{font-size:15px;opacity:.9;max-width:34ch}
 .best b{color:var(--gold);font-weight:400;direction:ltr;unicode-bidi:isolate}
@@ -43,6 +47,9 @@ button{cursor:pointer;border:0;background:none}
 .panel{flex:0 0 auto;height:min(47dvh,400px);display:flex;flex-direction:column;background:var(--club2);border-radius:22px 22px 0 0;padding:10px 12px 0}
 .tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:10px;flex:0 0 auto}
 .tabs::-webkit-scrollbar{display:none}
+/* the Nehorai builder has 9 categories: they wrap into rows so none hides off screen on a phone */
+#tabs{flex-wrap:wrap;gap:5px}
+#tabs .tab{padding:6px 11px}
 .tab{flex:0 0 auto;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.22);font-size:15px;white-space:nowrap}
 .tab.on{background:var(--gold);color:var(--ink)}
 .opts{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-bottom:12px;align-content:start}
@@ -102,12 +109,6 @@ button{cursor:pointer;border:0;background:none}
 .res-title{font-size:22px}
 .res-time{opacity:.75;font-size:15px}
 .res h2{font-size:20px;font-weight:400;margin:18px 0 8px;color:var(--gold)}
-.dmg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.dmg div{background:var(--club2);border-radius:14px;padding:10px 6px;text-align:center}
-.dmg b{display:block;font-family:var(--display);font-size:40px;line-height:1;color:var(--cream)}
-.dmg span{font-size:12px;opacity:.85}
-.dmg .big{grid-column:1/-1;background:var(--pink)}
-.dmg .big b{font-size:56px}
 .verdict{margin-top:10px;font-size:17px;background:rgba(255,200,61,.12);border-right:4px solid var(--gold);padding:10px 12px;border-radius:8px}
 .table{list-style:none;display:flex;flex-direction:column;gap:6px}
 .table li{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;background:var(--club2);border-radius:12px;padding:9px 12px;font-size:15px}
@@ -118,6 +119,12 @@ button{cursor:pointer;border:0;background:none}
 .res-actions .btn{flex:1}
 .gift{display:flex;gap:14px;align-items:center;width:100%;margin-top:16px;background:var(--gold);color:var(--ink);border-radius:18px;padding:14px 16px;text-align:right;box-shadow:0 5px 0 var(--gold2);position:relative;overflow:hidden}
 .gift:before{content:'';position:absolute;top:0;bottom:0;left:58px;width:14px;background:var(--pink)}
+.btn.wa{width:100%;margin-top:14px;background:#25D366;color:#0B3B22;box-shadow:0 4px 0 #128C4A}
+.btn.wa:active{box-shadow:0 1px 0 #128C4A}
+.lbacts button.wa{background:#25D366;color:#0B3B22}
+.res-score{margin-top:6px;font-size:15px}.res-score b{font-family:var(--display);font-size:30px;color:var(--pink);direction:ltr;unicode-bidi:isolate}
+.garage-link{background:var(--mint);box-shadow:0 5px 0 #23A46E;margin-top:18px}
+.garage-link:before{background:var(--gold)}
 .gift:active{transform:translateY(3px);box-shadow:0 2px 0 var(--gold2)}
 .gift-ico{font-size:42px;line-height:1;position:relative;z-index:1;margin-inline-start:auto;order:2}
 .gift b{display:block;font-family:var(--display);font-size:36px;line-height:.95}
@@ -176,6 +183,21 @@ button{cursor:pointer;border:0;background:none}
 .buy{background:var(--gold);color:var(--ink);border-radius:999px;padding:8px;font-size:15px}
 .buy:disabled{background:rgba(255,255,255,.12);color:rgba(255,244,220,.6)}
 .item.owned .buy{background:var(--mint);color:var(--ink)}
+.mg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (min-width:560px){.mg-grid{grid-template-columns:repeat(4,1fr)}}
+@media (min-width:860px){.mg-grid{grid-template-columns:repeat(6,1fr);gap:12px}}
+.mg-head{grid-column:1/-1;font-size:17px;font-weight:400;color:var(--gold);margin:10px 2px 0}
+.mg-head:first-child{margin-top:0}
+.mg-card{position:relative;background:var(--club2);border:2px solid transparent;border-radius:14px;padding:6px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;line-height:1.2;text-align:center}
+.mg-card.on{border-color:var(--gold);background:rgba(255,200,61,.13)}
+.mg-card canvas{width:100%;aspect-ratio:1;max-width:96px}
+.mg-card .rar{position:absolute;top:4px;right:4px;font-style:normal;font-size:10px;line-height:1;padding:3px 6px;border-radius:99px;background:var(--rc);color:var(--ink)}
+.mg-card .cnt{position:absolute;top:4px;left:4px;font-style:normal;font-size:12px;background:var(--gold);color:var(--ink);border-radius:99px;padding:1px 7px;direction:ltr}
+.mg-card.locked canvas{filter:grayscale(.85) brightness(.55)}
+.mg-card.locked>span{opacity:.6}
+.mg-card .lock{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-style:normal;font-size:12px;white-space:nowrap;background:rgba(10,4,20,.82);color:var(--cream);border-radius:99px;padding:3px 8px;pointer-events:none}
+.mg-card .lock b{font-weight:400;color:var(--gold);direction:ltr;unicode-bidi:isolate}
+#myGarage.on{display:block;background:var(--club);overflow-y:auto}
 .shop-empty{grid-column:1/-1;text-align:center;opacity:.8;padding:30px 0}
 #gShopBtn{position:absolute;top:52px;left:10px;z-index:2;background:var(--pink);color:#fff;padding:7px 12px;border-radius:999px;font-size:14px}
 .vcard{grid-template-columns:138px 1fr;background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(0,0,0,.22));padding:8px 10px}
@@ -219,10 +241,11 @@ button{cursor:pointer;border:0;background:none}
 .board-head h2{font-family:var(--display);font-size:clamp(30px,9vw,48px);line-height:.9;color:var(--gold);flex:1;font-weight:700;text-shadow:0 0 14px rgba(255,61,139,.55),2px 2px 0 var(--pink)}
 .board-note{font-size:14px;opacity:.8;margin:4px 2px 10px}
 .board-list{list-style:none;display:flex;flex-direction:column;gap:6px}
-.board-list li{display:grid;grid-template-columns:36px 1fr auto;gap:8px;align-items:center;background:var(--club2);border-radius:12px;padding:10px 12px;font-size:16px}
+.board-list li{display:grid;grid-template-columns:36px 44px 1fr auto;gap:8px;align-items:center;background:var(--club2);border-radius:12px;padding:10px 12px;font-size:16px}
 .board-list li.me{box-shadow:inset 0 0 0 2px var(--gold);background:rgba(255,200,61,.14)}
 .board-list li.gap{display:block;text-align:center;background:none;padding:0;opacity:.6}
 .board-list .n{font-family:var(--display);font-size:26px;color:var(--gold);text-align:center;direction:ltr;unicode-bidi:isolate}
+.board-list .av{width:44px;height:44px;margin:-6px 0}
 .board-list .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .board-list b{font-weight:400;color:var(--gold);direction:ltr;unicode-bidi:isolate;white-space:nowrap}
 .podium{display:block;width:100%;height:250px;margin:4px 0 8px}
@@ -280,7 +303,6 @@ button{cursor:pointer;border:0;background:none}
  .res-rank{font-size:110px}.res-title{font-size:30px}.res-time{font-size:18px}
  .res-panel{grid-column:2;grid-row:1;overflow-y:auto;background:var(--club2);padding:6px 18px 18px}
  .res-actions{grid-column:2;grid-row:2;background:var(--club2);margin:0;padding:14px 18px;box-shadow:0 -8px 16px rgba(0,0,0,.18)}
- .dmg .big{grid-column:span 2} /* 13 items + a 2-cell total fill 5 even rows */
  /* race: tell keyboard players how to drive */
  #keysHint{display:flex}
 }

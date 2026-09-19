@@ -73,4 +73,4 @@ function drawTrophies(c,w,h,gy){
   spots.forEach(([id,x])=>{if(x==null||!has(id))return;c.save();c.translate(x,gy-S*.1);drawItem(c,id,S*.22);c.restore();});
 }
 
-export { toast, Wallet, walletLoad, walletSave, calcCoins, ownedCount, showCoins, drawTrophies };
+export { toast, Wallet, walletLoad, walletSave, calcCoins, ownedCount, showCoins, drawTrophies, drawItemCard };

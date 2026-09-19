@@ -16,4 +16,13 @@ async function fetchBoard(){
   try{const res=await fetch(`api/leaderboard?id=${playerId()||''}`);return res.ok?await res.json():null;}catch(e){return null;}
 }
 
-export { playerId, submitRace, fetchBoard };
+// unique names: check while typing, claim when starting. null = no server (local play), which never blocks the game
+async function checkName(name){
+  try{const res=await fetch(`api/name?name=${encodeURIComponent(name)}&id=${playerId()||''}`);if(!res.ok)return null;const d=await res.json();return d.disabled?null:d;}catch(e){return null;}
+}
+async function claimName(name){
+  const id=playerId();if(!id)return null;
+  try{const res=await fetch('api/name',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,name})});if(!res.ok)return null;const d=await res.json();return d.disabled?null:d;}catch(e){return null;}
+}
+
+export { playerId, submitRace, fetchBoard, checkName, claimName };

@@ -109,4 +109,4 @@ document.querySelectorAll('.step').forEach(b=>b.onclick=()=>{const s=+b.dataset.
 $('#nextBtn').onclick=()=>{if(step<2){step++;renderPanel();}else startRace();};
 $('#backBtn').onclick=()=>{if(step>0){step--;renderPanel();}else show('title');};
 
-export { drawComposition, step, setStep, startStage, stopStage, renderPanel };
+export { drawComposition, step, setStep, startStage, stopStage, renderPanel, previewPart };
