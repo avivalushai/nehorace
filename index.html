@@ -44,6 +44,7 @@
   <div class="namefield">
     <label for="nameIn">איך קוראים לנהוראי שלך?</label>
     <input id="nameIn" maxlength="10" value="נהוראי" autocomplete="off">
+    <small class="name-hint" id="nameHint">💡 תנו שם לנהוראי, כדי שיזהו אתכם בטבלת האלופים</small>
   </div>
   <button class="btn" id="startBtn">בונים נהוראי</button>
   <button class="btn ghost" id="boardBtn">🏆 טבלת האלופים</button>
@@ -95,7 +96,7 @@
   </div>
 </section>
 
-<div id="board" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2>טבלת האלופים</h2><button class="shopX" id="boardClose">סגירה</button></div><div class="tabs" id="boardTabs"></div></header><p class="board-note" id="boardNote"></p><ol class="board-list" id="boardList"></ol></div></div>
+<div id="board" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2>טבלת האלופים</h2><button class="shopX" id="boardClose">סגירה</button></div><div class="tabs" id="boardTabs"></div></header><p class="board-note" id="boardNote"></p><div id="boardPodium"></div><ol class="board-list" id="boardList"></ol></div></div>
 <div id="shop" class="overlay"><div class="shop"><header class="shop-head"><div class="shop-row"><h2>החנות</h2><div class="shop-wallet"><span class="coin"></span><b id="shopCoins">0</b></div><button class="shopX" id="shopClose">סגירה</button></div><div class="tabs" id="shopTabs"></div></header><div class="shop-grid" id="shopGrid"></div></div></div>
 <div id="album" class="overlay">
   <div class="album">

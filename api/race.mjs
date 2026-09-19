@@ -1,7 +1,7 @@
 // POST /api/race: a finished race. Updates the weekly board (best single-race score this week)
 // and the all-time wins board, then returns the player's ranks.
-// Body: {id, name, score, pos, time}. Scores come from the browser, so they are sanity-checked and rate limited.
-import { hasDb, pipeline, json, weekKey, KEYS, isId, cleanName, clientIp } from './_lib.mjs';
+// Body: {id, name, score, pos, time, look}. Scores come from the browser, so they are sanity-checked and rate limited.
+import { hasDb, pipeline, json, weekKey, KEYS, isId, cleanName, cleanLook, clientIp } from './_lib.mjs';
 
 const MAX_SCORE=3000;          // a great race is around 1,000 "street points"
 const MIN_TIME=30,MAX_TIME=300; // the track takes about 45 seconds
@@ -28,6 +28,7 @@ export async function POST(req){
     ['ZADD',KEYS.week(wk),'GT',String(score),id],
     ['EXPIRE',KEYS.week(wk),String(60*60*24*42)],
   ];
+  const look=cleanLook(b.look);if(look)cmds.push(['HSET',KEYS.looks,id,look]);
   if(pos===1)cmds.push(['ZINCRBY',KEYS.wins,'1',id]);
   await pipeline(cmds);
   const [wr,ws,nr,ns]=await pipeline([['ZREVRANK',KEYS.week(wk),id],['ZSCORE',KEYS.week(wk),id],['ZREVRANK',KEYS.wins,id],['ZSCORE',KEYS.wins,id]]);

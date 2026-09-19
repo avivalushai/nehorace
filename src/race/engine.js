@@ -169,7 +169,7 @@ function finishRace(){
     if(rc.newScore)badges.push('🏆 שיא נקודות חדש!');if(rc.newTime)badges.push('⏱️ הזמן הכי מהיר שלך!');
     const opened=unlockedBetween(before,Stats.career);opened.slice(0,3).forEach(x=>badges.push(`🔓 פתחת: ${x.label}`));if(opened.length>3)badges.push(`🔓 ועוד ${opened.length-3} פריטים`);
     // send the race to the champions board; the weekly rank shows up as another badge when it answers
-    submitRace({name:state.name,score,pos,time:P.finishTime}).then(r=>{if(!r||!r.week||!r.week.rank)return;const el=$('#resRec'),sp=document.createElement('span');sp.textContent=`🏆 מקום ${r.week.rank} השבוע`;el.appendChild(sp);el.hidden=false;});
+    submitRace({name:state.name,score,pos,time:P.finishTime,look:(({name,...l})=>l)(state.look)}).then(r=>{if(!r||!r.week||!r.week.rank)return;const el=$('#resRec'),sp=document.createElement('span');sp.textContent=`🏆 מקום ${r.week.rank} השבוע`;el.appendChild(sp);el.hidden=false;});
     const el=$('#resRec');el.innerHTML=badges.map(b=>`<span>${b}</span>`).join('');el.hidden=!badges.length;}
   const items=[['🧍','אנשים שדרסת',S.people],['🧒','ילדים',S.kids],['👴','פנסיונרים',S.seniors],['🐕','כלבים',S.dogs],['🐈','חתולים',S.cats],['🐦','יונים',S.pigeons],['🍖','מנגלים שהפכת',S.mangal],['🎯','פעילויות שהרסת',S.acts],['🗑️','רכוש ציבורי',S.property],['🌳','עצים שנכנסת בהם',S.trees],['🛴','נהוראים שדחפת',S.bumps],['🤬','קללות שחטפת',S.curses],['🌱','שניות על הדשא',Math.round(S.grass)]];
   $('#dmg').innerHTML=`<div class="big"><b>${score}</b><span>נקודות ערסיות</span></div>`+items.map(([i,l,v])=>`<div><b>${v}</b><span>${i} ${l}</span></div>`).join('');

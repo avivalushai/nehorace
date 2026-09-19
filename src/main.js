@@ -39,6 +39,9 @@ function startTitle(){
 const takeName=()=>{state.name=($('#nameIn').value.trim()||'נהוראי').slice(0,10);state.look.name=state.name;};
 $('#startBtn').onclick=()=>{takeName();setStep(0);show('garage');};
 $('#boardBtn').onclick=()=>{takeName();openBoard('week');};
+// nudge players who keep the default name: the champions board is full of "נהוראי" otherwise
+const nameHint=()=>{const v=$('#nameIn').value.trim();$('#nameHint').hidden=!!v&&v!=='נהוראי';};
+$('#nameIn').addEventListener('input',nameHint);nameHint();
 // personal records line on the title screen (hidden until the first race). Numbers are isolated so RTL doesn't flip them
 function renderBest(){const el=$('#bestLine');if(!Stats.races){el.hidden=true;return;}
   const num=v=>`<b>${v}</b>`,parts=[`השיא שלך: ${num(Stats.bestScore.toLocaleString('he-IL'))} נקודות`,Stats.races===1?'מירוץ אחד':`${num(Stats.races)} מירוצים`];

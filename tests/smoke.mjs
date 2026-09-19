@@ -315,6 +315,9 @@ try {
     expectB(rows >= 2, `expected both players on the weekly board, got ${rows} rows`);
     expectB(await p2.locator('#boardList li.me').count() === 1, 'my row is not highlighted exactly once');
     expectB(!(await p2.locator('#boardList img').count()), 'a name was rendered as HTML');
+    expectB(await p2.locator('#boardPodium canvas.podium').count() === 1, 'no podium above the weekly board');
+    const podLooks = await p2.evaluate(async () => (await (await fetch('api/leaderboard')).json()).week.top.filter(r => r.look).length);
+    expectB(podLooks >= 2, `podium looks missing from the api (${podLooks})`);
     await p2.screenshot({ path: path.join(OUT, 'board-week.png') });
     await p2.locator('#boardTabs .tab').nth(1).click();
     await p2.screenshot({ path: path.join(OUT, 'board-wins.png') });
