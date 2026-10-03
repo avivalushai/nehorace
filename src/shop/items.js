@@ -1,27 +1,43 @@
 // Shop catalog, rarity tiers and item drawings.
-import { FONT, GOLD, GOLD2, INK, PINK } from '../core/util.js';
+import { FONT, GOLD, GOLD2, INK, PINK, SKIN } from '../core/util.js';
 import { R, circ, ell, ln, poly, rr, star } from '../core/draw.js';
 import { drawDog } from '../art/dog.js';
 
 const SHOP=[
  {id:'seeds',name:'שקית גרעינים שחורים',price:25,cat:'small',cons:1,line:'הקליפות כבר על הרצפה'},
+ {id:'coffee',name:'קפה שחור מהקיוסק',price:35,cat:'small',cons:1,line:'שלוש כפיות סוכר, בלי להתנצל'},
+ {id:'bamba',name:'שקית במבה',price:45,cat:'small',cons:1,line:'חצי נשפכת על הטרנינג'},
  {id:'flipflops',name:'כפכפי אצבע חדשים',price:50,cat:'style',line:'עם הפס הכחול, כמו שצריך'},
  {id:'redbull',name:'פחית רדבול',price:60,cat:'small',cons:1,perk:'טורבו נוסף בתחילת המירוץ הבא',line:'הלב דופק, הקורקינט טס'},
  {id:'shawarma',name:'שווארמה בלאפה',price:70,cat:'small',cons:1,line:'עם הכל, ועמבה בצד'},
+ {id:'shampoo',name:'שמפו ״עדן שולדרס״',price:70,cat:'style',cons:1,line:'בלי קשקשים, עם ברק'},
  {id:'barber',name:'תספורת אצל שלומי',price:80,cat:'style',cons:1,line:'פייד חדש עם שני קווים'},
  {id:'marlboro',name:'מלבורו אדום',price:90,cat:'small',cons:1,line:'קופסה אחת. נגמרת עד הערב'},
+ {id:'brows',name:'גבות מעוצבות אצל רויטל',price:90,cat:'style',cons:1,line:'קו ישר, בלי רחמים'},
  {id:'shades',name:'משקפי שמש מראה',price:150,cat:'style',line:'עכשיו רואים רק את עצמך'},
+ {id:'ashkelon',name:'נסיעה בטיילת באשקלון',price:150,cat:'small',cons:1,line:'חלון פתוח, מוזיקה בפול'},
+ {id:'braha',name:'ברכה מהרב',price:220,cat:'small',cons:1,perk:'הניידת מוותרת לך פעם אחת',line:'שם ידו על הראש ואמר: סע לאט'},
  {id:'tracksuit',name:'טרנינג מבריק חדש',price:250,cat:'style',line:'מבריק כמו הרצפה בקניון'},
+ {id:'table',name:'שולחן מתקפל לישיבות',price:250,cat:'big',line:'נפתח בשנייה, גם לשבת'},
+ {id:'perfume',name:'בושם ערסי שמריחים מרחוק',price:260,cat:'style',line:'שתי לחיצות, כל הפארק יודע'},
  {id:'gym',name:'מנוי שנתי לחדר כושר',price:300,cat:'big',line:'בעיקר לסלפי מול המראה'},
  {id:'nargila',name:'נרגילה',price:350,cat:'big',line:'מישהו כבר מבקש ראש'},
  {id:'speaker',name:'רמקול בלוטות׳ ענק',price:400,cat:'big',line:'כל הפארק ישמע מזרחית'},
+ {id:'babasali',name:'תמונה של הבאבא סאלי',price:400,cat:'big',line:'שמירה על הקורקינט'},
  {id:'karaoke',name:'ערכת קריוקי',price:600,cat:'big',line:'השכנים כבר מתקשרים'},
+ {id:'dragon',name:'שובר לקעקוע דרקון',price:600,cat:'style',cons:1,line:'על כל הגב, שלוש פגישות'},
  {id:'teeth',name:'הלבנת שיניים',price:700,cat:'style',line:'חיוך שמסנוור בלילה'},
+ {id:'beach44',name:'שולחן בחוף 4 על 4 בראשון',price:700,cat:'big',line:'ממש על הים, עם צל'},
  {id:'puppy',name:'גור פיטבול',price:800,cat:'big',line:'קוראים לו טייסון'},
  {id:'chain24',name:'שרשרת זהב 24 קראט',price:900,cat:'style',line:'שוקלת יותר מהקורקינט'},
+ {id:'tiger',name:'תמונה עם נמר מתאילנד',price:900,cat:'style',line:'הנמר היה רגוע, אנחנו לא'},
+ {id:'jacuzzi',name:'ג׳קוזי מתנפח במרפסת',price:1100,cat:'big',line:'השכנים למטה כבר מתלוננים'},
  {id:'concert',name:'כרטיס להופעה של אייל גולן',price:1200,cat:'big',line:'שורה ראשונה, ליד הרמקולים'},
+ {id:'beluga',name:'בקבוק בלוגה',price:1300,cat:'big',line:'על השולחן, שכולם יראו'},
  {id:'uman',name:'כרטיס טיסה לאומן',price:1500,cat:'big',line:'נ נח נחמ נחמן מאומן'},
+ {id:'stereo',name:'מערכת סטריאו עם סאב',price:1600,cat:'big',line:'הרעידה מגיעה עד הקומה השלישית'},
  {id:'watch',name:'שעון זהב עם יהלומים',price:1800,cat:'style',line:'לא מראה שעה, רק נוצץ'},
+ {id:'beitar',name:'מנוי לבוקס של ביתר ירושלים',price:1800,cat:'big',line:'צהוב שחור, שורה ראשונה'},
  {id:'phone',name:'טלפון חדש עם 3 מצלמות',price:2000,cat:'big',line:'בשביל עוד סטוריז מהפארק'},
  {id:'crete',name:'חופשה בכרתים',price:2500,cat:'big',line:'הכל כלול, כולל הבלגן'},
  {id:'civic',name:'הונדה סיוויק',price:5000,cat:'big',line:'מונמכת, עם חלונות כהים'},
@@ -53,6 +69,57 @@ function drawItem(c,id,S){
     case 'civic':c.beginPath();c.moveTo(-48,14);c.lineTo(-46,-4);c.lineTo(-24,-8);c.lineTo(-10,-26);c.lineTo(22,-26);c.lineTo(36,-8);c.lineTo(48,-4);c.lineTo(48,14);c.closePath();c.fillStyle='#E8E8EC';c.fill();c.stroke();
       poly(c,[[-8,-22],[6,-22],[6,-9],[-18,-9]],'#1A1A22');poly(c,[[10,-22],[20,-22],[30,-9],[10,-9]],'#1A1A22');R(c,40,-12,10,5,'#2B2B35');R(c,44,-18,3,6,'#2B2B35');R(c,-48,-2,6,5,'#FFF7B0');R(c,44,-2,5,5,'#FF2D2D');
       for(const x of[-28,28]){circ(c,x,14,11,'#1E1E26');circ(c,x,14,5,GOLD);}c.save();c.strokeStyle=PINK;c.lineWidth=2;ln(c,-40,4,40,4);c.restore();break;
+    case 'shampoo':rr(c,-20,-34,40,74,10);c.fillStyle='#2F6FD0';c.fill();c.stroke();R(c,-12,-48,24,16,'#E8EDF5');rr(c,-16,-18,32,36,6);c.fillStyle='#EAF2FF';c.fill();c.stroke();c.fillStyle=INK;c.font=`11px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText('עדן',0,-4);c.fillText('שולדרס',0,10);break;
+    case 'ashkelon':{R(c,-50,20,100,20,'#555C6B');c.save();c.strokeStyle='#FFF';c.setLineDash([10,8]);c.lineWidth=3;ln(c,-50,30,50,30);c.restore();
+      R(c,24,-30,6,50,'#7A4A24');for(let i=0;i<5;i++){c.save();c.translate(27,-30);c.rotate(-1.2+i*.6);poly(c,[[0,0],[26,-8],[30,2],[4,6]],'#3E9657',1);c.restore();}
+      rr(c,-46,-34,54,30,6);c.fillStyle='#2F6FD0';c.fill();c.stroke();c.fillStyle='#FFF';c.font=`13px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText('אשקלון',-19,-19);break;}
+    case 'table':{R(c,-48,-14,96,12,'#E8E8EC');for(const sx of[-1,1]){R(c,sx*34-3,-2,6,40,'#9AA0AE');R(c,sx*20-3,-2,6,40,'#9AA0AE');}R(c,-40,36,80,6,'#9AA0AE');c.fillStyle='rgba(0,0,0,.12)';c.fillRect(-48,-6,96,4);break;}
+    case 'babasali':{rr(c,-36,-46,72,92,6);c.fillStyle=GOLD;c.fill();c.stroke();R(c,-28,-38,56,76,'#F3E6C8');
+      circ(c,0,-10,15,'#E8C9A0');R(c,-16,-26,32,10,'#2B2B35');poly(c,[[-15,-6],[15,-6],[12,22],[-12,22]],'#F6F2E8',1);R(c,-20,16,40,24,'#2B2B35');break;}
+    case 'dragon':{rr(c,-46,-28,92,56,8);c.fillStyle='#FFF4DC';c.fill();c.stroke();c.save();c.setLineDash([4,4]);ln(c,-46,0,46,0);c.restore();
+      c.save();c.translate(-4,-12);c.scale(.9,.9);poly(c,[[-26,6],[-8,-10],[6,-4],[18,-14],[24,-2],[8,8],[-6,4],[-18,14]],'#2E8B57',1);poly(c,[[14,-12],[26,-22],[28,-10]],'#3FA34A',1);circ(c,20,-10,2.2,INK);c.restore();
+      c.fillStyle=INK;c.font=`12px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText('שובר לקעקוע',0,16);break;}
+    case 'beach44':{R(c,-6,-18,8,46,'#8B5A2B');for(const sx of[-1,1])poly(c,[[0,-20],[sx*44,0],[0,-2]],sx>0?'#FF3D8B':'#FFC83D',1);
+      R(c,-34,26,68,8,'#C9A15A');R(c,-28,34,6,16,'#8B5A2B');R(c,22,34,6,16,'#8B5A2B');R(c,-46,46,92,6,'#EBD9AC');
+      c.fillStyle=INK;c.font=`13px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='ltr';c.fillText('4x4',1,30);break;}
+    case 'tiger':{rr(c,-44,-34,88,68,6);c.fillStyle='#8B5A2B';c.fill();c.stroke();R(c,-37,-27,74,54,'#3E9657');
+      for(const sx of[-1,1]){poly(c,[[sx*20,-12],[sx*30,-26],[sx*33,-8]],'#F2913B',1);}                       // ears
+      c.beginPath();c.ellipse(0,2,26,22,0,0,7);c.fillStyle='#F2913B';c.fill();c.stroke();                      // head
+      c.save();c.beginPath();c.ellipse(0,2,26,22,0,0,7);c.clip();c.fillStyle='#2A1D14';
+      for(const sx of[-1,1]){c.fillRect(sx*9-1.5,-24,3,12);c.fillRect(sx*17-2,-18,3.5,11);c.fillRect(sx*22-2,0,4,9);c.fillRect(sx*20-2,12,4,8);}c.restore();
+      c.fillStyle='#FFF4DC';c.beginPath();c.ellipse(0,12,13,9,0,0,7);c.fill();c.stroke();                      // muzzle
+      c.fillStyle='#2A1D14';for(const sx of[-1,1])c.fillRect(sx*9-2,-6,4,6);                                   // eyes
+      poly(c,[[-4,6],[4,6],[0,11]],'#2A1D14',1);                                                               // nose
+      c.save();c.strokeStyle='#2A1D14';c.lineWidth=1.5;for(const sx of[-1,1])for(let i=0;i<2;i++)ln(c,sx*11,12+i*4,sx*24,9+i*6);c.restore();
+      break;}
+    case 'beluga':{rr(c,-17,-30,34,70,8);c.fillStyle='rgba(220,236,255,.9)';c.fill();c.stroke();R(c,-8,-54,16,26,'rgba(220,236,255,.9)');R(c,-10,-60,20,8,'#C9CED6');
+      rr(c,-15,-16,30,34,4);c.fillStyle='#17305E';c.fill();c.stroke();c.fillStyle=GOLD;c.font=`10px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText('בלוגה',0,-6);
+      c.save();c.fillStyle='#C9CED6';c.beginPath();c.ellipse(0,8,9,5,0,0,7);c.fill();poly(c,[[9,8],[15,4],[15,12]],'#C9CED6',1);c.restore();break;}
+    case 'beitar':{c.save();c.rotate(-.12);rr(c,-50,-16,100,32,6);c.fillStyle=GOLD;c.fill();c.stroke();
+      c.save();c.beginPath();c.rect(-50,-16,100,32);c.clip();c.fillStyle='#1A1A22';for(let x=-50;x<50;x+=20)c.fillRect(x,-16,9,32);c.restore();
+      c.strokeRect(-50,-16,100,32);c.restore();
+      c.fillStyle=INK;c.font=`13px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';R(c,-30,20,60,20,'#FFF4DC');c.fillText('ביתר',0,30);break;}
+    case 'coffee':{poly(c,[[-22,-30],[22,-30],[16,36],[-16,36]],'#FFFFFF');R(c,-24,-36,48,8,'#D7D7DE');c.save();c.beginPath();c.moveTo(-22,-30);c.lineTo(22,-30);c.lineTo(16,36);c.lineTo(-16,36);c.closePath();c.clip();c.fillStyle='#4A2C17';c.fillRect(-24,-18,48,60);c.restore();
+      c.save();c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=3;for(const sx of[-1,1]){c.beginPath();c.moveTo(sx*7,-44);c.quadraticCurveTo(sx*14,-54,sx*5,-64);c.stroke();}c.restore();break;}
+    case 'bamba':{rr(c,-28,-38,56,76,10);c.fillStyle='#FFD64A';c.fill();c.stroke();R(c,-22,-10,44,22,'#E8552F');c.fillStyle='#FFFFFF';c.font=`13px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText('במבה',0,1);
+      for(const[x,y]of[[-14,-26],[2,-30],[14,22],[-6,26]]){c.save();c.translate(x,y);c.rotate(x);rr(c,-9,-5,18,10,5);c.fillStyle='#F2D9A0';c.fill();c.stroke();c.restore();}break;}
+    case 'brows':{circ(c,0,6,30,SKIN);c.fillStyle='#2A1D14';for(const sx of[-1,1]){c.save();c.translate(sx*13,-6);c.rotate(sx*.18);rr(c,-11,-4,22,7,3);c.fill();c.stroke();c.restore();}
+      for(const sx of[-1,1])circ(c,sx*11,10,3.4,INK);c.save();c.strokeStyle=INK;c.lineWidth=2.5;c.beginPath();c.arc(0,16,10,.2,2.9);c.stroke();c.restore();
+      c.save();c.strokeStyle='#C9CED6';c.lineWidth=3;ln(c,26,-34,44,-16);c.restore();star(c,-24,-24,5,'#FFFFFF');break;}
+    case 'braha':{rr(c,-34,-44,68,88,8);c.fillStyle='#FFF4DC';c.fill();c.stroke();R(c,-34,-44,68,12,'#2F6FD0');
+      c.save();c.translate(0,-14);c.fillStyle=GOLD;for(let i=0;i<8;i++){c.save();c.rotate(i*Math.PI/4);c.fillRect(-1.5,-22,3,10);c.restore();}c.restore();
+      circ(c,0,-14,9,'#FFFFFF',1);c.fillStyle=INK;c.font=`12px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText('בהצלחה',0,10);c.fillText('ושמירה',0,26);break;}
+    case 'perfume':{rr(c,-20,-20,40,56,8);c.fillStyle='rgba(43,43,53,.85)';c.fill();c.stroke();R(c,-9,-34,18,16,'#C9A15A');R(c,-13,-44,26,12,GOLD);
+      c.save();c.globalAlpha=.5;for(const[x,y]of[[26,-46],[34,-34],[22,-28]])circ(c,x,y,4,'#FFC83D');c.restore();
+      c.fillStyle=GOLD;c.font=`11px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText('בושם',0,6);break;}
+    case 'jacuzzi':{c.beginPath();c.ellipse(0,8,44,26,0,0,7);c.fillStyle='#2F6FD0';c.fill();c.stroke();
+      c.save();c.beginPath();c.ellipse(0,8,44,26,0,0,7);c.clip();c.fillStyle='#5AA8FF';c.fillRect(-44,-4,88,40);c.restore();
+      c.beginPath();c.ellipse(0,8,44,26,0,0,7);c.stroke();
+      for(const[x,y,r]of[[-18,0,7],[2,-4,9],[20,2,6],[-6,8,5]])circ(c,x,y,r,'rgba(255,255,255,.75)',1);
+      c.save();c.globalAlpha=.6;for(const[x,y]of[[-10,-26],[6,-34],[18,-24]])circ(c,x,y,5,'#E6F2FF');c.restore();break;}
+    case 'stereo':{rr(c,-46,-30,92,60,8);c.fillStyle='#1E1E26';c.fill();c.stroke();circ(c,-22,0,16,'#555');circ(c,-22,0,6,'#222');circ(c,16,-10,9,'#555');
+      rr(c,2,2,34,24,4);c.fillStyle='#0E0E14';c.fill();c.stroke();c.fillStyle='#3DF5FF';for(let i=0;i<5;i++)c.fillRect(6+i*6,20-(4+i*3),4,4+i*3);
+      c.save();c.strokeStyle='#3DF5FF';c.lineWidth=3;for(let i=1;i<=2;i++){c.beginPath();c.arc(-22,0,16+i*9,-.7,.7);c.stroke();}c.restore();break;}
     default:circ(c,0,0,30,GOLD);
   }c.restore();}
 const TIERS=[{max:99,name:'נפוץ',col:'#8FA3BF'},{max:499,name:'שווה',col:'#3DDC97'},{max:1499,name:'נדיר',col:'#3DA5FF'},{max:2999,name:'אפי',col:'#FF3D8B'},{max:1e9,name:'אגדי',col:'#FFC83D'}];

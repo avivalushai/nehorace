@@ -3,6 +3,7 @@ import { DISP, FONT, GOLD, INK, PINK, SKIN, clamp, hash, rand } from '../core/ut
 import { R, circ, ell, ln, poly, rr, shade, star } from '../core/draw.js';
 import { dogFur } from '../art/dog.js';
 import { drawRacerTop } from '../art/racer-top.js';
+import { drawCopTop } from '../art/police.js';
 import { HAIRC, PW, SHIRTC, cx } from './world.js';
 import { LH, LW, RK, fmt, lowerBound, race, rctx } from './engine.js';
 import { ZONES } from '../music/engine.js';
@@ -103,6 +104,23 @@ function drawBubble(c,b,x,y){
   poly(c,[[x-5,y-1],[x+5,y-1],[x,y+6]],bg);c.fillStyle=bg;c.fillRect(x-4,y-3,8,3);
   c.fillStyle=fg;c.textAlign='center';c.textBaseline='middle';c.fillText(b.text,x,y-h/2+1);c.restore();
 }
+// one police light on the HUD: a dome that blinks red and blue, with a glow. Three of them mean the park has had enough
+function drawChaklaka(c,x,y,w,t,i){
+  const on=Math.floor(t*6+i)%2===0,h=w*.62;
+  c.save();c.translate(x,y);
+  const g=c.createRadialGradient(0,0,1,0,0,w*1.5);g.addColorStop(0,on?'rgba(255,61,61,.55)':'rgba(61,140,255,.55)');g.addColorStop(1,'rgba(0,0,0,0)');
+  c.fillStyle=g;c.beginPath();c.arc(0,0,w*1.5,0,7);c.fill();
+  c.lineJoin='round';c.strokeStyle=INK;c.lineWidth=2;
+  c.beginPath();c.moveTo(-w/2,0);c.arc(0,0,w/2,Math.PI,0);c.closePath();
+  c.save();c.clip();
+  c.fillStyle=on?'#FF4D4D':'#8A2222';c.fillRect(-w/2,-h,w/2,h+2);
+  c.fillStyle=on?'#2F6FD0':'#5AA8FF';c.fillRect(0,-h,w/2,h+2);
+  c.fillStyle='rgba(255,255,255,.55)';c.fillRect(-w/2+2,-h+2,w-4,2);
+  c.restore();
+  c.beginPath();c.moveTo(-w/2,0);c.arc(0,0,w/2,Math.PI,0);c.closePath();c.stroke();
+  R(c,-w/2-2,0,w+4,3.5,'#2B2B35',1);
+  c.restore();
+}
 function render(){
   const c=rctx,P=race.player,t=race.t;c.setTransform(RK,0,0,RK,0,0);
   const baseY=LH*.72,shx=race.shake?(Math.random()-.5)*race.shake:0,shy=race.shake?(Math.random()-.5)*race.shake:0;
@@ -117,6 +135,8 @@ function render(){
   const i0=lowerBound(race.statics,dBot-60);
   for(let i=i0;i<race.statics.length&&race.statics[i].d<dTop+60;i++){const s=race.statics[i];c.save();c.translate(SX(s.x),SY(s.d));drawStatic(c,s,t,0);c.restore();}
   for(const k of race.pickups){if(k.taken||k.d<dBot||k.d>dTop)continue;const x=SX(k.x),y=SY(k.d)+Math.sin(t*4+k.d)*2;ell(c,x,y,13,13,'rgba(255,200,61,.35)');c.strokeStyle=INK;c.lineWidth=1.6;R(c,x-5,y-9,10,18,'#1F5FD0');poly(c,[[x+1,y-6],[x-3,y+1],[x,y+1],[x-1,y+6],[x+3,y-1],[x,y-1]],GOLD,1);}
+  // the police motorcycle rides in the world like everyone else
+  if(race.cop&&race.cop.d>dBot-80&&race.cop.d<dTop+80){c.save();c.translate(SX(race.cop.x),SY(race.cop.d));c.rotate(race.cop.lean||0);c.scale(1.25,1.25);drawCopTop(c,t);c.restore();}
   const actors=[];for(const p of race.peds)if(!p.gone&&p.d>dBot&&p.d<dTop)actors.push(p);for(const r of race.racers)if(r.d>dBot-40&&r.d<dTop)actors.push(r);
   actors.sort((a,b)=>b.d-a.d);
   for(const a of actors){c.save();c.translate(SX(a.x),SY(a.d));
@@ -147,6 +167,15 @@ function render(){
   c.textAlign='center';c.direction='rtl';
   if(race.phase==='count'){const n=Math.ceil(race.count);if(n<=3){c.font=`150px ${DISP}`;c.lineWidth=10;c.strokeText(String(n),LW/2,LH*.42);c.fillStyle=GOLD;c.fillText(String(n),LW/2,LH*.42);}
     c.font=`16px ${FONT}`;c.lineWidth=4;c.fillStyle='#fff';for(const[k,s]of[[0,'גוררים אצבע ימינה ושמאלה כדי לנווט'],[24,'פחיות כחולות ממלאות טורבו']]){c.strokeText(s,LW/2,LH*.52+k);c.fillText(s,LW/2,LH*.52+k);}}
+  // wanted level: police lights under the clock once enough people have been run over
+  if(race.wanted>0){const lw=22,gap=7,total=race.wanted*lw+(race.wanted-1)*gap;
+    for(let i=0;i<race.wanted;i++)drawChaklaka(c,LW/2-total/2+lw/2+i*(lw+gap),68,lw,t,i);
+    if(race.wantedT>0){c.save();c.globalAlpha=clamp(Math.min(race.wantedT,2.8-race.wantedT)*4,0,1);
+      const txt=['מישהו התקשר למשטרה','ניידת בדרך','המשטרה ממש בעקבותיך!'][race.wanted-1];
+      c.font=`17px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';
+      const w=c.measureText(txt).width+26,by=race.zoneT>0?158:110; // under the zone banner when both show
+      c.fillStyle='#2F6FD0';c.strokeStyle=INK;c.lineWidth=2.5;rr(c,LW/2-w/2,by,w,30,15);c.fill();c.stroke();
+      c.fillStyle='#FFFFFF';c.fillText(txt,LW/2,by+16);c.restore();}}
   if(race.goT>0){c.font=`120px ${DISP}`;c.lineWidth=10;c.globalAlpha=Math.min(1,race.goT*2);c.strokeText('סע!!',LW/2,LH*.42);c.fillStyle=PINK;c.fillText('סע!!',LW/2,LH*.42);c.globalAlpha=1;}
   if(race.zoneT>0){c.save();c.globalAlpha=clamp(Math.min(race.zoneT,2.6-race.zoneT)*4,0,1);const txt=`♫ ${ZONES[race.zone].name}`;c.font=`20px ${FONT}`;c.direction='rtl';c.textAlign='center';c.textBaseline='middle';const w=c.measureText(txt).width+30;c.fillStyle=PINK;c.strokeStyle=INK;c.lineWidth=2.5;rr(c,LW/2-w/2,116,w,36,18);c.fill();c.stroke();c.fillStyle='#FFFFFF';c.fillText(txt,LW/2,135);c.restore();}
   if(race.phase==='done'){c.font=`96px ${DISP}`;c.lineWidth=9;c.strokeText('סיימת!',LW/2,LH*.4);c.fillStyle=GOLD;c.fillText('סיימת!',LW/2,LH*.4);c.font=`24px ${FONT}`;c.lineWidth=5;const tx=`מקום ${pos}`;c.strokeText(tx,LW/2,LH*.4+40);c.fillStyle='#fff';c.fillText(tx,LW/2,LH*.4+40);}

@@ -456,4 +456,7 @@ const INNER2={comic:['side','front','rear','drone'],story:['selfie','side','fron
 SKIES.push({top:'#0B1636',bot:'#3B2B5E',sun:'#F4F1D0',grass:'#2F6B30',hill:'#26404A',night:true});
 const skyBase=sky;sky=function(c,w,h,hor){skyBase(c,w,h,hor);if(PAL.night){c.fillStyle='rgba(255,255,255,.85)';for(let i=0;i<40;i++)c.fillRect(hash(i,21)*w,hash(i,23)*hor*.9,1.6,1.6);circ(c,w*.83+h*.022,h*.1-h*.014,h*.045,PAL.top,1);}};
 
-export { drawPhoto, COVER_LINES, INNER2 };
+// the park backdrop on its own (used by the arrest picture)
+function parkBackdrop(c,w,h,t,pal){const keep=PAL;PAL=SKIES[pal||0];bgSide(c,w,h,t,0);PAL=keep;}
+
+export { drawPhoto, COVER_LINES, INNER2, parkBackdrop };

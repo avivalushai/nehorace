@@ -24,6 +24,7 @@ import { nextUnlock } from './core/unlocks.js';
 import { openBoard } from './ui/board.js';
 import './ui/share.js';
 import './ui/collection.js';
+import './ui/bust.js';
 import { checkName, claimName } from './net/leaderboard.js';
 import { track } from './net/analytics.js';
 import { devQuickRace, fmt } from './race/engine.js';

@@ -73,6 +73,21 @@ try {
     else if (!fs.readFileSync(bf).equals(buf)) diffs.push(`${file}: differs from baseline`);
   }
   const click = sel => page.locator(sel).first().click();
+  // a race ends on the standings screen (podium + table with a line from each racer); continue to the results
+  const toResults = async (pg, timeout, snap) => {
+    // a race with too many victims ends with the police: the arrest picture comes before the standings
+    await pg.waitForSelector('#bust.on, #standings.on', { timeout });
+    if (await pg.locator('#bust.on').count()) {
+      if (snap) { await pg.waitForTimeout(400); await pg.screenshot({ path: path.join(OUT, `${snap}-busted.png`) }); }
+      await pg.locator('#bustNext').click();
+      await pg.waitForSelector('#standings.on', { timeout: 5000 });
+    }
+    const rows = await pg.locator('#stdList li').count(), said = await pg.locator('#stdList q').evaluateAll(qs => qs.map(q => q.textContent));
+    if (rows !== 6 || new Set(said).size !== 6 || said.some(t => !t)) errors.push(`[standings] expected 6 racers with 6 different lines, got ${rows}: ${said.join(' | ')}`);
+    if (snap) { await pg.waitForTimeout(400); await pg.screenshot({ path: path.join(OUT, `${snap}.png`) }); }
+    await pg.locator('#stdNext').click();
+    await pg.waitForSelector('#results.on', { timeout: 5000 });
+  };
   // starting checks the name with the server first, so wait for the garage to open
   const start = async () => { await click('#startBtn'); await page.waitForSelector('#garage.on', { timeout: 10000 }); };
 
@@ -161,7 +176,7 @@ try {
     await click('#exitBtn');
     await shot('exit-to-garage');
   } else {
-    await page.waitForSelector('#results.on', { timeout: 150000 });
+    await toResults(page, 150000, 'standings');
     await page.waitForTimeout(1600);
     await shot('results');
     await shot('results-full', { full: true });
@@ -270,7 +285,7 @@ try {
   await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
   expectR(await page.locator('#bestLine').isHidden(), 'best line visible before any race');
   await click('#devBtn');
-  await page.waitForSelector('#results.on', { timeout: 30000 });
+  await toResults(page, 30000);
   await shot('dev-results');
   const s1 = await stats();
   expectR(s1?.races === 1 && s1.bestScore > 0 && s1.bestTime > 0, `after one race: ${JSON.stringify(s1)}`);
@@ -283,7 +298,7 @@ try {
   await page.evaluate(() => localStorage.setItem('nehorace-stats', JSON.stringify({ races: 3, wins: 0, podiums: 0, bestScore: 1, bestTime: 9999, victims: 0 })));
   await page.reload({ waitUntil: 'networkidle', timeout: 45000 });
   await click('#devBtn');
-  await page.waitForSelector('#results.on', { timeout: 30000 });
+  await toResults(page, 30000);
   const rec = (await page.locator('#resRec').textContent()) || '';
   expectR(rec.includes('שיא נקודות חדש') && rec.includes('הכי מהיר'), `new record badge: "${rec}"`);
   expectR((await stats())?.races === 4, `races after second run: ${JSON.stringify(await stats())}`);
@@ -319,7 +334,7 @@ try {
     await shot(`ride-${vid}-design`);
     await click('#backBtn'); await click('#backBtn'); await click('#backBtn'); // back to the title, look kept
     await click('#devBtn');
-    await page.waitForSelector('#results.on', { timeout: 30000 });
+    await toResults(page, 30000);
     await shot(`ride-${vid}-results`);
     await click('#giftBtn'); await page.waitForTimeout(400);
     await page.locator('#albumGrid .pol').first().click();
@@ -356,7 +371,7 @@ try {
     await p2.screenshot({ path: path.join(OUT, 'name-taken.png') });
     await p2.fill('#nameIn', '<img src=x onerror=alert(1)>');
     await p2.locator('#devBtn').click();
-    await p2.waitForSelector('#results.on', { timeout: 30000 });
+    await toResults(p2, 30000);
     await p2.waitForFunction(() => (document.querySelector('#resRec').textContent || '').includes('השבוע'), null, { timeout: 10000 }).catch(() => errors.push('[board] no weekly rank badge after the race'));
     await p2.locator('#resBoardBtn').click();
     await p2.waitForSelector('#boardList li', { timeout: 10000 });

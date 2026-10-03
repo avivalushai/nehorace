@@ -13,6 +13,8 @@ import { setStage } from '../music/songs.js';
 import { ALBUM, buildAlbum, rec } from '../album/build.js';
 import { Wallet, calcCoins, ownedCount, showCoins, walletSave, toast } from '../shop/ui.js';
 import { shareRace } from '../ui/share.js';
+import { showStandings } from '../ui/standings.js';
+import { showBust } from '../ui/bust.js';
 import { Stats, recordRace } from '../core/stats.js';
 import { unlockedBetween } from '../core/unlocks.js';
 import { track } from '../net/analytics.js';
@@ -26,7 +28,7 @@ addEventListener('resize',()=>{if(race)resizeRace();if($('#title').classList.con
 function startRace(){
   stopStage();show('race');resizeRace();resetPid();
   race={L:RACE_LEN,t:0,time:0,phase:'count',count:3.4,goT:0,bubbles:[],pending:[],shake:0,doneT:0,tSeg:1,
-    stats:{people:0,kids:0,seniors:0,dogs:0,cats:0,pigeons:0,mangal:0,acts:0,property:0,trees:0,bumps:0,curses:0,grass:0},zone:0,zoneT:0,moments:[]};
+    stats:{people:0,kids:0,seniors:0,dogs:0,cats:0,pigeons:0,mangal:0,acts:0,property:0,trees:0,bumps:0,curses:0,grass:0},zone:0,zoneT:0,wanted:0,wantedT:0,cop:null,copSeen:0,moments:[]};
   const me=makeRacer({isPlayer:true,name:state.name,look:{...state.look},vid:state.vid,color:vColor(),idx:0});
   const names=[...OPP_NAMES].sort(()=>Math.random()-.5).slice(0,5);
   const opps=names.map((n,i)=>{const L=randLook();L.name=n;const vid=pick(['scooter','scooter','bike','atv']);return makeRacer({name:n,look:L,vid,color:pick(COLORS),idx:i+1,top:VEH[vid].top*rand(.9,.985)});});
@@ -67,9 +69,19 @@ function hitStatic(s,r,dx){
   else if(s.type==='cart'){if(me){race.stats.property++;rec({type:'prop',kind:'cart',speed:sp0,text:say(s,TXT.cart,true,true)});race.shake=6;}}
   else if(me){race.stats.property++;race.shake=4;if(Math.random()<.5)say(s,TXT.prop,true);else race.pending.push({t:.2,owner:r,list:TXT.pProp});}
 }
+const victimCount=()=>{const S=race.stats;return S.people+S.kids+S.seniors+S.dogs+S.cats+S.pigeons;};
+// caught: the race is over for the player. Last place, no points and no coins, and the arrest picture
+function bust(){const P=race.player;
+  // a blessing from the rabbi is worth one escape: it is used up and the motorcycle falls back
+  if(ownedCount('braha')>0){Wallet.inv.braha--;walletSave();race.cop.want=COP_START;race.copSeen=victimCount();
+    say(P,['הרב שמר עליי, יאללה'],false,true);toast('הברכה מהרב עבדה. הניידת ויתרה לך הפעם');return;}
+  P.busted=true;P.speed=0;race.shake=14;race.phase='busted';cancelAnimationFrame(rRAF);musicStop();
+  say(P,['זה לא אני, נשבע!'],false,true);
+  showBust(race.stats,()=>{race.phase='race';finishRace();});}
 function lowerBound(arr,d){let lo=0,hi=arr.length;while(lo<hi){const m=(lo+hi)>>1;if(arr[m].d<d)lo=m+1;else hi=m;}return lo;}
 
 function update(dt){
+  if(race.phase==='busted')return; // everything stands still while the arrest picture is up
   const P=race.player;race.t+=dt;
   if(race.phase==='count'){race.count-=dt;if(race.count<=0){race.phase='race';race.goT=1.1;race.zoneT=2.6;Music.leadOn=true;}}
   const racing=race.phase!=='count';
@@ -88,6 +100,7 @@ function update(dt){
       if(r.stun>0)target*=.6;
       if(r.isPlayer&&grass&&race.phase==='race')race.stats.grass+=dt;
     }
+    if(r.busted)target=0;
     const a=target>r.speed?r.veh.accel:2.4;r.speed+=(target-r.speed)*Math.min(1,a*dt);
     const oldD=r.d;r.d+=r.speed*dt;
     let tx;
@@ -136,6 +149,22 @@ function update(dt){
   race.bubbles.forEach(b=>b.life-=dt);race.bubbles=race.bubbles.filter(b=>b.life>0);
   for(const s of race.statics){if(s.broken)s.bt+=dt;if(s.sayCd)s.sayCd-=dt;}
   {const zi=P.d<race.L/3?0:P.d<2*race.L/3?1:2;if(zi!==race.zone){race.zone=zi;race.zoneT=2.6;setStage(zi);}if(race.zoneT>0)race.zoneT-=dt;}
+  // wanted level: the more people you run over, the more police lights blink at the top (1 to 3)
+  {const S=race.stats,run=S.people+S.kids+S.seniors,lvl=run>=WANTED[2]?3:run>=WANTED[1]?2:run>=WANTED[0]?1:0;
+   if(lvl>race.wanted){race.wanted=lvl;race.wantedT=2.8;race.shake=Math.max(race.shake,5);say(P,[WANTED_SAY[lvl-1]],false,true);}
+   if(race.wantedT>0)race.wantedT-=dt;
+   if(race.wanted===3&&!race.cop&&race.phase==='race'){race.cop={d:P.d-COP_START,x:P.x,gap:COP_START,want:COP_START,lean:0};race.copSeen=victimCount();say(P,['הצ׳קלקות מאחוריי, אמא׳לה'],false,true);}}
+  // the chase: every victim pulls the motorcycle's target closer, and the motorcycle itself rides up to it
+  // smoothly, so it is never seen jumping
+  if(race.cop&&!P.busted){const C=race.cop,v=victimCount();
+    if(race.phase==='race'&&!P.finished){C.want-=COP_DRIFT*dt+COP_PER_VICTIM*Math.max(0,v-race.copSeen);race.copSeen=v;}
+    C.want=Math.max(0,C.want);
+    C.gap+=(C.want-C.gap)*Math.min(1,1.8*dt);                       // closes over about a second, never in one frame
+    C.d=P.d-C.gap;
+    const tx=P.x+Math.sin(race.t*1.7)*14,px=C.x;                     // weaves a little behind him
+    C.x+=(tx-C.x)*Math.min(1,2.6*dt);
+    C.lean+=(clamp((C.x-px)/Math.max(dt,1e-3)*.004,-.3,.3)-C.lean)*Math.min(1,8*dt);
+    if(C.gap<=COP_CATCH&&race.phase==='race'&&!P.finished)bust();}
   if(race.phase==='race'){const j0=lowerBound(race.statics,P.d-70);for(let i=j0;i<race.statics.length&&race.statics[i].d<P.d+70;i++){const s=race.statics[i];if(s.type!=='act'||s.broken)continue;s.nearCd-=dt;const dx=s.x-P.x,dd=s.d-P.d;if(s.nearCd<=0&&dx*dx+dd*dd<(s.col+70)*(s.col+70)){s.nearCd=6;if(Math.random()<.4)say(s,TXT.actNear,true);}}}
   race.shake=Math.max(0,race.shake-dt*20);
   race.camX+=((.55*cx(P.d+120)+.45*P.x)-race.camX)*Math.min(1,5*dt);
@@ -150,6 +179,11 @@ const endDrag=e=>{if(drag&&e.pointerId===drag.id)drag=null;};rcv.addEventListene
 addEventListener('keydown',e=>{if(!race)return;if(e.key==='ArrowLeft'||e.key==='a')keys.left=true;if(e.key==='ArrowRight'||e.key==='d')keys.right=true;if(e.key===' '){e.preventDefault();useTurbo();}if(e.key==='Escape')exitRace();});
 addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='a')keys.left=false;if(e.key==='ArrowRight'||e.key==='d')keys.right=false;});
 const FLY_OVER=new Set(['tree','lamp','bench','bin']);
+// people run over needed for each police light, and what the Nehorai says when one lights up
+const WANTED=[5,12,22],WANTED_SAY=['מישהו התקשר למשטרה','ניידת בדרך, אני מריח','המשטרה ממש בעקבותיי!'];
+// at three lights a police motorcycle shows up behind you. It creeps closer on its own, and jumps closer
+// with every new victim, so whoever keeps running people over gets caught and the race is over for them.
+const COP_START=300,COP_DRIFT=7,COP_PER_VICTIM=26,COP_CATCH=18;
 function useTurbo(){if(!race||race.phase!=='race'||race.tSeg<=0||race.player.turboT>0)return;race.tSeg--;race.player.turboT=race.player.veh.turboLen||2.3;updPips();const my=say(race.player,(TXT.rideTurbo[race.player.vid])||TXT.pTurbo,false,true);if(!race.moments.some(m=>m.type==='turbo'))rec({type:'turbo',my});}
 $('#turboBtn').addEventListener('pointerdown',e=>{e.preventDefault();useTurbo();});
 function exitRace(){cancelAnimationFrame(rRAF);musicStop();race=null;setStep(0);show('garage');}
@@ -160,29 +194,32 @@ function fmt(tm,hund){const cs=Math.floor(tm*100+1e-6);return `${Math.floor(cs/6
 function finishRace(){
   musicStop();
   cancelAnimationFrame(rRAF);
-  race.ff=true;for(let g=0;g<60*240&&race.racers.some(r=>!r.finished);g++)update(1/60);
-  const order=[...race.racers].sort((a,b)=>{if(a.finished&&b.finished)return a.finishTime-b.finishTime;if(a.finished)return -1;if(b.finished)return 1;return b.d-a.d;});
-  const P=race.player,pos=order.indexOf(P)+1,S=race.statsAtFinish||race.stats;
+  race.ff=true;for(let g=0;g<60*240&&race.racers.some(r=>!r.finished&&!r.busted);g++)update(1/60);
+  const order=[...race.racers].sort((a,b)=>{if(a.busted)return 1;if(b.busted)return -1;if(a.finished&&b.finished)return a.finishTime-b.finishTime;if(a.finished)return -1;if(b.finished)return 1;return b.d-a.d;});
+  const P=race.player,pos=order.indexOf(P)+1,S=race.statsAtFinish||race.stats,busted=!!P.busted;
   const titles=['מלך הפארק','סגן מלך','פודיום, אחי','באמצע, כמו תמיד','תחליף סוללה','אכלת אבק'];
-  $('#resRank').textContent=`מקום ${pos}`;$('#resTitle').textContent=titles[pos-1]||titles[5];$('#resTime').textContent=`זמן: ${fmt(P.finishTime,true)}`;
+  const title=busted?'נעצרת בפארק':titles[pos-1]||titles[5];
+  $('#resRank').textContent=`מקום ${pos}`;$('#resTitle').textContent=title;$('#resTime').textContent=busted?'המירוץ נגמר מוקדם':`זמן: ${fmt(P.finishTime,true)}`;
   const victims=S.people+S.kids+S.seniors+S.dogs+S.cats+S.pigeons;
-  const score=S.people*10+S.kids*15+S.seniors*12+(S.dogs+S.cats+S.pigeons)*6+S.mangal*25+S.acts*15+S.property*5+S.trees*3+S.bumps*6+S.curses*2+Math.max(0,7-pos)*20;
+  const score=busted?0:S.people*10+S.kids*15+S.seniors*12+(S.dogs+S.cats+S.pigeons)*6+S.mangal*25+S.acts*15+S.property*5+S.trees*3+S.bumps*6+S.curses*2+Math.max(0,7-pos)*20;
   {const before=Stats.career,rc=recordRace({score,pos,time:P.finished?P.finishTime:0,victims}),badges=[];
     if(rc.newScore)badges.push('🏆 שיא נקודות חדש!');if(rc.newTime)badges.push('⏱️ הזמן הכי מהיר שלך!');
     const opened=unlockedBetween(before,Stats.career);opened.slice(0,3).forEach(x=>badges.push(`🔓 פתחת: ${x.label}`));if(opened.length>3)badges.push(`🔓 ועוד ${opened.length-3} פריטים`);
+    if(busted)badges.unshift('🚓 נעצרת. אפס נקודות');
     // send the race to the champions board; the weekly rank shows up as another badge when it answers
-    submitRace({name:state.name,score,pos,time:P.finishTime,look:(({name,...l})=>l)(state.look)}).then(r=>{if(r&&(r.nameTaken||r.nameRequired)){toast(r.nameTaken?`השם ${state.name} כבר תפוס, אז המירוץ לא נכנס לטבלה. בחרו שם אחר במסך הפתיחה`:'כדי להיכנס לטבלת האלופים צריך להוסיף שם אחרי נהוראי');return;}if(!r||!r.week||!r.week.rank)return;const el=$('#resRec'),sp=document.createElement('span');sp.textContent=`🏆 מקום ${r.week.rank} השבוע`;el.appendChild(sp);el.hidden=false;});
+    if(!busted)submitRace({name:state.name,score,pos,time:P.finishTime,look:(({name,...l})=>l)(state.look)}).then(r=>{if(r&&(r.nameTaken||r.nameRequired)){toast(r.nameTaken?`השם ${state.name} כבר תפוס, אז המירוץ לא נכנס לטבלה. בחרו שם אחר במסך הפתיחה`:'כדי להיכנס לטבלת האלופים צריך להוסיף שם אחרי נהוראי');return;}if(!r||!r.week||!r.week.rank)return;const el=$('#resRec'),sp=document.createElement('span');sp.textContent=`🏆 מקום ${r.week.rank} השבוע`;el.appendChild(sp);el.hidden=false;});
     const el=$('#resRec');el.innerHTML=badges.map(b=>`<span>${b}</span>`).join('');el.hidden=!badges.length;}
   // what you ran over is listed once, with the coins it earned; the score goes up top
   $('#resScore').innerHTML=`<b>${score.toLocaleString('he-IL')}</b> נקודות ערסיות`;
-  {const card={pos,score,title:titles[pos-1]||titles[5]};$('#shareBtn').onclick=()=>shareRace(card);}
+  {const card={pos,score,title};$('#shareBtn').onclick=()=>shareRace(card);}
   $('#verdict').textContent=victims===0?'עברת את כל הפארק בלי לגעת באף אחד. בטוח שאתה נהוראי?':victims<5?'התחלה יפה. העירייה עוד לא שמה לב':victims<13?'יש כבר שלוש תלונות בקבוצת הווטסאפ של השכונה':victims<26?'המשטרה בדרך, והיא לא שמחה':'הפארק סגור עד להודעה חדשה. אגדה.';
-  $('#table').innerHTML=order.map((r,i)=>`<li class="${r.isPlayer?'me':''}"><span class="n">${i+1}</span><span>${r.isPlayer?r.name+' (אתה)':r.name}<small>${r.veh.name}</small></span><span>${r.knocks} נדרסו<small>${r.finished?fmt(r.finishTime,true):'לא סיים'}</small></span></li>`).join('');
   buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} מגנטים מהמירוץ`;
-  {const crow=calcCoins(pos,S),won=crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);
+  {const crow=busted?[['🚓','המשטרה החרימה הכל',0]]:calcCoins(pos,S),won=busted?0:crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);
     track('race_finished',{position:pos,score,race_time:Math.round(P.finishTime*10)/10,victims,coins:won,vehicle:state.vid,career_points:Stats.career});}
-  race=null;show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;
-  drawResultsStage();
+  // first the standings over the race (everyone on the podium, with what they have to say), then the results and prizes
+  const rows=order.map(r=>({name:r.name,look:{...r.look},busted:!!r.busted,time:r.finished?r.finishTime:null,knocks:r.knocks,me:!!r.isPlayer}));
+  render();race=null; // the last frame of the race stays behind the standings, dimmed
+  showStandings(rows,fmt,()=>{show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;drawResultsStage();});
 }
 // on a phone the stage is the background of the whole header: the Nehorai stands on the left, the place and badges on the right
 function drawResultsStage(){const{c,w,h}=fitCv($('#resCv')),wide=matchMedia('(min-width:860px)').matches;drawComposition(c,w,h,{focus:wide?null:{x:w*.21,w:w*.42},mode:'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:1});}

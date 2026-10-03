@@ -18,6 +18,8 @@ src/net/leaderboard.js # צד המשחק: מזהה שחקן, שליחת מירו
 src/net/analytics.js   # track: אירועי Amplitude, אירועים מבדיקות מסומנים is_test (הרשימה ב-CLAUDE.md)
 src/ui/board.js        # מסך טבלת האלופים: פודיום, ודמות קטנה ליד כל שורה
 src/ui/share.js        # שיתוף בוואטסאפ: shareImage, shareRace, drawRaceCard
+src/ui/standings.js    # מסך סיום המירוץ: פודיום של כל השישה וטבלה עם תגובה לכל רוכב
+src/ui/bust.js         # מסך התפיסה של המשטרה, תמונה מוגרלת בכל פעם
 src/ui/collection.js   # "המוסך": רק מה שהשחקן השיג: פריטים וכלים שנפתחו בנקודות, ומה שנקנה בחנות
 src/main.js            # נקודת כניסה: show (ניווט בין מסכים), drawTitle, כפתור הפתיחה, אתחול
 src/core/util.js       # צבעים ופונטים (INK, GOLD, FONT, DISP...), rand, pick, clamp, $, hash
@@ -33,6 +35,7 @@ src/art/stickers.js    # drawSticker, drawHamsa
 src/art/wardrobe.js    # הפריטים שנפתחים: תספורות, זקנים, כובעים, שרשראות, חולצות, מכנסיים, נעליים ואביזרים (hooks בתוך drawNeho)
 src/art/rides.js       # הכלים שנפתחים: טי-מקס, פיטבול ענק, כנפי השכינה, מכל הכיוונים
 src/art/racer-top.js   # drawRacerTop: רוכב וכלי במבט מלמעלה במירוץ
+src/art/police.js      # drawCopTop (רדיפה), drawCopBikeSide, drawCopFigure, copLights
 src/art/brand.js       # drawIcon (פרצוף הנהוראי לאייקון), drawShareCard (תמונת התצוגה המקדימה לקישור)
 src/ui/garage.js       # renderPanel, previewPart, startStage, drawComposition, step + setStep
 src/race/texts.js      # TXT: כל הקללות והמשפטים, ACTS, ZONE_ACTS, OPP_NAMES
