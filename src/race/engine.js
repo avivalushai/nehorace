@@ -153,7 +153,7 @@ function update(dt){
   {const S=race.stats,run=S.people+S.kids+S.seniors,lvl=run>=WANTED[2]?3:run>=WANTED[1]?2:run>=WANTED[0]?1:0;
    if(lvl>race.wanted){race.wanted=lvl;race.wantedT=2.8;race.shake=Math.max(race.shake,5);say(P,[WANTED_SAY[lvl-1]],false,true);}
    if(race.wantedT>0)race.wantedT-=dt;
-   if(race.wanted===3&&!race.cop&&race.phase==='race'){race.cop={d:P.d-COP_START,x:P.x,gap:COP_START,want:COP_START,lean:0};race.copSeen=victimCount();say(P,['הצ׳קלקות מאחוריי, אמא׳לה'],false,true);}}
+   if(race.wanted===3&&!race.cop&&!race.noCops&&race.phase==='race'){race.cop={d:P.d-COP_START,x:P.x,gap:COP_START,want:COP_START,lean:0};race.copSeen=victimCount();say(P,['הצ׳קלקות מאחוריי, אמא׳לה'],false,true);}}
   // the chase: every victim pulls the motorcycle's target closer, and the motorcycle itself rides up to it
   // smoothly, so it is never seen jumping
   if(race.cop&&!P.busted){const C=race.cop,v=victimCount();
@@ -223,8 +223,9 @@ function finishRace(){
 }
 // on a phone the stage is the background of the whole header: the Nehorai stands on the left, the place and badges on the right
 function drawResultsStage(){const{c,w,h}=fitCv($('#resCv')),wide=matchMedia('(min-width:860px)').matches;drawComposition(c,w,h,{focus:wide?null:{x:w*.21,w:w*.42},mode:'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:1});}
-// dev shortcut (?dev in the address): simulate a whole race instantly and land on the results screen
-function devQuickRace(){startRace();for(let g=0;g<60*300&&race;g++)update(1/60);}
+// dev shortcut (?dev in the address): simulate a whole race instantly and land on the results screen.
+// The police stay out of it: a simulated race has nobody steering away from people, so it would always end in an arrest
+function devQuickRace(){startRace();race.noCops=true;for(let g=0;g<60*300&&race;g++)update(1/60);}
 // every button on the results screen, one event with the button's name
 const RES_BTN={againBtn:'again',garageBtn:'change_nehorai',shopBtn:'shop',shareBtn:'whatsapp',giftBtn:'album',myGarageBtn:'my_garage',resBoardBtn:'leaderboard'};
 $('#results').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&RES_BTN[b.id])track('results_button_clicked',{button:RES_BTN[b.id]});},true);

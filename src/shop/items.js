@@ -36,11 +36,17 @@ const SHOP=[
  {id:'beluga',name:'בקבוק בלוגה',price:1300,cat:'big',line:'על השולחן, שכולם יראו'},
  {id:'uman',name:'כרטיס טיסה לאומן',price:1500,cat:'big',line:'נ נח נחמ נחמן מאומן'},
  {id:'stereo',name:'מערכת סטריאו עם סאב',price:1600,cat:'big',line:'הרעידה מגיעה עד הקומה השלישית'},
+ {id:'cams',name:'מערכת מצלמות על כל הבית',price:1700,cat:'big',line:'שיראו מי נגע בקורקינט'},
  {id:'watch',name:'שעון זהב עם יהלומים',price:1800,cat:'style',line:'לא מראה שעה, רק נוצץ'},
  {id:'beitar',name:'מנוי לבוקס של ביתר ירושלים',price:1800,cat:'big',line:'צהוב שחור, שורה ראשונה'},
  {id:'phone',name:'טלפון חדש עם 3 מצלמות',price:2000,cat:'big',line:'בשביל עוד סטוריז מהפארק'},
+ {id:'chandelier',name:'נברשת קריסטל לסלון',price:2200,cat:'big',line:'התקרה כבר לא עומדת בזה'},
  {id:'crete',name:'חופשה בכרתים',price:2500,cat:'big',line:'הכל כלול, כולל הבלגן'},
+ {id:'jetski',name:'אופנוע ים צהוב',price:2800,cat:'big',line:'חונה ליד השולחן בחוף'},
  {id:'civic',name:'הונדה סיוויק',price:5000,cat:'big',line:'מונמכת, עם חלונות כהים'},
+ {id:'eyalshow',name:'הופעה פרטית של אייל גולן במרפסת',price:6000,cat:'big',line:'כל השכונה למטה מצלמת'},
+ {id:'helicopter',name:'מסוק פרטי לאומן',price:8000,cat:'big',line:'נ נח נחמ נחמן, מהאוויר'},
+ {id:'villa',name:'וילה עם עמודים ושני אריות מגבס',price:9999,cat:'big',line:'שתי קומות, שלוש מרפסות, אפס ספרים'},
 ];
 const SHOP_TABS=[['all','הכל'],['small','קטנים'],['style','סטייל'],['big','גדולים'],['mine','שלי']];
 function drawItem(c,id,S){
@@ -120,6 +126,43 @@ function drawItem(c,id,S){
     case 'stereo':{rr(c,-46,-30,92,60,8);c.fillStyle='#1E1E26';c.fill();c.stroke();circ(c,-22,0,16,'#555');circ(c,-22,0,6,'#222');circ(c,16,-10,9,'#555');
       rr(c,2,2,34,24,4);c.fillStyle='#0E0E14';c.fill();c.stroke();c.fillStyle='#3DF5FF';for(let i=0;i<5;i++)c.fillRect(6+i*6,20-(4+i*3),4,4+i*3);
       c.save();c.strokeStyle='#3DF5FF';c.lineWidth=3;for(let i=1;i<=2;i++){c.beginPath();c.arc(-22,0,16+i*9,-.7,.7);c.stroke();}c.restore();break;}
+    case 'cams':{rr(c,-46,-34,92,50,6);c.fillStyle='#1E1E26';c.fill();c.stroke();
+      for(let i=0;i<4;i++){const x=-40+(i%2)*46,y=-28+Math.floor(i/2)*24;R(c,x,y,40,20,'#2F6FD0');c.fillStyle='rgba(255,255,255,.25)';c.fillRect(x+2,y+2,36,4);}
+      c.save();c.translate(10,34);c.rotate(-.25);rr(c,-20,-9,38,18,5);c.fillStyle='#E8E8EC';c.fill();c.stroke();R(c,16,-5,10,10,'#2B2B35');circ(c,24,0,4,'#FF3B30');R(c,-22,-13,8,26,'#9AA0AE');c.restore();break;}
+    case 'chandelier':{c.save();c.globalAlpha=.5;circ(c,0,-4,44,'rgba(255,200,61,.35)');c.restore();
+      R(c,-3,-54,6,16,'#C9A15A');
+      poly(c,[[-32,-38],[32,-38],[20,-12],[-20,-12]],GOLD,1);
+      c.save();c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=2;ln(c,-26,-34,-16,-16);ln(c,0,-34,0,-16);ln(c,26,-34,16,-16);c.restore();
+      for(const x of[-26,-13,0,13,26]){poly(c,[[x,-10],[x+5,0],[x,16],[x-5,0]],'#DCEBFF',1);}
+      for(const x of[-22,0,22]){circ(c,x,-6,6,'#FFF7B0',1);}
+      star(c,-34,16,5,'#FFFFFF');star(c,32,8,4,'#FFFFFF');break;}
+    case 'jetski':{poly(c,[[-40,16],[-32,-4],[4,-12],[32,-10],[56,4],[46,18]],'#FFC83D',1);   // hull, nose to the right
+      poly(c,[[-36,8],[-26,0],[8,-4],[34,-2],[48,6],[46,16],[-38,14]],'#F0A500',1);            // lower half, darker
+      rr(c,-30,-26,40,16,7);c.fillStyle='#1E1E26';c.fill();c.stroke();                         // seat
+      R(c,16,-26,9,18,'#2B2B35');                                                              // steering column
+      c.save();c.strokeStyle=INK;c.lineWidth=5;c.lineCap='round';ln(c,10,-28,30,-30);c.restore();
+      c.save();c.beginPath();c.moveTo(-54,12);                                                 // the sea, drawn in front so the ski sits in it
+      for(let x=-54;x<=54;x+=9)c.lineTo(x,12+Math.sin(x/8)*3);
+      c.lineTo(54,46);c.lineTo(-54,46);c.closePath();c.fillStyle='#2F6FD0';c.fill();c.restore();
+      c.save();c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=3;for(let i=0;i<3;i++){c.beginPath();c.moveTo(-40+i*30,28);c.quadraticCurveTo(-32+i*30,22,-24+i*30,28);c.stroke();}c.restore();
+      c.save();c.globalAlpha=.9;for(const[x,y,r]of[[-46,2,9],[-56,10,6],[-40,-8,5]])circ(c,x,y,r,'#FFFFFF');c.restore();break;}
+    case 'eyalshow':{R(c,-50,20,100,14,'#2B2B35');R(c,-46,34,92,8,'#1A1A22');
+      c.save();c.globalAlpha=.35;poly(c,[[-30,-46],[-14,-46],[10,24],[-50,24]],'#FFC83D');poly(c,[[14,-46],[30,-46],[52,24],[6,24]],'#FF3D8B');c.restore();
+      c.save();c.translate(0,20);c.scale(.62,.62);R(c,-14,-54,28,54,'#15151B');circ(c,0,-66,14,SKIN);R(c,-15,-80,30,12,'#2A1D14');R(c,-22,-48,10,34,SKIN);R(c,12,-48,10,34,SKIN);c.restore();
+      R(c,8,-16,4,18,'#2B2B35');circ(c,10,-20,6,'#C9CED6');
+      c.fillStyle=GOLD;c.font=`16px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText('♫',-28,-6);c.fillText('♪',30,-18);break;}
+    case 'helicopter':{R(c,-2,-40,4,12,'#2B2B35');c.save();c.strokeStyle=INK;c.lineWidth=4;ln(c,-46,-42,46,-42);ln(c,-20,-46,22,-38);c.restore();
+      c.beginPath();c.ellipse(-4,-6,34,22,0,0,7);c.fillStyle='#F3F4F8';c.fill();c.stroke();
+      c.beginPath();c.ellipse(-20,-8,14,12,0,0,7);c.fillStyle='rgba(110,203,255,.9)';c.fill();c.stroke();
+      R(c,24,-14,34,10,'#F3F4F8');R(c,52,-26,6,20,'#F3F4F8');c.save();c.strokeStyle=INK;c.lineWidth=3;ln(c,50,-22,62,-16);c.restore();
+      R(c,-34,16,52,5,'#9AA0AE');R(c,-30,8,5,10,'#9AA0AE');R(c,10,8,5,10,'#9AA0AE');
+      c.fillStyle='#2F6FD0';c.font=`11px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.direction='rtl';c.fillText('נ נח',-4,-2);break;}
+    case 'villa':{R(c,-48,-6,96,42,'#F3E6C8');poly(c,[[-56,-6],[0,-40],[56,-6]],'#C0392B',1);
+      for(const x of[-38,-14,12,34]){R(c,x,-4,10,34,'#FFFFFF');R(c,x-3,-8,16,6,'#E8E8EC');R(c,x-3,28,16,6,'#E8E8EC');}
+      R(c,-8,8,18,28,'#8B5A2B');circ(c,6,22,2,GOLD);
+      for(const sx of[-1,1]){c.save();c.translate(sx*52,30);c.scale(sx*.85,.85);
+        R(c,-10,-6,20,12,'#D9CDB4');circ(c,8,-10,8,'#D9CDB4');circ(c,8,-10,11,'rgba(217,205,180,.6)',1);R(c,-12,6,24,5,'#C9BBA0');c.restore();}
+      star(c,-30,-30,5,'#FFFFFF');break;}
     default:circ(c,0,0,30,GOLD);
   }c.restore();}
 const TIERS=[{max:99,name:'נפוץ',col:'#8FA3BF'},{max:499,name:'שווה',col:'#3DDC97'},{max:1499,name:'נדיר',col:'#3DA5FF'},{max:2999,name:'אפי',col:'#FF3D8B'},{max:1e9,name:'אגדי',col:'#FFC83D'}];

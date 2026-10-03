@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 6,
+  "project": {
+    "name": "NehoRace",
+    "key": "NEHO"
+  },
+  "settings": {
+    "granularity": "normal"
+  },
+  "nextNum": 4,
+  "nextNoteNum": 1,
+  "features": [
+    {
+      "key": "NEHO-1",
+      "title": "מסך סיום המירוץ: פודיום של כל השישה ותגובות מוגרלות",
+      "type": "feature",
+      "status": "review",
+      "note": "",
+      "doneWhen": [],
+      "steps": [],
+      "files": [],
+      "links": [],
+      "area": "",
+      "createdAt": "2026-10-03T14:14:20Z",
+      "updatedAt": "2026-10-03T14:14:20Z",
+      "updatedBy": "claude",
+      "log": [
+        {
+          "at": "2026-10-03T14:14:20Z",
+          "by": "claude",
+          "text": "Created — review"
+        }
+      ]
+    },
+    {
+      "key": "NEHO-2",
+      "title": "משטרה במירוץ: צ׳קלקות, רדיפה של ניידת ומסך תפיסה",
+      "type": "feature",
+      "status": "review",
+      "note": "",
+      "doneWhen": [],
+      "steps": [],
+      "files": [],
+      "links": [],
+      "area": "",
+      "createdAt": "2026-10-03T14:14:20Z",
+      "updatedAt": "2026-10-03T14:14:20Z",
+      "updatedBy": "claude",
+      "log": [
+        {
+          "at": "2026-10-03T14:14:20Z",
+          "by": "claude",
+          "text": "Created — review"
+        }
+      ]
+    },
+    {
+      "key": "NEHO-3",
+      "title": "16 פריטים חדשים בחנות, כולל ברכה מהרב שמצילה מהניידת",
+      "type": "feature",
+      "status": "review",
+      "note": "",
+      "doneWhen": [],
+      "steps": [],
+      "files": [],
+      "links": [],
+      "area": "",
+      "createdAt": "2026-10-03T14:14:20Z",
+      "updatedAt": "2026-10-03T14:14:20Z",
+      "updatedBy": "claude",
+      "log": [
+        {
+          "at": "2026-10-03T14:14:20Z",
+          "by": "claude",
+          "text": "Created — review"
+        }
+      ]
+    }
+  ],
+  "notes": [],
+  "areas": []
+}
