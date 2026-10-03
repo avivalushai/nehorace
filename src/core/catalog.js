@@ -24,7 +24,10 @@ const VEH={
  wings:{id:'wings',name:'כנפי השכינה',top:545,accel:1.9,handling:1.2,hitPen:.12,grassF:1,r:13,mass:1.5,color:'#FFF4DC',blurb:'עף מעל עצים, עמודים וספסלים. הכי נדיר שיש',st:[5,5,5,4],req:50000,noWheels:true,behind:true,flies:true,lift:26},
 };
 const COLORS=['#2C2C38','#FF3D8B','#1FB57A','#3DA5FF','#FF7A1A','#FFC83D','#F2F2F2','#8E44FF'];
-const WHEELS=[['std','רגילים'],['gold','חישוקי זהב'],['neon','נאון'],['chrome','כרום']];
+// colours and wheels that open with career points, like the garage items
+const COLORS_LOCKED=[['#C9CED6',2000],['#B9F227',4500],['#00E5FF',9000],['#6B1020',16000]];
+const WHEELS=[['std','רגילים'],['gold','חישוקי זהב'],['neon','נאון'],['chrome','כרום'],
+  ['spike','חישוקי קוצים',{req:3500}],['fire','להבות',{req:8000}],['diamond','יהלומים',{req:20000}]];
 const STICKERS=[
  {id:'hamsa',text:'חמסה',kind:'hamsa'},
  {id:'nachman',text:'נ נח נחמ נחמן מאומן',bg:'#FFFFFF',fg:'#1F3FA8',border:'#1F3FA8'},
@@ -45,4 +48,18 @@ const SLOTS={
  wings:[],
 };
 
-export { PARTS, PANTS, SHIRTS, SHOES, VEH, COLORS, WHEELS, STICKERS, SLOTS };
+// extras: every ride can carry something. The later ones open with career points
+const RIDE_EXTRAS=[['none','בלי'],['box','ארגז מאחורה'],['flag','דגל ישראל'],['speaker','רמקול בלוטות׳',{req:2500}],
+  ['antenna','אנטנה עם פום פום',{req:5000}],['led','תאורת לד מתחת',{req:9000}],['crown','כתר על הכידון',{req:18000}]];
+const EXTRAS={
+  scooter:{label:'אביזרים',items:RIDE_EXTRAS},
+  bike:{label:'אביזרים',items:RIDE_EXTRAS},
+  atv:{label:'אביזרים',items:RIDE_EXTRAS},
+  tmax:{label:'אביזרים',items:RIDE_EXTRAS},
+  bigpit:{label:'אביזרים לכלב',items:[['none','בלי'],['cap','כובע מצחייה'],['bandana','בנדנה'],['shades','משקפי שמש'],
+    ['shoes','נעליים',{req:2500}],['gold','שרשרת זהב',{req:6000}],['muzzle','זמם זהב',{req:14000}]]},
+  wings:{label:'קישוטים',items:[['none','בלי'],['stars','כוכבים'],['doves','יוני שלום'],
+    ['rainbow','קשת',{req:4000}],['lights','שרשרת אורות',{req:8000}],['gold','נוצות זהב',{req:15000}]]},
+};
+
+export { PARTS, PANTS, SHIRTS, SHOES, VEH, COLORS, COLORS_LOCKED, WHEELS, STICKERS, SLOTS, EXTRAS };

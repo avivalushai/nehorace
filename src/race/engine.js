@@ -7,6 +7,7 @@ import { OPP_NAMES, TXT } from './texts.js';
 import { state, vColor } from '../core/state.js';
 import { drawComposition, setStep, stopStage } from '../ui/garage.js';
 import { PW, RACE_LEN, cx, genWorld, makeRacer, newDir, randLook, resetPid } from './world.js';
+import { trackList, trackOf, trackOpen } from './tracks.js';
 import { render } from './render.js';
 import { Music, musicStart, musicStop } from '../music/engine.js';
 import { setStage } from '../music/songs.js';
@@ -26,8 +27,10 @@ const rcv=$('#raceCv'),rctx=rcv.getContext('2d'),keys={};
 function resizeRace(){const W=innerWidth,H=innerHeight,dpr=Math.min(2,devicePixelRatio||1);rcv.width=Math.round(W*dpr);rcv.height=Math.round(H*dpr);rcv.style.width=W+'px';rcv.style.height=H+'px';const k=Math.min(W/440,H/700);RK=k*dpr;LW=W/k;LH=H/k;}
 addEventListener('resize',()=>{if(race)resizeRace();if($('#title').classList.contains('on'))drawTitle();if($('#results').classList.contains('on'))drawResultsStage();});
 function startRace(){
+  // the place picks itself: one of the tracks the player has opened, drawn fresh for every race
+  {const open=trackList().filter(trackOpen);state.track=pick(open).id;}
   stopStage();show('race');resizeRace();resetPid();
-  race={L:RACE_LEN,t:0,time:0,phase:'count',count:3.4,goT:0,bubbles:[],pending:[],shake:0,doneT:0,tSeg:1,
+  race={track:trackOf(state.track),L:RACE_LEN,t:0,time:0,phase:'count',count:3.4,goT:0,bubbles:[],pending:[],shake:0,doneT:0,tSeg:1,
     stats:{people:0,kids:0,seniors:0,dogs:0,cats:0,pigeons:0,mangal:0,acts:0,property:0,trees:0,bumps:0,curses:0,grass:0},zone:0,zoneT:0,wanted:0,wantedT:0,cop:null,copSeen:0,moments:[]};
   const me=makeRacer({isPlayer:true,name:state.name,look:{...state.look},vid:state.vid,color:vColor(),idx:0});
   const names=[...OPP_NAMES].sort(()=>Math.random()-.5).slice(0,5);
@@ -215,7 +218,7 @@ function finishRace(){
   $('#verdict').textContent=victims===0?'עברת את כל הפארק בלי לגעת באף אחד. בטוח שאתה נהוראי?':victims<5?'התחלה יפה. העירייה עוד לא שמה לב':victims<13?'יש כבר שלוש תלונות בקבוצת הווטסאפ של השכונה':victims<26?'המשטרה בדרך, והיא לא שמחה':'הפארק סגור עד להודעה חדשה. אגדה.';
   buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} מגנטים מהמירוץ`;
   {const crow=busted?[['🚓','המשטרה החרימה הכל',0]]:calcCoins(pos,S),won=busted?0:crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);
-    track('race_finished',{position:pos,score,race_time:Math.round(P.finishTime*10)/10,victims,coins:won,vehicle:state.vid,career_points:Stats.career});}
+    track('race_finished',{position:pos,score,track:state.track,race_time:Math.round(P.finishTime*10)/10,victims,coins:won,vehicle:state.vid,career_points:Stats.career});}
   // first the standings over the race (everyone on the podium, with what they have to say), then the results and prizes
   const rows=order.map(r=>({name:r.name,look:{...r.look},busted:!!r.busted,time:r.finished?r.finishTime:null,knocks:r.knocks,me:!!r.isPlayer}));
   render();race=null; // the last frame of the race stays behind the standings, dimmed

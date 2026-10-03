@@ -7,7 +7,7 @@
   "settings": {
     "granularity": "normal"
   },
-  "nextNum": 4,
+  "nextNum": 7,
   "nextNoteNum": 1,
   "features": [
     {
@@ -19,16 +19,23 @@
       "doneWhen": [],
       "steps": [],
       "files": [],
-      "links": [],
+      "links": [
+        "https://nehorace.vercel.app"
+      ],
       "area": "",
       "createdAt": "2026-10-03T14:14:20Z",
-      "updatedAt": "2026-10-03T14:14:20Z",
+      "updatedAt": "2026-10-03T14:29:44Z",
       "updatedBy": "claude",
       "log": [
         {
           "at": "2026-10-03T14:14:20Z",
           "by": "claude",
           "text": "Created — review"
+        },
+        {
+          "at": "2026-10-03T14:29:44Z",
+          "by": "claude",
+          "text": "Proof: https://nehorace.vercel.app"
         }
       ]
     },
@@ -71,6 +78,77 @@
       "log": [
         {
           "at": "2026-10-03T14:14:20Z",
+          "by": "claude",
+          "text": "Created — review"
+        }
+      ]
+    },
+    {
+      "key": "NEHO-4",
+      "title": "הטיילת ברורה (ים משמאל, מדרכה וספסלים מימין). מה יהיה המסלול השלישי, זה שמשחקים בו בלילה?",
+      "type": "question",
+      "status": "done",
+      "note": "השכונה בלילה (מומלץ) — רחוב שכונתי: בניינים נמוכים, מכוניות חונות, פנסי רחוב, דוכן שווארמה מואר, חתולים בפחים. הכי קרוב לעולם של נהוראי, והלילה מרגיש טבעי.. Other options: השוק בלילה · הטיילת בלילה · חניון הקניון בלילה",
+      "doneWhen": [],
+      "steps": [],
+      "files": [],
+      "links": [],
+      "area": "",
+      "createdAt": "2026-10-03T14:37:15Z",
+      "updatedAt": "2026-10-03T14:37:15Z",
+      "updatedBy": "user",
+      "log": [
+        {
+          "at": "2026-10-03T14:37:15Z",
+          "by": "claude",
+          "text": "Created"
+        },
+        {
+          "at": "2026-10-03T14:37:15Z",
+          "by": "user",
+          "text": "Done"
+        }
+      ]
+    },
+    {
+      "key": "NEHO-5",
+      "title": "שני מסלולים חדשים: הטיילת והשכונה בלילה, עם שלב בחירת מסלול",
+      "type": "feature",
+      "status": "review",
+      "note": "",
+      "doneWhen": [],
+      "steps": [],
+      "files": [],
+      "links": [],
+      "area": "",
+      "createdAt": "2026-10-03T14:56:33Z",
+      "updatedAt": "2026-10-03T15:29:17Z",
+      "updatedBy": "claude",
+      "log": [
+        {
+          "at": "2026-10-03T14:56:33Z",
+          "by": "claude",
+          "text": "Created — review"
+        }
+      ]
+    },
+    {
+      "key": "NEHO-6",
+      "title": "קישוטים לכנפי השכינה ואביזרים לפיטבול, ושיפור הציור של שניהם",
+      "type": "feature",
+      "status": "review",
+      "note": "",
+      "doneWhen": [],
+      "steps": [],
+      "files": [],
+      "links": [],
+      "area": "",
+      "createdAt": "2026-10-03T15:29:17Z",
+      "updatedAt": "2026-10-03T15:29:17Z",
+      "updatedBy": "claude",
+      "log": [
+        {
+          "at": "2026-10-03T15:29:17Z",
           "by": "claude",
           "text": "Created — review"
         }

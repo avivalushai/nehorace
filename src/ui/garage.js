@@ -2,7 +2,7 @@
 import { show } from '../main.js';
 import { $, FONT, INK } from '../core/util.js';
 import { ell, fitCv } from '../core/draw.js';
-import { COLORS, PARTS, SLOTS, STICKERS, VEH, WHEELS } from '../core/catalog.js';
+import { COLORS, COLORS_LOCKED, EXTRAS, PARTS, SLOTS, STICKERS, VEH, WHEELS } from '../core/catalog.js';
 import { drawNeho, drawNehoBack } from '../art/neho.js';
 import { drawDog } from '../art/dog.js';
 import { drawVehicleSide, drawWheel } from '../art/vehicles.js';
@@ -47,6 +47,7 @@ function drawComposition(c,w,h,o){
     if(dog){c.save();c.translate(x0-165*vs,gy);c.scale(vs*.72,vs*.72);drawDog(c,L.dog,t);c.restore();}
   }
 }
+
 let step=0,charTab='hair',designTab='stickers',pop=0,stageRAF=0;
 // how many changes the player made in each step, sent with the "next" clicks. Starts over every time the garage opens
 const changes=[0,0,0];
@@ -88,18 +89,36 @@ function renderPanel(){
     Object.values(VEH).forEach(v=>{const b=document.createElement('button'),sel=state.vid===v.id,open=isOpen(v.req);b.className='opt vcard'+(sel?' on':'')+(open?'':' locked');
       const bars=['מהירות','תאוצה','שליטה','עמידות'].map((n,i)=>`<div class="stat"><i>${n}</i><span class="bar">${[0,1,2,3,4].map(k=>`<u class="${k<v.st[i]?'f':''}"></u>`).join('')}</span></div>`).join('');
       b.innerHTML=`<div class="vvis"><canvas></canvas>${VTAG[v.id]?`<span class="vtag">${VTAG[v.id]}</span>`:''}${lockChips(v.req,open)}</div><div class="vinfo"><h3>${v.name}</h3><p>${v.blurb}</p>${bars}</div>`;
-      b.onclick=()=>{if(!open){lockedToast(v.name,v.req);return;}if(state.vid!==v.id){changes[1]++;state.vid=v.id;state.color=null;state.stickers=state.stickers.slice(0,SLOTS[v.id].length);}pop=1;renderPanel();};
+      b.onclick=()=>{if(!open){lockedToast(v.name,v.req);return;}if(state.vid!==v.id){changes[1]++;state.vid=v.id;state.color=null;state.extra='none';state.stickers=state.stickers.slice(0,SLOTS[v.id].length);}pop=1;renderPanel();};
       opts.appendChild(b);const{c,w,h}=fitCv(b.querySelector('canvas')),col=sel?vColor():v.color;
       const g=c.createRadialGradient(w/2,h*.62,4,w/2,h*.62,w*.7);g.addColorStop(0,col+'5A');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,w,h);
       ell(c,w/2,h-7,w*.44,5,'rgba(255,200,61,.2)');c.save();c.translate(w/2,h-6);const sc=Math.min(w/300,h/218);c.scale(sc,sc);drawVehicleSide(c,v.id,col,sel?state.wheels:'std',sel?state.stickers:[]);c.restore();});
   }else{
     tabs.style.display='';
     // rides without wheels (the pitbull, the wings) have no wheels tab
-    const V=VEH[state.vid],dtabs=[['color','צבע'],['wheels','גלגלים'],['stickers','מדבקות']].filter(([id])=>!(id==='wheels'&&V.noWheels));
+    const V=VEH[state.vid],EX=EXTRAS[state.vid];
+    const dtabs=[['color','צבע'],['wheels','גלגלים'],['stickers','מדבקות'],...(EX?[['extras',EX.label]]:[])].filter(([id])=>!(id==='wheels'&&V.noWheels));
     if(!dtabs.some(([id])=>id===designTab))designTab='color';
     dtabs.forEach(([id,l])=>mkTab(l,designTab===id,()=>{designTab=id;renderPanel();}));
-    if(designTab==='color'){opts.classList.add('swatches');COLORS.forEach(col=>{const b=document.createElement('button');b.className='sw'+(vColor()===col?' on':'');b.style.background=col;b.setAttribute('aria-label','צבע');b.onclick=()=>{state.color=col;changes[2]++;pop=1;renderPanel();};opts.appendChild(b);});}
-    if(designTab==='wheels'){WHEELS.forEach(([id,l])=>{const b=document.createElement('button');b.className='opt'+(state.wheels===id?' on':'');b.innerHTML=`<canvas></canvas><span>${l}</span>`;b.onclick=()=>{state.wheels=id;changes[2]++;pop=1;renderPanel();};opts.appendChild(b);const{c,w,h}=fitCv(b.querySelector('canvas'));c.strokeStyle=INK;drawWheel(c,w/2,h/2,24*Math.min(w,h)/64,id,false,true);});}
+    if(designTab==='color'){opts.classList.add('swatches');
+      const swatch=(col,req)=>{const open=isOpen(req),b=document.createElement('button');b.className='sw'+(vColor()===col?' on':'')+(open?'':' locked');
+        b.style.background=col;b.setAttribute('aria-label','צבע');
+        if(!open)b.innerHTML=`<i class="lock">🔒 <b>${req.toLocaleString('he-IL')}</b></i>`;
+        b.onclick=()=>{if(!open){lockedToast('הצבע',req);return;}state.color=col;changes[2]++;pop=1;renderPanel();};opts.appendChild(b);};
+      COLORS.forEach(col=>swatch(col));COLORS_LOCKED.forEach(([col,req])=>swatch(col,req));}
+    if(designTab==='wheels'){WHEELS.forEach(([id,l,m])=>{const req=m&&m.req,open=isOpen(req),b=document.createElement('button');
+      b.className='opt'+(state.wheels===id?' on':'')+(req?' lk':'')+(open?'':' locked');
+      b.innerHTML=`<canvas></canvas><span>${l}</span>${lockChips(req,open)}`;
+      b.onclick=()=>{if(!open){lockedToast(l,req);return;}state.wheels=id;changes[2]++;pop=1;renderPanel();};
+      opts.appendChild(b);const{c,w,h}=fitCv(b.querySelector('canvas'));c.strokeStyle=INK;drawWheel(c,w/2,h/2,24*Math.min(w,h)/64,id,false,true);});}
+    if(designTab==='extras'&&EX){
+      EX.items.forEach(([id,label,m])=>{const req=m&&m.req,open=isOpen(req),b=document.createElement('button');
+        b.className='opt'+(state.extra===id?' on':'')+(req?' lk':'')+(open?'':' locked');
+        b.innerHTML=`<canvas></canvas><span>${label}</span>${lockChips(req,open)}`;
+        b.onclick=()=>{if(!open){lockedToast(label,req);return;}state.extra=id;changes[2]++;pop=1;renderPanel();};
+        opts.appendChild(b);const{c,w,h}=fitCv(b.querySelector('canvas'));c.clearRect(0,0,w,h);
+        c.save();c.translate(w/2,h*.9);const sc=Math.min(w/330,h/300);c.scale(sc,sc);drawVehicleSide(c,state.vid,vColor(),state.wheels,[],id);c.restore();});
+    }
     if(designTab==='stickers'){
       const max=SLOTS[state.vid].length;const n=document.createElement('p');n.className='note';n.textContent=max?`נבחרו ${state.stickers.length} מתוך ${max}. לחיצה נוספת מורידה מדבקה`:'על כנפי השכינה לא מדביקים מדבקות.';opts.appendChild(n);
       if(max)STICKERS.forEach(st=>{const idx=state.stickers.indexOf(st.id);const b=document.createElement('button');b.className='opt stk'+(idx>=0?' on':'');b.setAttribute('aria-label',st.text);b.innerHTML=`${idx>=0?`<em>${idx+1}</em>`:''}<canvas></canvas>`;

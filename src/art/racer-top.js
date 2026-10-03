@@ -4,7 +4,8 @@ import { R, ln, poly, circ, ell } from '../core/draw.js';
 import { SHIRTS } from '../core/catalog.js';
 import { hairColor } from './neho.js';
 import { topHeadX, topOverlayX } from './wardrobe.js';
-import { vehTopX } from './rides.js';
+import { vehTopX, rideExtraTop } from './rides.js';
+import { state } from '../core/state.js';
 
 function drawRacerTop(c,r){
   const L=r.look,vid=r.vid,col=r.color,S=SHIRTS[L.shirt],sc=S.c||SKIN,arm=S.sl==='long'?sc:SKIN;
@@ -12,11 +13,12 @@ function drawRacerTop(c,r){
   if(vid==='wings')ell(c,14,22,14,18,'rgba(0,0,0,.12)'); // flying: small shadow, far below
   else ell(c,3,5,vid==='atv'?18:10,24,'rgba(0,0,0,.2)');
   if(r.turboT>0){for(let i=0;i<3;i++){const fl=rand(10,22);poly(c,[[-9+i*5,18],[-1+i*5,18],[-5+i*5,18+fl]],i===1?GOLD:'#FF7A1A',1);}}
-  const vt=vehTopX(c,vid,col,performance.now()/1000);
+  const vt=vehTopX(c,vid,col,performance.now()/1000,r.isPlayer?state.extra:'none');
   if(vt){}
   else if(vid==='scooter'){R(c,-2.5,-23,5,8,'#111');R(c,-2.5,14,5,8,'#111');R(c,-5.5,-16,11,32,col);R(c,-12,-22,24,3.5,'#15151B');}
   else if(vid==='bike'){R(c,-2.5,-28,5,13,'#111');R(c,-2.5,14,5,13,'#111');R(c,-2.5,-16,5,32,col);R(c,-12,-18,24,3.5,'#15151B');}
   else{for(const sx of[-1,1])for(const wy of[-16,10])R(c,sx*14-4,wy,8,12,'#111');R(c,-13,-22,26,38,col);R(c,-9,-2,18,13,'#15151B');R(c,-15,-15,30,3.5,'#15151B');}
+  if(!vt)rideExtraTop(c,vid,r.isPlayer?state.extra:'none');
   const sy=vt?vt[0]:vid==='scooter'?-2:vid==='bike'?3:5,barY=vt?vt[1]:vid==='scooter'?-20:vid==='bike'?-15:-12;
   R(c,-11,barY,4,sy-barY,arm);R(c,7,barY,4,sy-barY,arm);
   R(c,-11,sy-3,22,9,sc);

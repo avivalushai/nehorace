@@ -160,6 +160,9 @@ try {
   // ---- race (timing-dependent: screenshots only, no pixel compare) ----
   await click('#nextBtn');
   await page.waitForTimeout(1200);
+  // the game picks the track itself, and only from the ones the player has opened
+  const picked = await page.evaluate(async () => (await import('/src/race/engine.js')).race.track.id);
+  if (picked !== 'park') errors.push(`[tracks] a new player should always race in the park, got ${picked}`);
   await shot('race-countdown');
   await page.waitForTimeout(3500);
   const cv = await page.locator('#raceCv').boundingBox();

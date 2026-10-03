@@ -38,6 +38,7 @@ src/art/racer-top.js   # drawRacerTop: רוכב וכלי במבט מלמעלה �
 src/art/police.js      # drawCopTop (רדיפה), drawCopBikeSide, drawCopFigure, copLights
 src/art/brand.js       # drawIcon (פרצוף הנהוראי לאייקון), drawShareCard (תמונת התצוגה המקדימה לקישור)
 src/ui/garage.js       # renderPanel, previewPart, startStage, drawComposition, step + setStep
+src/race/tracks.js     # המסלולים: קרקע, מה עומד בצדדים, תאורת לילה ושמות האזורים
 src/race/texts.js      # TXT: כל הקללות והמשפטים, ACTS, ZONE_ACTS, OPP_NAMES
 src/race/world.js      # PW, RACE_LEN, cx, genWorld, makePed, makeRacer, newDir, pid + resetPid
 src/race/engine.js     # startRace, update, knock, hitStatic, say, שליטה (גרירה, מקשים, טורבו), finishRace, מסך תוצאות
