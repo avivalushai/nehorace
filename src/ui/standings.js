@@ -39,18 +39,25 @@ function go(){clearTimeout(goT);cancelAnimationFrame(raf);if(!$('#standings').cl
 function showStandings(rows,fmt,next){
   onNext=next;
   const lines={win:drawLines(FINISH_LINES.win,1),mid:drawLines(FINISH_LINES.mid,2),low:drawLines(FINISH_LINES.low,3),busted:drawLines(FINISH_LINES.busted,1)},used={win:0,mid:0,low:0,busted:0};
+  const me=rows.find(r=>r.me),fr=rows.find(r=>r.ghost);let duel=null;
+  if(me&&fr){const won=!me.busted&&me.time!=null&&me.time<fr.time;
+    duel={name:fr.name,won,busted:me.busted,tie:!me.busted&&me.time!=null&&Math.abs(me.time-fr.time)<.05,gap:me.time!=null?(Math.round(Math.abs(me.time-fr.time)*10)/10).toFixed(1):'',line:drawLines(won?FINISH_LINES.duelLost:FINISH_LINES.duelWon,1)[0]};}
   const list=$('#stdList');list.innerHTML='';
   rows.forEach((r,i)=>{const grp=lineGroup(i,r.busted),li=document.createElement('li');li.className=r.me?'me':'';
     li.innerHTML='<span class="n"></span><span class="who"></span><span class="st"><b></b><small></small></span><q></q>';
     li.querySelector('.n').textContent=i+1;
     li.querySelector('.who').textContent=r.name+(r.me?' (אתה)':r.ghost?' (המזמין)':'');
     li.querySelector('.st b').textContent=r.busted?'נעצר':r.time!=null?fmt(r.time,true):'לא סיים';li.querySelector('.st small').textContent=`${r.knocks} נדרסו`;
-    li.querySelector('q').textContent=lines[grp][used[grp]++];
+    li.querySelector('q').textContent=r.ghost&&duel?duel.line:lines[grp][used[grp]++];
     list.appendChild(li);});
+  // a duel with the friend who sent the invite: one big line on top, who won and by how much
+  const el=$('#stdDuel');el.hidden=!duel;el.classList.toggle('won',!!duel&&duel.won);
+  if(duel){const b=document.createElement('b');b.textContent=duel.gap;
+    el.replaceChildren(...(duel.busted?[`נעצרת, ו${duel.name} לקח את הדו-קרב`]:duel.tie?[`תיקו מושלם עם ${duel.name}!`]:duel.won?[`ניצחת את ${duel.name} ב-`,b,' שניות!']:[`${duel.name} לקח אותך ב-`,b,' שניות']));}
   $('#standings').classList.add('on');
   cancelAnimationFrame(raf);
   const cv=$('#stdCv'),reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,t0=performance.now();
-  const f=now=>{if(!$('#standings').classList.contains('on'))return;drawStandPodium(cv,rows,reduce?0:(now-t0)/1000);if(!reduce)raf=requestAnimationFrame(f);};
+  const f=now=>{if(!$('#standings').classList.contains('on'))return;drawStandPodium(cv,rows,reduce?0:Math.max(0,(now-t0)/1000));if(!reduce)raf=requestAnimationFrame(f);};
   requestAnimationFrame(f);
   clearTimeout(goT);goT=setTimeout(go,AUTO);
 }

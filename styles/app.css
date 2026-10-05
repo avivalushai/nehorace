@@ -124,6 +124,9 @@ button{cursor:pointer;border:0;background:none}
 .std-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .std-head h2{font-family:var(--display);font-size:40px;line-height:.9;color:var(--gold);font-weight:700;text-shadow:3px 3px 0 var(--pink)}
 .std-kicker{font-size:13px;opacity:.75}
+.std-duel{flex:0 0 auto;background:var(--pink);color:#fff;border:3px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 var(--ink);padding:8px 12px;text-align:center;font-family:var(--display);font-size:30px;line-height:1;font-weight:700}
+.std-duel.won{background:var(--mint);color:var(--ink)}
+.std-duel b{direction:ltr;unicode-bidi:isolate;color:var(--gold);font-weight:700}.std-duel.won b{color:var(--ink)}
 #stdCv{display:block;width:100%;flex:1 1 auto;min-height:140px;max-height:250px}
 .std-list{list-style:none;display:flex;flex-direction:column;gap:4px;flex:0 0 auto}
 .std-list li{display:grid;grid-template-columns:22px 1fr auto;column-gap:8px;align-items:center;background:rgba(67,31,102,.92);border-radius:12px;padding:6px 10px}

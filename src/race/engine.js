@@ -85,7 +85,8 @@ function bust(){const P=race.player;
   P.busted=true;P.speed=0;race.shake=14;race.phase='busted';cancelAnimationFrame(rRAF);musicStop();
   say(P,['זה לא אני, נשבע!'],false,true);
   showBust(race.stats,()=>{race.phase='race';finishRace();});}
-// a friend's ghost replays their recorded line. They started in the player's slot, so the ghost starts one lane
+// a friend's ghost replays their recorded line. It knocks people and gets bumped like any racer, but its line
+// doesn't change: the next frame puts it back on the recording. They started in the player's slot, so the ghost starts one lane
 // over (80 to the left) and drifts onto its own line over the first three seconds
 const GHOST_HZ=10;
 function ghostStep(r,dt){const g=r.ghost,s=g.s,n=s.length/2,t=race.time;
@@ -150,7 +151,7 @@ function update(dt){
     if(off>lim)p.vx=-Math.abs(p.vx)-5;else if(off<-lim)p.vx=Math.abs(p.vx)+5;
     if(p.type==='pigeon'&&!p.fleeChk){for(const r of race.racers){const dd=p.d-r.d;if(dd>0&&dd<95&&Math.abs(p.x-r.x)<55){p.fleeChk=true;if(Math.random()<.7){p.flying=true;p.fly=2.5;p.vx=rand(-110,110);p.vd=rand(40,160);}break;}}}
   }
-  if(racing)for(const r of race.racers){if(r.isPlayer&&r.finished||r.ghost)continue; // a ghost rides through everything
+  if(racing)for(const r of race.racers){if(r.isPlayer&&r.finished)continue;
     for(const p of race.peds){if(p.down||p.gone||p.ghost>0||p.flying)continue;const dd=p.d-r.d;if(dd>40||dd<-40)continue;const dx=p.x-r.x,rs=r.veh.r+p.r,d2=dx*dx+dd*dd;
       if(d2<rs*rs)knock(p,r,dx,dd);
       else if(r.isPlayer&&d2<(rs+22)*(rs+22)&&p.nearCd<=0&&r.speed>220){p.nearCd=5;if(Math.random()<.45)say(p,TXT.near[p.type]||TXT.near.adult,true);}}
@@ -158,7 +159,7 @@ function update(dt){
     for(let i=i0;i<race.statics.length&&race.statics[i].d<r.d+40;i++){const s=race.statics[i];if(!s.col||s.broken)continue;const dx=s.x-r.x,dd=s.d-r.d,rs=r.veh.r+s.col;if(dx*dx+dd*dd<rs*rs)hitStatic(s,r,dx);}
   }
   const RS=race.racers;
-  for(let i=0;i<RS.length;i++)for(let j=i+1;j<RS.length;j++){const a=RS[i],b=RS[j];if(a.ghost||b.ghost)continue;const dd=b.d-a.d;if(Math.abs(dd)>36)continue;const dx=b.x-a.x,rs=a.veh.r+b.veh.r;
+  for(let i=0;i<RS.length;i++)for(let j=i+1;j<RS.length;j++){const a=RS[i],b=RS[j];const dd=b.d-a.d;if(Math.abs(dd)>36)continue;const dx=b.x-a.x,rs=a.veh.r+b.veh.r;
     if(dx*dx+dd*dd<rs*rs){const sg=dx>=0?1:-1,ov=(rs-Math.abs(dx))*.5+.5,wa=b.veh.mass/(a.veh.mass+b.veh.mass);a.x-=sg*ov*wa*1.6;b.x+=sg*ov*(1-wa)*1.6;
       (dd>0?a:b).speed*=.9;
       if(a.bumpCd<=0&&b.bumpCd<=0&&racing){a.bumpCd=b.bumpCd=1.2;if((a.isPlayer||b.isPlayer)&&!P.finished){const o=a.isPlayer?b:a;race.stats.bumps++;race.shake=5;say(o,TXT.oppBump,true,true);race.pending.push({t:.7,owner:P,list:TXT.pBump});}}}}
@@ -230,7 +231,7 @@ function finishRace(){
     if(busted)badges.unshift('🚓 נעצרת. אפס נקודות');
     // a duel against a friend's ghost: who won, and by how much
     {const G=race.racers.find(r=>r.ghost);if(G){const gap=fmtGap(Math.abs(P.finishTime-G.finishTime));
-      badges.unshift(busted?`⚔️ ${G.name} ניצח, אתה נעצרת`:P.finishTime<G.finishTime?`⚔️ ניצחת את ${G.name} ב-${gap} שניות!`:`⚔️ ${G.name} לקח אותך ב-${gap} שניות`);}}
+      badges.unshift(busted?`⚔️ ${G.name} ניצח, אתה נעצרת`:gap==='0.0'?`⚔️ תיקו מושלם עם ${G.name}`:P.finishTime<G.finishTime?`⚔️ ניצחת את ${G.name} ב-${gap} שניות!`:`⚔️ ${G.name} לקח אותך ב-${gap} שניות`);}}
     // send the race to the champions board; the weekly rank shows up as another badge when it answers
     if(!busted)submitRace({name:state.name,score,pos,time:P.finishTime,look:(({name,...l})=>l)(state.look)}).then(r=>{if(r&&(r.nameTaken||r.nameRequired)){toast(r.nameTaken?`השם ${state.name} כבר תפוס, אז המירוץ לא נכנס לטבלה. בחרו שם אחר במסך הפתיחה`:'כדי להיכנס לטבלת האלופים צריך להוסיף שם אחרי נהוראי');return;}if(!r||!r.week||!r.week.rank)return;const el=$('#resRec'),sp=document.createElement('span');sp.textContent=`🏆 מקום ${r.week.rank} השבוע`;el.appendChild(sp);el.hidden=false;});
     const el=$('#resRec');el.replaceChildren(...badges.map(b=>{const sp=document.createElement('span');sp.textContent=b;return sp;}));el.hidden=!badges.length;}

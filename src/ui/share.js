@@ -7,6 +7,8 @@ import { drawComposition } from './garage.js';
 import { newGid, saveGhost } from '../net/ghost.js';
 
 const SITE='https://nehorace.vercel.app';
+// the link goes back to where the game is running: the live site, a preview build, or a local dev server
+const LINK=/^https?:$/.test(location.protocol)?location.origin:SITE;
 // the image is made while the button is pressed (toDataURL is synchronous), so phones still count the share as a tap
 function fileOf(cv,name){
   const bin=atob(cv.toDataURL('image/png').split(',')[1]),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);
@@ -14,7 +16,7 @@ function fileOf(cv,name){
 }
 // q: more of the address before from=wa, e.g. 'vs=<gid>&' for an invite to race a ghost
 function shareImage(cv,text,name,q=''){
-  const file=fileOf(cv,name),msg=`${text}\n${SITE}/?${q}from=wa`; // ?from=wa: Amplitude counts who came from a shared link
+  const file=fileOf(cv,name),msg=`${text}\n${LINK}/?${q}from=wa`; // ?from=wa: Amplitude counts who came from a shared link
   if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],text:msg}).catch(()=>{});return;}
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank','noopener');
 }

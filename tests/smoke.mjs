@@ -187,7 +187,23 @@ try {
     await page.evaluate(() => { window.__shared = []; window.open = u => { window.__shared.push(u); }; });
     await click('#shareBtn');
     const shared = await page.evaluate(() => window.__shared);
-    if (!(shared.length === 1 && shared[0].startsWith('https://wa.me/?text=') && decodeURIComponent(shared[0]).includes('nehorace.vercel.app'))) errors.push(`[share] race share opened ${JSON.stringify(shared)}`);
+    // the link goes back to the server under test, and a finished race rides along as an invite to a duel
+    const origin = new globalThis.URL(URL).origin, msg = decodeURIComponent(shared[0] || '');
+    if (!(shared.length === 1 && shared[0].startsWith('https://wa.me/?text=') && msg.includes(origin))) errors.push(`[share] race share opened ${JSON.stringify(shared)}`);
+    const gid = (msg.match(/[?&]vs=([a-f0-9]{12})/) || [])[1], busted = (await page.textContent('#resTitle')).includes('נעצרת');
+    if (!gid && !busted) errors.push(`[duel] no invite in the shared link: ${msg}`);
+    if (gid) {
+      // the friend opens the link: the invite shows on the title screen, and the finish table says who won the duel
+      const friend = await browser.newPage({ viewport: { width: 390, height: 844 } });
+      friend.on('pageerror', e => errors.push(`[duel] ${e.message}`));
+      await page.waitForTimeout(500); // the upload runs beside the share
+      await friend.goto(`${origin}/index.html?vs=${gid}&dev`);
+      await friend.waitForSelector('#vsInvite:not([hidden])', { timeout: 5000 }).catch(() => errors.push('[duel] the invite never showed on the title screen'));
+      await friend.click('#devBtn');
+      await friend.waitForSelector('#stdDuel:not([hidden])', { timeout: 15000 }).catch(() => errors.push('[duel] no duel line in the finish table'));
+      await friend.screenshot({ path: path.join(OUT, 'duel-standings.png') });
+      await friend.close();
+    }
     // the events sent to Amplitude (also kept in window.__amp)
     const amp = await page.evaluate(() => window.__amp.map(e => e.event_type));
     for (const ev of ['game_opened', 'build_nehorai_clicked', 'choose_vehicle_clicked', 'design_vehicle_clicked', 'start_race_clicked', 'race_finished', 'results_button_clicked'])
