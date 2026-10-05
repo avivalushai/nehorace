@@ -11,7 +11,8 @@ async function post(data,keepalive){
     if(!res.ok)return null;const d=await res.json();return d.disabled||d.missing?null:d;}catch(e){return null;}
 }
 // the id is made here and the upload runs beside the share sheet, so the share link is ready on the tap
-function createChallenge(cid,run){const id=playerId();if(id)post({cid,id,create:true,seed:run.seed,track:run.track,run:body(run)},true);}
+// ch: {seed, track, name}; run: the sender's finished race, or none yet (they join when they race)
+function createChallenge(cid,ch,run){const id=playerId();if(id)post({cid,id,create:true,seed:ch.seed,track:ch.track,name:ch.name,...(run?{run:body(run)}:{})},true);}
 async function joinChallenge(cid,run){const id=playerId();return id?post({cid,id,run:body(run)}):null;}
 async function loadChallenge(cid){
   if(!isCid(cid))return null;

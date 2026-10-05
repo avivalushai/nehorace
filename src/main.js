@@ -1,5 +1,5 @@
 // Entry point: loads every module, screen navigation (show), title screen, startup.
-import { $ } from './core/util.js';
+import { $, pick } from './core/util.js';
 import { fitCv } from './core/draw.js';
 import './core/catalog.js';
 import './race/texts.js';
@@ -28,12 +28,13 @@ import './ui/bust.js';
 import { checkName, claimName } from './net/leaderboard.js';
 import { track } from './net/analytics.js';
 import { loadChallenge, savedRun } from './net/challenge.js';
-import { shareDuel } from './ui/share.js';
+import { shareDuel, shareYeshiva } from './ui/share.js';
 import { openChallenge } from './ui/board.js';
-import { trackOf } from './race/tracks.js';
+import { trackList, trackOf, trackOpen } from './race/tracks.js';
+import { newSeed } from './race/world.js';
 import { devQuickRace, fmt } from './race/engine.js';
 
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title'){renderBest();renderChallengeBtn();startTitle();}}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){refreshYeshiva();renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title'){renderBest();startTitle();}}
 // on the title screen the Nehorai idles: steps in place, drifts along the deck, swings his arms and waves now and then.
 // Static (t=0, no pose) when the player prefers reduced motion
 let titleAnim=false,titleT0=0,titleRAF=0;
@@ -85,17 +86,29 @@ walletLoad();
 // ?vs=<cid>: a challenge link. Every race from here on is on its track, against the sender and the best of the group.
 // The invite line opens the group table
 const VS=new URLSearchParams(location.search).get('vs');
-if(VS)loadChallenge(VS).then(v=>{if(!v)return;state.vs={...v,cid:VS};const el=$('#vsInvite'),n=v.table.length,where=trackOf(v.track).name.replace(/^ה/,'');
+// friends keep joining: the list of who to race is read again on the way to the garage, before the next race
+function refreshYeshiva(){const vs=state.vs;if(vs)loadChallenge(vs.cid).then(v=>{if(v&&state.vs&&state.vs.cid===vs.cid)state.vs={...v,cid:vs.cid};});}
+function showYeshiva(v){const el=$('#vsInvite'),n=v.table.length,where=trackOf(v.track).name.replace(/^ה/,'');
   el.textContent=(v.mine?`⚔️ הישיבה שלך ב${where}`:`⚔️ ${v.ownerName} מזמין אותך לישיבה ב${where}`)+(n>1?` · ${n} כבר התחרו`:'');el.hidden=false;
-  el.onclick=()=>openChallenge(state.vs);track('invite_opened',{track:v.track,players:n,mine:v.mine});});
-// a challenge can also be sent from here, with the last finished race (kept in this browser)
-function renderChallengeBtn(){$('#challengeBtn').hidden=!savedRun();}
-$('#challengeBtn').onclick=()=>{const run=savedRun();if(!run)return;track('title_challenge_clicked');shareDuel(run,trackOf(run.track).name);};
+  el.onclick=()=>openChallenge(state.vs);}
+if(VS)loadChallenge(VS).then(v=>{if(!v)return;state.vs={...v,cid:VS};showYeshiva(v);track('invite_opened',{track:v.track,players:v.table.length,mine:v.mine});});
+// "invite to the yeshiva" from here: more friends to the yeshiva the player is in, a new one with their last finished race
+// (kept in this browser), or before any race a new, empty one on a random open track that they join when they race.
+// Either way the player's next races are in it
+$('#challengeBtn').onclick=()=>{
+  if(suffix().length<2){setHint('✗ קודם בוחרים שם, כדי שהחברים יידעו מי מזמין אותם. למשל: נהוראי המלך','bad');$('#nameIn').focus();return;}
+  takeName();const run=state.vs?null:savedRun();track('title_challenge_clicked',{has_race:!!run,in_yeshiva:!!state.vs});
+  let cid,ch;
+  if(state.vs){cid=state.vs.cid;ch=state.vs;shareYeshiva(trackOf(ch.track).name,ch,cid);}
+  else if(run){ch={seed:run.seed,track:run.track};cid=shareDuel(run,trackOf(run.track).name);}
+  else{ch={seed:newSeed(),track:pick(trackList().filter(trackOpen)).id};cid=shareYeshiva(trackOf(ch.track).name,ch);}
+  if(!state.vs){state.vs={cid,seed:ch.seed,track:ch.track,ownerName:state.name,mine:true,racers:[],table:[]};showYeshiva(state.vs);
+    setTimeout(()=>loadChallenge(cid).then(v=>{if(v&&state.vs&&state.vs.cid===cid){state.vs={...v,cid};showYeshiva(v);}}),2000);}
+};
 // ?from=wa marks players who came from a link shared on WhatsApp
 track('game_opened',{returning:!!Stats.races,has_saved_name:!!suffix(),device:matchMedia('(min-width:860px)').matches?'desktop':'phone',from:new URLSearchParams(location.search).get('from')||'direct',invited:!!VS});
 
 renderBest();
-renderChallengeBtn();
 startTitle();
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{drawTitle();if($('#garage').classList.contains('on'))renderPanel();});
 

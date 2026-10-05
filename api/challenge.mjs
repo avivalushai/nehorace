@@ -1,7 +1,8 @@
 // Challenges: one link, a whole group of friends. The player who sends it starts the challenge with a finished race;
 // everyone who opens the link races on the same track against the sender and the four best of the group so far,
 // and their own finished race joins the challenge. Races are recorded lines the game replays.
-//   POST /api/challenge {cid, id, run, create?, seed?, track?}  start a challenge (create) or add a finished race
+//   POST /api/challenge {cid, id, run?, create?, seed?, track?, name?}  start a challenge (create, with or without a race
+//                                                              yet) or add a finished race
 //   GET  /api/challenge?c=<cid>&id=<player id>                  the track, the group table and who to race against
 // Keys live for 30 days from the last race: chm:<cid> (seed, track, sender), ch:<cid> (player -> name, look, time),
 // chs:<cid> (player -> the recorded line, kept apart so the table reads small)
@@ -37,7 +38,7 @@ async function view(cid,id){
   const lines=pick.length?await pipeline([['HMGET',K.lines(cid),...pick.map(r=>r.pid)]]).then(([v])=>v):[];
   const racers=pick.map((r,i)=>lines[i]&&{name:r.name,look:r.look,vid:r.vid,color:r.color,time:r.time,owner:r.pid===meta.owner,s:JSON.parse(lines[i])}).filter(Boolean);
   const table=runs.map((r,i)=>({rank:i+1,name:r.name,look:r.look,time:r.time,me:r.pid===id,owner:r.pid===meta.owner}));
-  return {seed:meta.seed,track:meta.track,ownerName:sender?sender.name:'',mine:meta.owner===id,racers,table};
+  return {seed:meta.seed,track:meta.track,ownerName:sender?sender.name:meta.name||'',mine:meta.owner===id,racers,table};
 }
 
 export async function POST(req){
@@ -45,14 +46,16 @@ export async function POST(req){
   let b;try{b=await req.json();}catch{return json({error:'bad-json'},400);}
   const {cid,id}=b;
   if(!isCid(cid)||!isId(id))return json({error:'bad-id'},400);
-  const clean=cleanRun(b.run);if(!clean)return json({error:'bad-run'},400);
+  // a challenge can start empty (sent from the title screen before the first race): the sender joins when they race
+  const clean=b.run?cleanRun(b.run):null;if(b.run?!clean:!b.create)return json({error:'bad-run'},400);
   const hour=Math.floor(Date.now()/3600000),ipKey=`ipc:${clientIp(req)}:${hour}`;
   const [n]=await pipeline([['INCR',ipKey],['EXPIRE',ipKey,'3600']]);
   if(n>IP_PER_HOUR)return json({error:'too-fast'},429);
   if(b.create){
     const seed=+b.seed;
     if(!(Number.isInteger(seed)&&seed>=0&&seed<2**32)||!TRACKS.includes(b.track))return json({error:'bad-track'},400);
-    await pipeline([['SET',K.meta(cid),JSON.stringify({seed,track:b.track,owner:id}),'NX','EX',String(TTL)]]);
+    await pipeline([['SET',K.meta(cid),JSON.stringify({seed,track:b.track,owner:id,name:cleanName(b.name)}),'NX','EX',String(TTL)]]);
+    if(!clean){const v=await view(cid,id);return v?json(v):json({missing:true});}
   }
   const [metaRaw,prev,flat]=await pipeline([['GET',K.meta(cid)],['HGET',K.runs(cid),id],['HGETALL',K.runs(cid)]]);
   if(!metaRaw)return json({missing:true});

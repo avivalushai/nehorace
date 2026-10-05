@@ -30,8 +30,9 @@ function drawRaceCard(c,W,H,r){
   c.save();c.translate(W/2,H*.738);c.rotate(-3*Math.PI/180);c.font=`700 ${H*.075}px ${DISP}`;c.textAlign='center';c.textBaseline='middle';c.direction='ltr';
   c.fillStyle=INK;c.fillText('NehoRace',9,10);c.fillStyle=PINK;c.fillText('NehoRace',4,5);c.fillStyle=GOLD;c.fillText('NehoRace',0,0);c.restore();
   c.direction='rtl';c.textAlign='center';c.textBaseline='middle';
-  c.fillStyle=GOLD;c.font=`700 ${H*.08}px ${DISP}`;c.fillText(`מקום ${r.pos}: ${r.title}`,W/2,H*.81,W*.9);
-  c.fillStyle='#FFF4DC';c.font=`${H*.034}px ${FONT}`;c.fillText(`${state.name} · ${r.score.toLocaleString('he-IL')} נקודות ערסיות`,W/2,H*.868,W*.9);
+  // r.invite: an invitation to a yeshiva (no race yet), otherwise the race's place and score
+  c.fillStyle=GOLD;c.font=`700 ${H*.08}px ${DISP}`;c.fillText(r.invite?`הזמנה לישיבה ב${r.invite}`:`מקום ${r.pos}: ${r.title}`,W/2,H*.81,W*.9);
+  c.fillStyle='#FFF4DC';c.font=`${H*.034}px ${FONT}`;c.fillText(r.invite?state.name:`${state.name} · ${r.score.toLocaleString('he-IL')} נקודות ערסיות`,W/2,H*.868,W*.9);
   c.globalAlpha=.8;c.font=`${H*.027}px ${FONT}`;c.fillText('חושב שתגבר? בוא בוא כנסס נראה אותך',W/2,H*.912,W*.9);
   c.globalAlpha=1;c.fillStyle=GOLD;c.direction='ltr';c.fillText(SITE.replace('https://',''),W/2,H*.954);
 }
@@ -42,8 +43,17 @@ function shareRace(r){
 // "race a friend": a challenge link. A new one starts from the race (the id is made here and the upload runs beside
 // the share sheet, so the tap still opens it); from inside a challenge it invites more friends to the same one
 function shareDuel(run,trackName,cid){
-  if(!cid){cid=newCid();createChallenge(cid,run);}
+  if(!cid){cid=newCid();createChallenge(cid,{seed:run.seed,track:run.track,name:run.name},run);}
   const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;drawRaceCard(cv.getContext('2d'),W,H,run);
   shareImage(cv,`${state.name} מזמין אותך לישיבה ב${trackName.replace(/^ה/,'')}. סיימתי ב-${fmtTime(run.time)}, בוא בוא כנסס נראה אותך עוקף`,'nehorace-challenge.png',`vs=${cid}&`);
+  return cid;
 }
-export { SITE, shareImage, shareRace, shareDuel, drawRaceCard };
+// an invitation without a race of the player's own (from the title screen): a new, empty yeshiva (ch: {seed, track}),
+// or more friends for the one they're in (cid)
+function shareYeshiva(trackName,ch,cid){
+  if(!cid){cid=newCid();createChallenge(cid,{...ch,name:state.name});}
+  const where=trackName.replace(/^ה/,''),W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;drawRaceCard(cv.getContext('2d'),W,H,{invite:where});
+  shareImage(cv,`${state.name} מזמין אותך לישיבה ב${where}. בוא בוא כנסס נראה אותך`,'nehorace-challenge.png',`vs=${cid}&`);
+  return cid;
+}
+export { SITE, shareImage, shareRace, shareDuel, shareYeshiva, drawRaceCard };
