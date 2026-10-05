@@ -190,7 +190,7 @@ try {
     // "send on WhatsApp" invites to the game itself, on the server under test
     const origin = new globalThis.URL(URL).origin, msg = decodeURIComponent(shared[0] || '');
     if (!(shared.length === 1 && shared[0].startsWith('https://wa.me/?text=') && msg.includes(origin) && !msg.includes('vs='))) errors.push(`[share] race share opened ${JSON.stringify(shared)}`);
-    // "race a friend" (only after a finished race) sends the race along: whoever opens the link duels it
+    // "race a friend" (after a finished race) opens a yeshiva with it: whoever opens the link races in it
     const busted = (await page.textContent('#resTitle')).includes('נעצרת');let gid = null;
     if (busted !== await page.isHidden('#duelBtn')) errors.push('[duel] "race a friend" should show exactly when the race was finished');
     if (!busted) {
@@ -207,8 +207,8 @@ try {
       await friend.goto(`${origin}/index.html?vs=${gid}&dev`);
       await friend.waitForSelector('#vsInvite:not([hidden])', { timeout: 5000 }).catch(() => errors.push('[duel] the invite never showed on the title screen'));
       await friend.click('#devBtn');
-      // a yeshiva race ends on the yeshiva's table, with who won against the sender on top
-      await friend.waitForSelector('#board.on #boardDuel:not([hidden])', { timeout: 15000 }).catch(() => errors.push('[duel] no yeshiva table with the duel line'));
+      // a race in a yeshiva ends on the yeshiva's screen: where you moved to, and this round's table
+      await friend.waitForSelector('#yeshivaEnd.on #yeList li', { timeout: 15000 }).catch(() => errors.push('[duel] no yeshiva screen after the race'));
       await friend.screenshot({ path: path.join(OUT, 'duel-yeshiva.png') });
       await friend.close();
     }

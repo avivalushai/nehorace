@@ -28,6 +28,8 @@ function run([cmd, ...a]) {
     case 'SISMEMBER': { const s = live(a[0]); return s instanceof Set && s.has(a[1]) ? 1 : 0; }
     case 'SADD': { let s = live(a[0]); if (!(s instanceof Set)) { s = new Set(); db.set(a[0], s); } s.add(a[1]); return 1; }
     case 'HSET': hash(a[0]).set(a[1], a[2]); return 1;
+    case 'HDEL': return a.slice(1).filter(f => hash(a[0]).delete(f)).length;
+    case 'HINCRBY': { const h = hash(a[0]), v = (+h.get(a[1]) || 0) + +a[2]; h.set(a[1], String(v)); return v; }
     case 'HMGET': return a.slice(1).map(f => hash(a[0]).get(f) ?? null);
     case 'HGETALL': return [...hash(a[0])].flat();
     case 'ZADD': { const gt = a.includes('GT'), [score, m] = a.slice(-2), z = zset(a[0]); if (!gt || !z.has(m) || +score > z.get(m)) z.set(m, +score); return 1; }

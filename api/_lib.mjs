@@ -34,13 +34,14 @@ export const isId=id=>typeof id==='string'&&/^[a-f0-9]{32}$/.test(id);
 const BLOCK=['כושי','ערבוש','נאצי','היטלר','nigger','nigga','nazi','hitler','faggot','kike','מחבל','אנס','פדופיל'];
 // every player is "נהוראי <something>": the part after it (up to 10 characters) is what makes the name theirs
 export const PREFIX='נהוראי';
-export function cleanName(raw){
+// the free part of a name (after "נהוראי", or after "ישיבת"): visible characters only, up to 10, nothing hateful
+export function cleanSuffix(raw,prefix){
   const n=String(raw||'').replace(/[\u0000-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g,'').replace(/\s+/g,' ').trim();
-  let suffix=(n.startsWith(PREFIX)?n.slice(PREFIX.length):n).trim().slice(0,10);
+  const suffix=(n.startsWith(prefix)?n.slice(prefix.length):n).trim().slice(0,10);
   const flat=suffix.toLowerCase().replace(/[\s.\-_*!]/g,'');
-  if(BLOCK.some(w=>flat.includes(w)))suffix='';
-  return suffix?`${PREFIX} ${suffix}`:PREFIX;
+  return BLOCK.some(w=>flat.includes(w))?'':suffix;
 }
+export function cleanName(raw){const suffix=cleanSuffix(raw,PREFIX);return suffix?`${PREFIX} ${suffix}`:PREFIX;}
 export const hasSuffix=name=>name!==PREFIX;
 // names are unique regardless of spaces and letter case
 export const normName=name=>name.replace(/\s+/g,'').toLowerCase();

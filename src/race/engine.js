@@ -13,15 +13,16 @@ import { Music, musicStart, musicStop } from '../music/engine.js';
 import { setStage } from '../music/songs.js';
 import { ALBUM, buildAlbum, rec } from '../album/build.js';
 import { Wallet, calcCoins, ownedCount, showCoins, walletSave, toast } from '../shop/ui.js';
-import { shareDuel, shareRace } from '../ui/share.js';
-import { joinChallenge, loadChallenge, saveRun } from '../net/challenge.js';
+import { shareRace } from '../ui/share.js';
+import { loadYeshiva, raceYeshiva } from '../net/yeshiva.js';
+import { enterYeshiva, inviteFromRace, showYeshivaEnd } from '../ui/yeshiva.js';
 import { showStandings } from '../ui/standings.js';
 import { showBust } from '../ui/bust.js';
 import { Stats, recordRace } from '../core/stats.js';
 import { unlockedBetween } from '../core/unlocks.js';
 import { track } from '../net/analytics.js';
 import { submitRace } from '../net/leaderboard.js';
-import { openBoard, openChallenge } from '../ui/board.js';
+import { openBoard } from '../ui/board.js';
 
 let race=null,rRAF=0,lastTs=0,RK=1,LW=400,LH=800;
 const rcv=$('#raceCv'),rctx=rcv.getContext('2d'),keys={};
@@ -29,9 +30,9 @@ function resizeRace(){const W=innerWidth,H=innerHeight,dpr=Math.min(2,devicePixe
 addEventListener('resize',()=>{if(race)resizeRace();if($('#title').classList.contains('on'))drawTitle();if($('#results').classList.contains('on'))drawResultsStage();});
 function startRace(){
   // the place picks itself: one of the tracks the player has opened, drawn fresh for every race
-  // a challenge link (state.vs) brings its own track and seed, even a track this player hasn't opened yet,
+  // a yeshiva (state.vs) brings this week's track and seed, even a track this player hasn't opened yet,
   // and the friends to race: the sender and the best of the group, recorded lines replayed (up to five)
-  const vs=state.vs,friends=vs?vs.racers.filter(g=>VEH[g.vid]).slice(0,5):[];
+  const vs=state.vs&&state.vs.seed!=null?state.vs:null,friends=vs?(vs.racers||[]).filter(g=>VEH[g.vid]).slice(0,5):[];
   if(vs)state.track=vs.track;else{const open=trackList().filter(trackOpen);state.track=pick(open).id;}
   stopStage();show('race');resizeRace();resetPid();
   race={track:trackOf(state.track),seed:vs?vs.seed:newSeed(),rec:[],L:RACE_LEN,t:0,time:0,phase:'count',count:3.4,goT:0,bubbles:[],pending:[],shake:0,doneT:0,tSeg:1,
@@ -89,7 +90,7 @@ function bust(){const P=race.player;
   P.busted=true;P.speed=0;race.shake=14;race.phase='busted';cancelAnimationFrame(rRAF);musicStop();
   say(P,['זה לא אני, נשבע!'],false,true);
   showBust(race.stats,()=>{race.phase='race';finishRace();});}
-// a friend from a challenge replays their recorded line. They knock people and get bumped like any racer, but the
+// a friend from a yeshiva replays their recorded line. They knock people and get bumped like any racer, but the
 // line doesn't change: the next frame puts them back on the recording. Every recording started in the player's slot
 // (GHOST_FROM), so each friend starts from their own slot (gOff) and drifts onto the line over the first three seconds
 const GHOST_HZ=10,GHOST_FROM=[-90,40];
@@ -99,7 +100,7 @@ function ghostStep(r,dt){const g=r.ghost,s=g.s,n=s.length/2,t=race.time;
   const d=s[2*i]+(s[2*i+2]-s[2*i])*f,off=s[2*i+1]+(s[2*i+3]-s[2*i+1])*f,px=r.x;
   const fade=Math.max(0,1-t/3),dd=d+r.gOff[0]*fade;r.speed=Math.max(0,(dd-r.d)/Math.max(dt,1e-3));r.d=dd;r.x=cx(dd)+off+r.gOff[1]*fade;
   r.lean+=(clamp((r.x-px)/Math.max(dt,1e-3)*.004,-.35,.35)-r.lean)*Math.min(1,10*dt);}
-// the last finished race, ready to start a challenge (also kept in this browser for the title screen)
+// the last finished race, ready to open a yeshiva with it
 let lastRun=null;
 function lowerBound(arr,d){let lo=0,hi=arr.length;while(lo<hi){const m=(lo+hi)>>1;if(arr[m].d<d)lo=m+1;else hi=m;}return lo;}
 
@@ -234,7 +235,7 @@ function finishRace(){
     if(rc.newScore)badges.push('🏆 שיא נקודות חדש!');if(rc.newTime)badges.push('⏱️ הזמן הכי מהיר שלך!');
     const opened=unlockedBetween(before,Stats.career);opened.slice(0,3).forEach(x=>badges.push(`🔓 פתחת: ${x.label}`));if(opened.length>3)badges.push(`🔓 ועוד ${opened.length-3} פריטים`);
     if(busted)badges.unshift('🚓 נעצרת. אפס נקודות');
-    // a challenge: who won between the player and the friend who sent it, and by how much
+    // a yeshiva: who won between the player and the friend who sent it, and by how much
     {const G=race.racers.find(r=>r.ghost&&r.ghost.owner);if(G){const gap=fmtGap(Math.abs(P.finishTime-G.finishTime));
       const won=!busted&&gap!=='0.0'&&P.finishTime<G.finishTime;
       duel={won,text:busted?`נעצרת, ו${G.name} לקח את הישיבה`:gap==='0.0'?`תיקו מושלם עם ${G.name}!`:won?`ניצחת את ${G.name} ב-${gap} שניות!`:`${G.name} לקח אותך ב-${gap} שניות`};
@@ -244,13 +245,12 @@ function finishRace(){
     const el=$('#resRec');el.replaceChildren(...badges.map(b=>{const sp=document.createElement('span');sp.textContent=b;return sp;}));el.hidden=!badges.length;}
   // what you ran over is listed once, with the coins it earned; the score goes up top
   $('#resScore').innerHTML=`<b>${score.toLocaleString('he-IL')}</b> נקודות ערסיות`;
-  // a finished race can be raced by friends: "race a friend" sends it in a challenge link. A race from a challenge
-  // joins it (and the group table opens over the results); "race a friend" then invites more people to the same one
+  // a race in a yeshiva goes to it (the yeshiva's screen comes before the results). "race a friend" opens a new yeshiva
+  // with this race in one tap, or from inside a yeshiva invites more friends to it
   lastRun=busted||!P.finished?null:{seed:race.seed,track:state.track,time:P.finishTime,vid:state.vid,color:vColor(),name:state.name,look:(({name,...l})=>l)(state.look),s:race.rec,pos,score,title};
-  if(lastRun)saveRun(lastRun);
-  const vs=state.vs,chP=vs?(lastRun?joinChallenge(vs.cid,lastRun):loadChallenge(vs.cid)):null;
-  {const card={pos,score,title},trackName=race.track.name;$('#shareBtn').onclick=()=>shareRace(card);
-    $('#duelBtn').hidden=!lastRun;$('#duelBtn').onclick=()=>{if(lastRun)shareDuel(lastRun,trackName,vs&&vs.cid);};}
+  const vs=state.vs&&state.vs.seed===race.seed?state.vs:null,chP=vs?(lastRun?raceYeshiva(vs.cid,lastRun):loadYeshiva(vs.cid)):null;
+  {const card={pos,score,title};$('#shareBtn').onclick=()=>shareRace(card);
+    $('#duelBtn').hidden=!lastRun&&!state.vs;$('#duelSub').textContent=state.vs?`מזמינים עוד חברים לישיבת ${state.vs.word}`:'פותחים ישיבה עם המירוץ הזה ושולחים לחבר׳ה';$('#duelBtn').onclick=()=>inviteFromRace(lastRun);}
   $('#verdict').textContent=victims===0?'עברת את כל הפארק בלי לגעת באף אחד. בטוח שאתה נהוראי?':victims<5?'התחלה יפה. העירייה עוד לא שמה לב':victims<13?'יש כבר שלוש תלונות בקבוצת הווטסאפ של השכונה':victims<26?'המשטרה בדרך, והיא לא שמחה':'הפארק סגור עד להודעה חדשה. אגדה.';
   buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} מגנטים מהמירוץ`;
   {const crow=busted?[['🚓','המשטרה החרימה הכל',0]]:calcCoins(pos,S),won=busted?0:crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);
@@ -259,11 +259,11 @@ function finishRace(){
   const rows=order.map(r=>({name:r.name,look:{...r.look},busted:!!r.busted,time:r.finished?r.finishTime:null,knocks:r.knocks,me:!!r.isPlayer,inviter:!!(r.ghost&&r.ghost.owner)}));
   render();race=null; // the last frame of the race stays behind the standings, dimmed
   const toResults=()=>{show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;drawResultsStage();};
-  // a yeshiva race ends on one table, the yeshiva's (the group, with who won against the sender on top); the race's
-  // own standings only when the server doesn't answer in time
+  // a yeshiva race ends on the yeshiva's screen (where you moved to, who you passed, this round's table), then the
+  // results; the race's own standings only when the server doesn't answer in time
   if(chP)Promise.race([chP,new Promise(r=>setTimeout(()=>r(null),2500))]).then(v=>{
     if(!v){showStandings(rows,fmt,toResults);return;}
-    state.vs={...v,cid:vs.cid};toResults();openChallenge(state.vs,duel);});
+    enterYeshiva({...v,cid:vs.cid});showYeshivaEnd(v,busted,startRaceFresh,toResults);});
   else showStandings(rows,fmt,toResults);
 }
 // on a phone the stage is the background of the whole header: the Nehorai stands on the left, the place and badges on the right
@@ -272,7 +272,7 @@ function drawResultsStage(){const{c,w,h}=fitCv($('#resCv')),wide=matchMedia('(mi
 // The police stay out of it: a simulated race has nobody steering away from people, so it would always end in an arrest
 // friends keep joining a yeshiva: who to race is read again right before the race (waiting a moment at most)
 async function startRaceFresh(){const vs=state.vs;
-  if(vs){const v=await Promise.race([loadChallenge(vs.cid),new Promise(r=>setTimeout(()=>r(null),1500))]);if(v&&state.vs&&state.vs.cid===vs.cid)state.vs={...v,cid:vs.cid};}
+  if(vs){const v=await Promise.race([loadYeshiva(vs.cid),new Promise(r=>setTimeout(()=>r(null),1500))]);if(v&&state.vs&&state.vs.cid===vs.cid)state.vs={...v,cid:vs.cid};}
   startRace();}
 function devQuickRace(){startRace();race.noCops=true;for(let g=0;g<60*300&&race;g++)update(1/60);}
 // every button on the results screen, one event with the button's name

@@ -48,7 +48,7 @@
     <small class="name-hint" id="nameHint"></small>
   </div>
   <button class="btn" id="startBtn">בונים נהוראי</button>
-  <div class="title-row"><button class="btn ghost" id="boardBtn">🏆 טבלת האלופים</button><button class="btn ghost" id="challengeBtn">⚔️ תזמין לישיבה</button></div>
+  <div class="title-row"><button class="btn ghost" id="boardBtn">🏆 טבלת האלופים</button><button class="btn ghost" id="challengeBtn">🕍 הישיבות שלי<span class="y-badge" id="ysBadge" hidden></span></button></div>
 </section>
 
 <section id="garage" class="screen">
@@ -82,7 +82,7 @@
     <div class="res-panel">
     <div class="res-col res-money">
     <div class="coins"><div class="coins-head"><span class="coin"></span><div><b id="coinsWon">+0</b><small>מטבעות מהמירוץ</small></div><div class="wallet">בארנק<br><b id="walletNow">0</b></div></div><ul class="coin-rows" id="coinRows"></ul><button class="btn" id="shopBtn">לחנות של הפארק</button></div>
-    <button class="gift duel-link" id="duelBtn" hidden><span class="gift-ico">⚔️</span><span><b>תתחרה בחבר</b><small>שלח לו את המירוץ שלך ונראה אם הוא עוקף אותך</small></span></button>
+    <button class="gift duel-link" id="duelBtn" hidden><span class="gift-ico">⚔️</span><span><b>תתחרה בחבר</b><small id="duelSub">פותחים ישיבה עם המירוץ הזה ושולחים לחבר׳ה</small></span></button>
     <div class="gift-row">
     <button class="gift" id="giftBtn"><span class="gift-ico">🎁</span><span><b>מתנה קטנה מאירוע גדול</b><small id="giftSub">מגנטים מהמירוץ</small></span></button>
     <button class="gift garage-link" id="myGarageBtn"><span class="gift-ico">🏠</span><span><b>המוסך</b><small>כל מה שעקצתי בנסיעה, תזהר להכנס</small></span></button>
@@ -116,7 +116,17 @@
     <button class="btn" id="stdNext">לתוצאות שלי</button>
   </div>
 </div>
-<div id="board" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2 id="boardTitle">טבלת האלופים</h2><button class="shopX" id="boardClose">סגירה</button></div><div class="tabs" id="boardTabs"></div></header><p class="std-duel board-duel" id="boardDuel" hidden></p><p class="board-note" id="boardNote"></p><div id="boardPodium"></div><ol class="board-list" id="boardList"></ol></div></div>
+<div id="board" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2>טבלת האלופים</h2><button class="shopX" id="boardClose">סגירה</button></div><div class="tabs" id="boardTabs"></div></header><p class="board-note" id="boardNote"></p><div id="boardPodium"></div><ol class="board-list" id="boardList"></ol></div></div>
+<!-- yeshivas: the player's list, one yeshiva's tables, and the screen after a race in one -->
+<div id="yeshivas" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2>הישיבות שלי</h2><button class="shopX" id="ysClose">סגירה</button></div></header><div id="ysBody"></div></div></div>
+<div id="yeshiva" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2 id="yTitle"></h2><button class="shopX" id="yRename" hidden>✏️</button><button class="shopX" id="yClose">סגירה</button></div>
+  <div class="y-rename" id="yRenameRow" hidden><div class="name-row"><span class="name-fixed">ישיבת</span><input id="yRenameIn" maxlength="10" autocomplete="off"></div><button class="btn" id="yRenameSave">שמירה</button></div>
+  <p class="y-sub" id="ySub"></p><div class="tabs" id="yTabs"></div></header>
+  <p class="board-note" id="yNote"></p><div id="yPodium"></div><ol class="board-list" id="yList"></ol>
+  <div class="y-actions"><button class="btn" id="yRace">יאללה למירוץ בישיבה</button><button class="btn ghost" id="yInvite">📲 להזמין עוד חברים</button></div></div></div>
+<div id="yeshivaEnd" class="overlay" role="dialog" aria-modal="true" aria-labelledby="yeTitle"><div class="board"><header class="board-head"><h2 id="yeTitle"></h2><p class="y-sub" id="yeSub"></p></header>
+  <p class="std-duel y-head" id="yeHead"></p><p class="y-passed" id="yePassed" hidden></p><ol class="board-list" id="yeList"></ol><p class="y-gap" id="yeGap"></p>
+  <div class="y-actions"><button class="gift wa-link y-tell" id="yeTell" hidden><span class="gift-ico">📲</span><span><b>ספר לקבוצה שעקפת</b></span></button><button class="btn" id="yeAgain">עוד סיבוב בישיבה</button><button class="btn ghost" id="yeResults">לתוצאות</button></div></div></div>
 <div id="shop" class="overlay"><div class="shop"><header class="shop-head"><div class="shop-row"><h2>החנות</h2><div class="shop-wallet"><span class="coin"></span><b id="shopCoins">0</b></div><button class="shopX" id="shopClose">סגירה</button></div><div class="tabs" id="shopTabs"></div></header><div class="shop-grid" id="shopGrid"></div></div></div>
 <div id="myGarage" class="overlay"><div class="shop"><header class="shop-head"><div class="shop-row"><h2>המוסך</h2><button class="shopX" id="myGarageClose">סגירה</button></div><p class="board-note" id="mgNote"></p><div class="tabs" id="mgTabs"></div></header><div class="mg-grid" id="mgGrid"></div></div></div>
 <div id="album" class="overlay">

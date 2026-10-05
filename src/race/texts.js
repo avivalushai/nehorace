@@ -67,4 +67,8 @@ const FINISH_LINES={
 };
 const OPP_NAMES=['שון','אושר','מושיקו','ליאור','אלמוג','נתנאל','דודו','בר','עידן'];
 
-export { TXT, ACTS, ZONE_ACTS, OPP_NAMES, FINISH_LINES };
+// "ישיבת ___": a new yeshiva gets one of these, and can draw again or be renamed by whoever opened it
+const YESHIVA_WORDS=['האחים','הביוקר','האלופים','החלל','הטורבו','השכונה','הצ׳קלקה','המנגל','הפיצוחים','הוואלק','הסמטה','הקורקינטים','הלילה','השרופים',
+  'הגלגלים','הכבוד','הסבבה','החומוס','הכפרות','השווארמה','הפנסים','הסוללה','הקיוסק','החניה','הגבעה','הטיילת','הקלאץ׳','הבלאגן','הנשמות','המלכים',
+  'הג׳חנון','הנרגילה','הספסל','המכולת','השיפוצים','הברזלים'];
+export { TXT, ACTS, ZONE_ACTS, OPP_NAMES, FINISH_LINES, YESHIVA_WORDS };
