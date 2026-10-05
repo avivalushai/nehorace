@@ -24,16 +24,18 @@ button{cursor:pointer;border:0;background:none}
 .name-fixed{display:flex;align-items:center;padding:0 12px 0 8px;font-size:20px;color:var(--gold);background:rgba(255,200,61,.1);border-inline-end:1px solid rgba(255,244,220,.2)}
 .namefield .name-row input{flex:1;min-width:0;background:none;border:0;border-radius:0}
 .name-hint{font-size:13px;color:var(--gold);opacity:.9;min-height:1.3em}
-.vs-invite{margin:6px auto 0;max-width:340px;background:var(--pink);color:#fff;border:3px solid var(--ink);border-radius:999px;padding:8px 16px;font-size:16px;line-height:1.25;text-align:center;box-shadow:0 4px 0 var(--ink)}
+.vs-invite{display:block;cursor:pointer;font-family:inherit;margin:6px auto 0;max-width:340px;background:var(--pink);color:#fff;border:3px solid var(--ink);border-radius:999px;padding:8px 16px;font-size:16px;line-height:1.25;text-align:center;box-shadow:0 4px 0 var(--ink)}
 .name-hint.ok{color:var(--mint)}.name-hint.bad{color:#FF8FB8}
 #title .btn{width:min(88vw,340px)}
+/* the champions board and, once there is a finished race, a challenge for friends, side by side */
+.title-row{display:flex;gap:8px;width:min(88vw,340px)}.title-row .btn{flex:1 1 0;min-width:0;padding-inline:8px}
 .best{font-size:15px;opacity:.9;max-width:34ch}
 .best b{color:var(--gold);font-weight:400;direction:ltr;unicode-bidi:isolate}
 #devBtn,#devPts{position:absolute;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:3;background:rgba(26,11,41,.7);border:2px dashed rgba(255,244,220,.4);padding:6px 12px;border-radius:999px;font-size:13px}
 .res-rec{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .res-rec span{background:var(--pink);color:#fff;border-radius:999px;padding:4px 12px;font-size:14px}
 #devPts{top:calc(50px + env(safe-area-inset-top))}
-#devBtn[hidden],#devPts[hidden],#duelBtn[hidden],.best[hidden],.res-rec[hidden]{display:none}
+#devBtn[hidden],#devPts[hidden],#duelBtn[hidden],#challengeBtn[hidden],.vs-invite[hidden],.best[hidden],.res-rec[hidden]{display:none}
 
 #garage{flex-direction:column;height:100dvh}
 .steps{display:flex;gap:6px;padding:calc(8px + env(safe-area-inset-top)) 12px 4px}
@@ -302,7 +304,8 @@ button{cursor:pointer;border:0;background:none}
  #title .best{grid-column:1;grid-row:4;font-size:17px}
  #title .namefield{grid-column:1;grid-row:5}
  #title .btn{grid-column:1;grid-row:6}
- #title #boardBtn{grid-row:7}
+ #title .title-row{grid-column:1;grid-row:7}
+ #title .vs-invite{grid-column:1;grid-row:1;align-self:end}
  #titleCv{grid-column:2;grid-row:1/-1;width:100%;height:min(76vh,680px);border-radius:28px}
 
  /* garage: wider panel, bigger previews */

@@ -1,6 +1,6 @@
 // The champions board overlay: this week's best races and all-time wins.
 // Player names are user input, so rows are built with textContent only.
-import { $, INK, GOLD, GOLD2, FONT, DISP } from '../core/util.js';
+import { $, INK, GOLD, GOLD2, FONT, DISP, fmtTime } from '../core/util.js';
 import { rr, fitCv } from '../core/draw.js';
 import { PARTS } from '../core/catalog.js';
 import { state } from '../core/state.js';
@@ -9,6 +9,8 @@ import { drawDog } from '../art/dog.js';
 import { fetchBoard } from '../net/leaderboard.js';
 
 let boardTab='week',data=null,podRAF=0;
+// a challenge's group table uses the same overlay: {title, note, rows, unit} instead of the weekly boards
+let group=null;
 // another player's look from the server: keep only item ids this game knows, fall back to the default for the rest
 const DEFAULT_LOOK={hair:'fade',beard:'stubble',cap:'none',chain:'cuban',shirt:'track',pants:'track',shoes:'white',dog:'none',acc:'shades'};
 function safeLook(l,name){const out={...DEFAULT_LOOK,name};PARTS.forEach(p=>{const v=l&&l[p.id];if(p.items.some(([id])=>id===v))out[p.id]=v;});if(!l)out.dog='none';return out;}
@@ -42,11 +44,13 @@ const num=v=>v.toLocaleString('he-IL');
 function row(r,unit){const li=document.createElement('li');li.className=r.me?'me':'';
   const rank=document.createElement('span');rank.className='n';rank.textContent=MEDAL[r.rank-1]||r.rank;
   const av=document.createElement('canvas');av.className='av';
-  const name=document.createElement('span');name.className='nm';name.textContent=r.name+(r.me?' (אתה)':'');
+  const name=document.createElement('span');name.className='nm';name.textContent=r.name+(r.me?' (אתה)':r.owner?' (המזמין)':'');
   const score=document.createElement('b');score.textContent=unit(r.score);
   li.append(rank,av,name,score);return li;}
 function render(){
   const tabs=$('#boardTabs'),list=$('#boardList'),note=$('#boardNote'),pod=$('#boardPodium');tabs.innerHTML='';list.innerHTML='';pod.innerHTML='';
+  $('#boardTitle').textContent=group?group.title:'טבלת האלופים';
+  if(group){note.textContent=group.note;renderRows(group.rows,group.unit,list,pod);return;}
   TABS.forEach(([id,l])=>{const b=document.createElement('button');b.className='tab'+(boardTab===id?' on':'');b.textContent=l;b.onclick=()=>{boardTab=id;render();};tabs.appendChild(b);});
   if(data===null){note.textContent='טוען את הטבלה...';return;}
   if(data===false){note.textContent='אין חיבור לטבלה כרגע. נסו שוב עוד רגע.';return;}
@@ -54,19 +58,30 @@ function render(){
   const B=data[boardTab],unit=boardTab==='week'?(s=>`${num(s)} נק׳`):(s=>s===1?'ניצחון אחד':`${num(s)} ניצחונות`);
   note.textContent=boardTab==='week'?'המירוץ הכי טוב של כל אחד השבוע. מתאפס בכל יום ראשון.':'כל הזמנים. כל מקום ראשון במירוץ הוא ניצחון.';
   if(!B.top.length){const p=document.createElement('p');p.className='board-empty';p.textContent=boardTab==='week'?'עוד אין פה אף אחד השבוע. יאללה, תהיה הראשון!':'עוד אף אחד לא ניצח. זה הזמן.';list.appendChild(p);}
-  cancelAnimationFrame(podRAF);
-  if(B.top.length){const cv=document.createElement('canvas');cv.className='podium';pod.appendChild(cv);
-    const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,t0=performance.now();
-    const f=now=>{if(!cv.isConnected||!$('#board').classList.contains('on'))return;drawPodium(cv,B.top,reduce?0:(now-t0)/1000);if(!reduce)podRAF=requestAnimationFrame(f);};f(t0);}
-  const avatar=(li,r)=>{list.appendChild(li);drawAvatar(li.querySelector('.av'),r.look,r.name);};
-  B.top.forEach(r=>avatar(row(r,unit),r));
-  if(B.me&&!B.top.some(r=>r.me)){const gap=document.createElement('li');gap.className='gap';gap.textContent='⋯';list.appendChild(gap);const me={rank:B.me.rank,name:state.name,score:B.me.score,me:true,look:state.look};avatar(row(me,unit),me);}
+  renderRows(B.top,unit,list,pod);
+  if(B.me&&!B.top.some(r=>r.me)){const gap=document.createElement('li');gap.className='gap';gap.textContent='⋯';list.appendChild(gap);const me={rank:B.me.rank,name:state.name,score:B.me.score,me:true,look:state.look};list.appendChild(row(me,unit));drawAvatar(list.lastChild.querySelector('.av'),me.look,me.name);}
   const you=document.createElement('p');you.className='board-you';you.textContent=`בטבלה אתה מופיע בשם של הנהוראי שלך: ${state.name}`;list.appendChild(you);
 }
+// the top three on the podium, then a row for everyone
+function renderRows(top,unit,list,pod){
+  cancelAnimationFrame(podRAF);
+  if(top.length){const cv=document.createElement('canvas');cv.className='podium';pod.appendChild(cv);
+    const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,t0=performance.now();
+    const f=now=>{if(!cv.isConnected||!$('#board').classList.contains('on'))return;drawPodium(cv,top,reduce?0:Math.max(0,(now-t0)/1000));if(!reduce)podRAF=requestAnimationFrame(f);};f(t0);}
+  for(const r of top){list.appendChild(row(r,unit));drawAvatar(list.lastChild.querySelector('.av'),r.look,r.name);}
+}
 async function openBoard(tab){
-  if(tab)boardTab=tab;data=null;$('#board').classList.add('on');$('#board').scrollTop=0;render();
+  group=null;if(tab)boardTab=tab;data=null;$('#board').classList.add('on');$('#board').scrollTop=0;render();
   const d=await fetchBoard();data=d||false;if($('#board').classList.contains('on'))render();
 }
 $('#boardClose').onclick=()=>$('#board').classList.remove('on');
 
-export { openBoard };
+// a challenge's table: everyone who raced from the link, best time first
+function openChallenge(v){
+  const n=v.table.length,me=v.table.find(r=>r.me);
+  group={title:v.mine?'הישיבה שלך':`הישיבה של ${v.ownerName}`,unit:fmtTime,rows:v.table.map(r=>({...r,score:r.time})),
+    note:me?`אתה במקום ${me.rank} מתוך ${n} שהתחרו מהקישור`:(n===1?'רק המזמין התחרה עד עכשיו':`${n} כבר התחרו מהקישור`)};
+  $('#board').classList.add('on');$('#board').scrollTop=0;render();
+}
+
+export { openBoard, openChallenge };

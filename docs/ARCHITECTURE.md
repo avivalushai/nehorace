@@ -11,12 +11,12 @@ tools/catalog.html     # קטלוג: כל פריט מקדימה ומאחורה, 
 tools/images.html      # דף תצוגה מקדימה שמצייר את האייקונים ואת תמונת השיתוף
 api/_lib.mjs           # שרת: חיבור ל-Redis, שבוע (ראשון, שעון ישראל), ניקוי שמות
 api/race.mjs           # POST: מירוץ שהסתיים. בדיקת סבירות, הגבלת קצב, עדכון הטבלאות
-api/ghost.mjs          # רוחות: POST שומר מירוץ מוקלט (30 יום), GET מחזיר אותו לפי gid
+api/challenge.mjs      # הישיבה: POST פותח ישיבה או מוסיף מירוץ, GET מחזיר מסלול, טבלה ויריבים (30 יום)
 api/leaderboard.mjs    # GET: 50 המובילים בכל טבלה, עם הלוק של כל אחד, והמקום שלך
 api/name.mjs           # GET: האם השם פנוי. POST: תפיסת השם לשחקן (ושחרור הקודם)
 api/admin.mjs          # POST: הסרת שחקן לפי שם וחסימתו (דורש ADMIN_TOKEN)
 src/net/leaderboard.js # צד המשחק: מזהה שחקן, שליחת מירוץ, קריאת הטבלה
-src/net/ghost.js       # צד המשחק של הרוחות: מזהה רוח, שליחה וקריאה
+src/net/challenge.js   # צד המשחק של הישיבה: פתיחה, הצטרפות, קריאה, והמירוץ האחרון ששמור בדפדפן
 src/net/analytics.js   # track: אירועי Amplitude, אירועים מבדיקות מסומנים is_test (הרשימה ב-CLAUDE.md)
 src/ui/board.js        # מסך טבלת האלופים: פודיום, ודמות קטנה ליד כל שורה
 src/ui/share.js        # שיתוף בוואטסאפ: shareImage, shareRace, drawRaceCard

@@ -1,10 +1,10 @@
 // Sharing to WhatsApp: a picture drawn in code plus a line with the game's address.
 // Phones get the system share sheet with the image (WhatsApp is one tap away); where images can't be
 // shared (most computers), WhatsApp opens with the text and the link, whose preview shows the game's card.
-import { INK, GOLD, PINK, FONT, DISP } from '../core/util.js';
+import { INK, GOLD, PINK, FONT, DISP, fmtTime } from '../core/util.js';
 import { state, vColor } from '../core/state.js';
 import { drawComposition } from './garage.js';
-import { newGid, saveGhost } from '../net/ghost.js';
+import { newCid, createChallenge } from '../net/challenge.js';
 
 const SITE='https://nehorace.vercel.app';
 // the link goes back to where the game is running: the live site, a preview build, or a local dev server
@@ -14,7 +14,7 @@ function fileOf(cv,name){
   const bin=atob(cv.toDataURL('image/png').split(',')[1]),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);
   return new File([a],name,{type:'image/png'});
 }
-// q: more of the address before from=wa, e.g. 'vs=<gid>&' for an invite to race a ghost
+// q: more of the address before from=wa, e.g. 'vs=<cid>&' for a challenge
 function shareImage(cv,text,name,q=''){
   const file=fileOf(cv,name),msg=`${text}\n${LINK}/?${q}from=wa`; // ?from=wa: Amplitude counts who came from a shared link
   if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],text:msg}).catch(()=>{});return;}
@@ -39,12 +39,11 @@ function shareRace(r){
   const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;drawRaceCard(cv.getContext('2d'),W,H,r);
   shareImage(cv,`${state.name} סיים במקום ${r.pos} במירוץ של הנהוראים בפארק, עם ${r.score.toLocaleString('he-IL')} נקודות ערסיות. חושב שתגבר? בוא בוא כנסס נראה אותך`,'nehorace.png');
 }
-// "race a friend": the finished race goes along in the link, and whoever opens it races against it on the same track.
-// The id is made here and the upload runs beside the share sheet, so the tap still opens it
-function shareDuel(r,trackName){
-  const gid=newGid();saveGhost(gid,r.run);
-  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;drawRaceCard(cv.getContext('2d'),W,H,r);
-  shareImage(cv,`${state.name} מזמין אותך לדו-קרב ב${trackName.replace(/^ה/,'')}. סיימתי ב-${r.timeText}, בוא בוא כנסס נראה אותך עוקף`,'nehorace-duel.png',`vs=${gid}&`);
+// "race a friend": a challenge link. A new one starts from the race (the id is made here and the upload runs beside
+// the share sheet, so the tap still opens it); from inside a challenge it invites more friends to the same one
+function shareDuel(run,trackName,cid){
+  if(!cid){cid=newCid();createChallenge(cid,run);}
+  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;drawRaceCard(cv.getContext('2d'),W,H,run);
+  shareImage(cv,`${state.name} מזמין אותך לישיבה ב${trackName.replace(/^ה/,'')}. סיימתי ב-${fmtTime(run.time)}, בוא בוא כנסס נראה אותך עוקף`,'nehorace-challenge.png',`vs=${cid}&`);
 }
-
 export { SITE, shareImage, shareRace, shareDuel, drawRaceCard };

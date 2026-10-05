@@ -39,7 +39,7 @@
   <button id="devPts" hidden>➕ 5,000 נקודות (בדיקות)</button>
   <h1 class="logo">NehoRace</h1>
   <p class="tag">המירוץ של הנהוראים בפארק. בונים נהוראי, בוחרים כלי, ודורסים את הדרך לניצחון.</p>
-  <p class="vs-invite" id="vsInvite" hidden></p>
+  <button class="vs-invite" id="vsInvite" hidden></button>
   <p class="best" id="bestLine" hidden></p>
   <canvas id="titleCv"></canvas>
   <div class="namefield">
@@ -48,7 +48,7 @@
     <small class="name-hint" id="nameHint"></small>
   </div>
   <button class="btn" id="startBtn">בונים נהוראי</button>
-  <button class="btn ghost" id="boardBtn">🏆 טבלת האלופים</button>
+  <div class="title-row"><button class="btn ghost" id="boardBtn">🏆 טבלת האלופים</button><button class="btn ghost" id="challengeBtn" hidden>⚔️ אתגר חברים</button></div>
 </section>
 
 <section id="garage" class="screen">
@@ -116,7 +116,7 @@
     <button class="btn" id="stdNext">לתוצאות שלי</button>
   </div>
 </div>
-<div id="board" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2>טבלת האלופים</h2><button class="shopX" id="boardClose">סגירה</button></div><div class="tabs" id="boardTabs"></div></header><p class="board-note" id="boardNote"></p><div id="boardPodium"></div><ol class="board-list" id="boardList"></ol></div></div>
+<div id="board" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2 id="boardTitle">טבלת האלופים</h2><button class="shopX" id="boardClose">סגירה</button></div><div class="tabs" id="boardTabs"></div></header><p class="board-note" id="boardNote"></p><div id="boardPodium"></div><ol class="board-list" id="boardList"></ol></div></div>
 <div id="shop" class="overlay"><div class="shop"><header class="shop-head"><div class="shop-row"><h2>החנות</h2><div class="shop-wallet"><span class="coin"></span><b id="shopCoins">0</b></div><button class="shopX" id="shopClose">סגירה</button></div><div class="tabs" id="shopTabs"></div></header><div class="shop-grid" id="shopGrid"></div></div></div>
 <div id="myGarage" class="overlay"><div class="shop"><header class="shop-head"><div class="shop-row"><h2>המוסך</h2><button class="shopX" id="myGarageClose">סגירה</button></div><p class="board-note" id="mgNote"></p><div class="tabs" id="mgTabs"></div></header><div class="mg-grid" id="mgGrid"></div></div></div>
 <div id="album" class="overlay">

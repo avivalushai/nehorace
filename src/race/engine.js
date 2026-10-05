@@ -14,13 +14,14 @@ import { setStage } from '../music/songs.js';
 import { ALBUM, buildAlbum, rec } from '../album/build.js';
 import { Wallet, calcCoins, ownedCount, showCoins, walletSave, toast } from '../shop/ui.js';
 import { shareDuel, shareRace } from '../ui/share.js';
+import { joinChallenge, loadChallenge, saveRun } from '../net/challenge.js';
 import { showStandings } from '../ui/standings.js';
 import { showBust } from '../ui/bust.js';
 import { Stats, recordRace } from '../core/stats.js';
 import { unlockedBetween } from '../core/unlocks.js';
 import { track } from '../net/analytics.js';
 import { submitRace } from '../net/leaderboard.js';
-import { openBoard } from '../ui/board.js';
+import { openBoard, openChallenge } from '../ui/board.js';
 
 let race=null,rRAF=0,lastTs=0,RK=1,LW=400,LH=800;
 const rcv=$('#raceCv'),rctx=rcv.getContext('2d'),keys={};
@@ -28,19 +29,22 @@ function resizeRace(){const W=innerWidth,H=innerHeight,dpr=Math.min(2,devicePixe
 addEventListener('resize',()=>{if(race)resizeRace();if($('#title').classList.contains('on'))drawTitle();if($('#results').classList.contains('on'))drawResultsStage();});
 function startRace(){
   // the place picks itself: one of the tracks the player has opened, drawn fresh for every race
-  // a friend's invite (state.vs) brings its own track and seed, even a track this player hasn't opened yet
-  const vs=state.vs;
+  // a challenge link (state.vs) brings its own track and seed, even a track this player hasn't opened yet,
+  // and the friends to race: the sender and the best of the group, recorded lines replayed (up to five)
+  const vs=state.vs,friends=vs?vs.racers.filter(g=>VEH[g.vid]).slice(0,5):[];
   if(vs)state.track=vs.track;else{const open=trackList().filter(trackOpen);state.track=pick(open).id;}
   stopStage();show('race');resizeRace();resetPid();
   race={track:trackOf(state.track),seed:vs?vs.seed:newSeed(),rec:[],L:RACE_LEN,t:0,time:0,phase:'count',count:3.4,goT:0,bubbles:[],pending:[],shake:0,doneT:0,tSeg:1,
     stats:{people:0,kids:0,seniors:0,dogs:0,cats:0,pigeons:0,mangal:0,acts:0,property:0,trees:0,bumps:0,curses:0,grass:0},zone:0,zoneT:0,wanted:0,wantedT:0,cop:null,copSeen:0,moments:[]};
   const me=makeRacer({isPlayer:true,name:state.name,look:{...state.look},vid:state.vid,color:vColor(),idx:0});
-  const names=[...OPP_NAMES].filter(n=>!vs||n!==vs.name).sort(()=>Math.random()-.5).slice(0,vs?4:5);
-  const opps=names.map((n,i)=>{const L=randLook();L.name=n;const vid=pick(['scooter','scooter','bike','atv']);return makeRacer({name:n,look:L,vid,color:pick(COLORS),idx:i+1,top:VEH[vid].top*rand(.9,.985)});});
-  // the friend's ghost starts beside the player, in the last row (5th slot)
-  if(vs&&VEH[vs.vid])opps.push(makeRacer({name:vs.name,look:{dog:'none',...vs.look,name:vs.name},vid:vs.vid,color:vs.color,idx:5,ghost:vs}));
+  const names=[...OPP_NAMES].filter(n=>!friends.some(g=>g.name===n)).sort(()=>Math.random()-.5).slice(0,5-friends.length);
+  const opps=names.map(n=>{const L=randLook();L.name=n;const vid=pick(['scooter','scooter','bike','atv']);return makeRacer({name:n,look:L,vid,color:pick(COLORS),top:VEH[vid].top*rand(.9,.985)});});
+  // friends fill the back of the grid, the sender right beside the player
+  [...friends].reverse().forEach(g=>opps.push(makeRacer({name:g.name,look:{dog:'none',...g.look,name:g.name},vid:g.vid,color:g.color,ghost:g})));
+  opps.forEach((o,i)=>o.idx=i+1);
   const grid=[[0,-40],[0,40],[-45,-40],[-45,40],[-90,-40],[-90,40]];
-  race.racers=[...opps,me];race.racers.forEach((r,i)=>{r.d=grid[i][0];r.x=cx(r.d)+grid[i][1];r.targetX=r.x;r.offset=grid[i][1];});
+  race.racers=[...opps,me];race.racers.forEach((r,i)=>{r.d=grid[i][0];r.x=cx(r.d)+grid[i][1];r.targetX=r.x;r.offset=grid[i][1];
+    if(r.ghost)r.gOff=[r.d-GHOST_FROM[0],r.offset-GHOST_FROM[1]];});
   race.player=me;race.camX=me.x;
   genWorld();
   opps.slice(0,3).forEach((o,i)=>race.pending.push({t:.4+i*.9,owner:o,list:TXT.oppPre,at:true}));
@@ -85,17 +89,17 @@ function bust(){const P=race.player;
   P.busted=true;P.speed=0;race.shake=14;race.phase='busted';cancelAnimationFrame(rRAF);musicStop();
   say(P,['זה לא אני, נשבע!'],false,true);
   showBust(race.stats,()=>{race.phase='race';finishRace();});}
-// a friend's ghost replays their recorded line. It knocks people and gets bumped like any racer, but its line
-// doesn't change: the next frame puts it back on the recording. They started in the player's slot, so the ghost starts one lane
-// over (80 to the left) and drifts onto its own line over the first three seconds
-const GHOST_HZ=10;
+// a friend from a challenge replays their recorded line. They knock people and get bumped like any racer, but the
+// line doesn't change: the next frame puts them back on the recording. Every recording started in the player's slot
+// (GHOST_FROM), so each friend starts from their own slot (gOff) and drifts onto the line over the first three seconds
+const GHOST_HZ=10,GHOST_FROM=[-90,40];
 function ghostStep(r,dt){const g=r.ghost,s=g.s,n=s.length/2,t=race.time;
   if(t>=g.time){if(!r.finished){r.finished=true;r.finishTime=g.time;}r.d+=r.speed*dt;r.x+=(cx(r.d)+s[2*n-1]-r.x)*Math.min(1,3*dt);return;}
   const k=Math.min(t*GHOST_HZ,n-1),i=Math.min(Math.floor(k),n-2),f=k-i;
   const d=s[2*i]+(s[2*i+2]-s[2*i])*f,off=s[2*i+1]+(s[2*i+3]-s[2*i+1])*f,px=r.x;
-  r.speed=Math.max(0,(d-r.d)/Math.max(dt,1e-3));r.d=d;r.x=cx(d)+off-80*Math.max(0,1-t/3);
+  const fade=Math.max(0,1-t/3),dd=d+r.gOff[0]*fade;r.speed=Math.max(0,(dd-r.d)/Math.max(dt,1e-3));r.d=dd;r.x=cx(dd)+off+r.gOff[1]*fade;
   r.lean+=(clamp((r.x-px)/Math.max(dt,1e-3)*.004,-.35,.35)-r.lean)*Math.min(1,10*dt);}
-// the last finished race, ready to become a ghost when the player invites a friend
+// the last finished race, ready to start a challenge (also kept in this browser for the title screen)
 let lastRun=null;
 function lowerBound(arr,d){let lo=0,hi=arr.length;while(lo<hi){const m=(lo+hi)>>1;if(arr[m].d<d)lo=m+1;else hi=m;}return lo;}
 
@@ -229,26 +233,30 @@ function finishRace(){
     if(rc.newScore)badges.push('🏆 שיא נקודות חדש!');if(rc.newTime)badges.push('⏱️ הזמן הכי מהיר שלך!');
     const opened=unlockedBetween(before,Stats.career);opened.slice(0,3).forEach(x=>badges.push(`🔓 פתחת: ${x.label}`));if(opened.length>3)badges.push(`🔓 ועוד ${opened.length-3} פריטים`);
     if(busted)badges.unshift('🚓 נעצרת. אפס נקודות');
-    // a duel against a friend's ghost: who won, and by how much
-    {const G=race.racers.find(r=>r.ghost);if(G){const gap=fmtGap(Math.abs(P.finishTime-G.finishTime));
+    // a challenge: who won between the player and the friend who sent it, and by how much
+    {const G=race.racers.find(r=>r.ghost&&r.ghost.owner);if(G){const gap=fmtGap(Math.abs(P.finishTime-G.finishTime));
       badges.unshift(busted?`⚔️ ${G.name} ניצח, אתה נעצרת`:gap==='0.0'?`⚔️ תיקו מושלם עם ${G.name}`:P.finishTime<G.finishTime?`⚔️ ניצחת את ${G.name} ב-${gap} שניות!`:`⚔️ ${G.name} לקח אותך ב-${gap} שניות`);}}
     // send the race to the champions board; the weekly rank shows up as another badge when it answers
     if(!busted)submitRace({name:state.name,score,pos,time:P.finishTime,look:(({name,...l})=>l)(state.look)}).then(r=>{if(r&&(r.nameTaken||r.nameRequired)){toast(r.nameTaken?`השם ${state.name} כבר תפוס, אז המירוץ לא נכנס לטבלה. בחרו שם אחר במסך הפתיחה`:'כדי להיכנס לטבלת האלופים צריך להוסיף שם אחרי נהוראי');return;}if(!r||!r.week||!r.week.rank)return;const el=$('#resRec'),sp=document.createElement('span');sp.textContent=`🏆 מקום ${r.week.rank} השבוע`;el.appendChild(sp);el.hidden=false;});
     const el=$('#resRec');el.replaceChildren(...badges.map(b=>{const sp=document.createElement('span');sp.textContent=b;return sp;}));el.hidden=!badges.length;}
   // what you ran over is listed once, with the coins it earned; the score goes up top
   $('#resScore').innerHTML=`<b>${score.toLocaleString('he-IL')}</b> נקודות ערסיות`;
-  // a finished race can be raced by a friend: "race a friend" sends it along in the link
-  lastRun=busted||!P.finished?null:{seed:race.seed,track:state.track,time:P.finishTime,vid:state.vid,color:vColor(),name:state.name,look:(({name,...l})=>l)(state.look),s:race.rec};
-  {const card={pos,score,title,run:lastRun,timeText:lastRun?fmt(lastRun.time,true):''},trackName=race.track.name;$('#shareBtn').onclick=()=>shareRace(card);
-    $('#duelBtn').hidden=!lastRun;$('#duelBtn').onclick=()=>{if(lastRun)shareDuel(card,trackName);};}
+  // a finished race can be raced by friends: "race a friend" sends it in a challenge link. A race from a challenge
+  // joins it (and the group table opens over the results); "race a friend" then invites more people to the same one
+  lastRun=busted||!P.finished?null:{seed:race.seed,track:state.track,time:P.finishTime,vid:state.vid,color:vColor(),name:state.name,look:(({name,...l})=>l)(state.look),s:race.rec,pos,score,title};
+  if(lastRun)saveRun(lastRun);
+  const vs=state.vs,chP=vs?(lastRun?joinChallenge(vs.cid,lastRun):loadChallenge(vs.cid)):null;
+  {const card={pos,score,title},trackName=race.track.name;$('#shareBtn').onclick=()=>shareRace(card);
+    $('#duelBtn').hidden=!lastRun;$('#duelBtn').onclick=()=>{if(lastRun)shareDuel(lastRun,trackName,vs&&vs.cid);};}
   $('#verdict').textContent=victims===0?'עברת את כל הפארק בלי לגעת באף אחד. בטוח שאתה נהוראי?':victims<5?'התחלה יפה. העירייה עוד לא שמה לב':victims<13?'יש כבר שלוש תלונות בקבוצת הווטסאפ של השכונה':victims<26?'המשטרה בדרך, והיא לא שמחה':'הפארק סגור עד להודעה חדשה. אגדה.';
   buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} מגנטים מהמירוץ`;
   {const crow=busted?[['🚓','המשטרה החרימה הכל',0]]:calcCoins(pos,S),won=busted?0:crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);
     track('race_finished',{position:pos,score,track:state.track,race_time:Math.round(P.finishTime*10)/10,victims,coins:won,vehicle:state.vid,career_points:Stats.career});}
   // first the standings over the race (everyone on the podium, with what they have to say), then the results and prizes
-  const rows=order.map(r=>({name:r.name,look:{...r.look},busted:!!r.busted,time:r.finished?r.finishTime:null,knocks:r.knocks,me:!!r.isPlayer,ghost:!!r.ghost}));
+  const rows=order.map(r=>({name:r.name,look:{...r.look},busted:!!r.busted,time:r.finished?r.finishTime:null,knocks:r.knocks,me:!!r.isPlayer,inviter:!!(r.ghost&&r.ghost.owner)}));
   render();race=null; // the last frame of the race stays behind the standings, dimmed
-  showStandings(rows,fmt,()=>{show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;drawResultsStage();});
+  showStandings(rows,fmt,()=>{show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;drawResultsStage();
+    if(chP)chP.then(v=>{if(!v)return;state.vs={...v,cid:vs.cid};openChallenge(state.vs);});});
 }
 // on a phone the stage is the background of the whole header: the Nehorai stands on the left, the place and badges on the right
 function drawResultsStage(){const{c,w,h}=fitCv($('#resCv')),wide=matchMedia('(min-width:860px)').matches;drawComposition(c,w,h,{focus:wide?null:{x:w*.21,w:w*.42},mode:'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:1});}

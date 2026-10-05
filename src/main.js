@@ -27,11 +27,13 @@ import './ui/collection.js';
 import './ui/bust.js';
 import { checkName, claimName } from './net/leaderboard.js';
 import { track } from './net/analytics.js';
-import { loadGhost } from './net/ghost.js';
+import { loadChallenge, savedRun } from './net/challenge.js';
+import { shareDuel } from './ui/share.js';
+import { openChallenge } from './ui/board.js';
 import { trackOf } from './race/tracks.js';
 import { devQuickRace, fmt } from './race/engine.js';
 
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title'){renderBest();startTitle();}}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title'){renderBest();renderChallengeBtn();startTitle();}}
 // on the title screen the Nehorai idles: steps in place, drifts along the deck, swings his arms and waves now and then.
 // Static (t=0, no pose) when the player prefers reduced motion
 let titleAnim=false,titleT0=0,titleRAF=0;
@@ -80,13 +82,20 @@ function renderBest(){const el=$('#bestLine');if(!Stats.races){el.hidden=true;re
 if(new URLSearchParams(location.search).has('dev')){$('#devBtn').hidden=false;$('#devBtn').onclick=()=>{if(!suffix())$('#nameIn').value='בדיקות';takeName();devQuickRace();};
   $('#devPts').hidden=false;$('#devPts').onclick=()=>{devAddCareer(5000);renderBest();};}
 walletLoad();
-// ?vs=<gid>: a friend sent their race. Every race from here on is against their ghost, on their track
+// ?vs=<cid>: a challenge link. Every race from here on is on its track, against the sender and the best of the group.
+// The invite line opens the group table
 const VS=new URLSearchParams(location.search).get('vs');
-if(VS)loadGhost(VS).then(g=>{if(!g)return;state.vs=g;const el=$('#vsInvite');el.textContent=`⚔️ ${g.name} מזמין אותך לדו-קרב ב${trackOf(g.track).name.replace(/^ה/,'')}`;el.hidden=false;track('invite_opened',{track:g.track});});
+if(VS)loadChallenge(VS).then(v=>{if(!v)return;state.vs={...v,cid:VS};const el=$('#vsInvite'),n=v.table.length,where=trackOf(v.track).name.replace(/^ה/,'');
+  el.textContent=(v.mine?`⚔️ הישיבה שלך ב${where}`:`⚔️ ${v.ownerName} מזמין אותך לישיבה ב${where}`)+(n>1?` · ${n} כבר התחרו`:'');el.hidden=false;
+  el.onclick=()=>openChallenge(state.vs);track('invite_opened',{track:v.track,players:n,mine:v.mine});});
+// a challenge can also be sent from here, with the last finished race (kept in this browser)
+function renderChallengeBtn(){$('#challengeBtn').hidden=!savedRun();}
+$('#challengeBtn').onclick=()=>{const run=savedRun();if(!run)return;track('title_challenge_clicked');shareDuel(run,trackOf(run.track).name);};
 // ?from=wa marks players who came from a link shared on WhatsApp
 track('game_opened',{returning:!!Stats.races,has_saved_name:!!suffix(),device:matchMedia('(min-width:860px)').matches?'desktop':'phone',from:new URLSearchParams(location.search).get('from')||'direct',invited:!!VS});
 
 renderBest();
+renderChallengeBtn();
 startTitle();
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{drawTitle();if($('#garage').classList.contains('on'))renderPanel();});
 
