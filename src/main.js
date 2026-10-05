@@ -13,7 +13,7 @@ import './race/world.js';
 import './race/engine.js';
 import './race/render.js';
 import { musicStop } from './music/engine.js';
-import { garageMusic } from './music/songs.js';
+import { garageMusic, leaveMenu, titleMusic } from './music/songs.js';
 import './album/scenes.js';
 import './album/build.js';
 import './album/ui.js';
@@ -29,7 +29,7 @@ import { checkName, claimName } from './net/leaderboard.js';
 import { track } from './net/analytics.js';
 import { devQuickRace, fmt } from './race/engine.js';
 
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title'){renderBest();startTitle();}}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else if(id==='title'){stopStage();titleMusic();}else{stopStage();leaveMenu();if(id!=='race')musicStop();}if(id==='title'){renderBest();startTitle();}}
 // on the title screen the Nehorai idles: steps in place, drifts along the deck, swings his arms and waves now and then.
 // Static (t=0, no pose) when the player prefers reduced motion
 let titleAnim=false,titleT0=0,titleRAF=0;
@@ -83,6 +83,7 @@ track('game_opened',{returning:!!Stats.races,has_saved_name:!!suffix(),device:ma
 
 renderBest();
 startTitle();
+titleMusic();
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{drawTitle();if($('#garage').classList.contains('on'))renderPanel();});
 
 export { show, drawTitle };

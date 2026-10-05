@@ -2,11 +2,18 @@
 import { step } from '../ui/garage.js';
 import { Music, musicStart } from './engine.js';
 
-function garageMusic(){const z=step===0?3:4;if(Music.on&&Music.target>=3)setStage(z);else musicStart(z);}
+function garageMusic(){menuOn=true;const z=step===0?3:4;if(Music.on&&Music.target>=3)setStage(z);else musicStart(z);}
+// the title screen plays the menu track too. Browsers allow sound only after a tap or a key, so on a first visit
+// the music starts with the player's first touch there (tapping the name field, typing). Back from a race it starts right away
+let menuOn=false;
+function titleMusic(){menuOn=true;if(Music.ctx&&Music.ctx.state==='running'){if(Music.on&&Music.target>=3)setStage(3);else musicStart(3);}}
+function leaveMenu(){menuOn=false;}
+const firstTouch=()=>{if(!menuOn)return;if(!(Music.on&&Music.target>=3))musicStart(3);else if(Music.userCur&&Music.userCur.audio.paused)Music.userCur.audio.play().catch(()=>{});};
+addEventListener('pointerdown',firstTouch,true);addEventListener('keydown',firstTouch,true);
 
 // ================= STAGE TRACKS =================
 // Songs.slots maps a stage (0-2 race zones, 3 character, 4 vehicle, 'all' fallback) to {audio,gain}.
-// The menus (building the Nehorai, the vehicle, its design) play a bundled track: assets/music/menu.mp3
+// The menus (the title screen, building the Nehorai, the vehicle, its design) play a bundled track: assets/music/menu.mp3
 // (Pixabay, "Islamic Middle Eastern Music" by Starostin, free under the Pixabay Content License). The race keeps the procedural music.
 const Songs={slots:{}};
 const MENU_SRC='assets/music/menu.mp3';
@@ -30,4 +37,4 @@ function setStage(z){
   if(tr){Music.zone=Music.pend=z;Music.procGain.gain.setTargetAtTime(0,now,.2);}
   else{Music.pend=z;Music.procGain.gain.setTargetAtTime(Music.procEnabled?1:0,now,.2);}
 }
-export { garageMusic, playUser, setStage };
+export { garageMusic, titleMusic, leaveMenu, playUser, setStage };
