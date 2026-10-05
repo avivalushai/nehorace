@@ -43,7 +43,7 @@ function showStandings(rows,fmt,next){
   rows.forEach((r,i)=>{const grp=lineGroup(i,r.busted),li=document.createElement('li');li.className=r.me?'me':'';
     li.innerHTML='<span class="n"></span><span class="who"></span><span class="st"><b></b><small></small></span><q></q>';
     li.querySelector('.n').textContent=i+1;
-    li.querySelector('.who').textContent=r.name+(r.me?' (אתה)':'');
+    li.querySelector('.who').textContent=r.name+(r.me?' (אתה)':r.ghost?' (המזמין)':'');
     li.querySelector('.st b').textContent=r.busted?'נעצר':r.time!=null?fmt(r.time,true):'לא סיים';li.querySelector('.st small').textContent=`${r.knocks} נדרסו`;
     li.querySelector('q').textContent=lines[grp][used[grp]++];
     list.appendChild(li);});

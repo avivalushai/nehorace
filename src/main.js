@@ -27,6 +27,8 @@ import './ui/collection.js';
 import './ui/bust.js';
 import { checkName, claimName } from './net/leaderboard.js';
 import { track } from './net/analytics.js';
+import { loadGhost } from './net/ghost.js';
+import { trackOf } from './race/tracks.js';
 import { devQuickRace, fmt } from './race/engine.js';
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title'){renderBest();startTitle();}}
@@ -78,8 +80,11 @@ function renderBest(){const el=$('#bestLine');if(!Stats.races){el.hidden=true;re
 if(new URLSearchParams(location.search).has('dev')){$('#devBtn').hidden=false;$('#devBtn').onclick=()=>{if(!suffix())$('#nameIn').value='בדיקות';takeName();devQuickRace();};
   $('#devPts').hidden=false;$('#devPts').onclick=()=>{devAddCareer(5000);renderBest();};}
 walletLoad();
+// ?vs=<gid>: a friend sent their race. Every race from here on is against their ghost, on their track
+const VS=new URLSearchParams(location.search).get('vs');
+if(VS)loadGhost(VS).then(g=>{if(!g)return;state.vs=g;const el=$('#vsInvite');el.textContent=`⚔️ ${g.name} מזמין אותך לדו-קרב ב${trackOf(g.track).name.replace(/^ה/,'')}`;el.hidden=false;track('invite_opened',{track:g.track});});
 // ?from=wa marks players who came from a link shared on WhatsApp
-track('game_opened',{returning:!!Stats.races,has_saved_name:!!suffix(),device:matchMedia('(min-width:860px)').matches?'desktop':'phone',from:new URLSearchParams(location.search).get('from')||'direct'});
+track('game_opened',{returning:!!Stats.races,has_saved_name:!!suffix(),device:matchMedia('(min-width:860px)').matches?'desktop':'phone',from:new URLSearchParams(location.search).get('from')||'direct',invited:!!VS});
 
 renderBest();
 startTitle();

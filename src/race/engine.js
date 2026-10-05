@@ -28,13 +28,17 @@ function resizeRace(){const W=innerWidth,H=innerHeight,dpr=Math.min(2,devicePixe
 addEventListener('resize',()=>{if(race)resizeRace();if($('#title').classList.contains('on'))drawTitle();if($('#results').classList.contains('on'))drawResultsStage();});
 function startRace(){
   // the place picks itself: one of the tracks the player has opened, drawn fresh for every race
-  {const open=trackList().filter(trackOpen);state.track=pick(open).id;}
+  // a friend's invite (state.vs) brings its own track and seed, even a track this player hasn't opened yet
+  const vs=state.vs;
+  if(vs)state.track=vs.track;else{const open=trackList().filter(trackOpen);state.track=pick(open).id;}
   stopStage();show('race');resizeRace();resetPid();
-  race={track:trackOf(state.track),seed:newSeed(),L:RACE_LEN,t:0,time:0,phase:'count',count:3.4,goT:0,bubbles:[],pending:[],shake:0,doneT:0,tSeg:1,
+  race={track:trackOf(state.track),seed:vs?vs.seed:newSeed(),rec:[],L:RACE_LEN,t:0,time:0,phase:'count',count:3.4,goT:0,bubbles:[],pending:[],shake:0,doneT:0,tSeg:1,
     stats:{people:0,kids:0,seniors:0,dogs:0,cats:0,pigeons:0,mangal:0,acts:0,property:0,trees:0,bumps:0,curses:0,grass:0},zone:0,zoneT:0,wanted:0,wantedT:0,cop:null,copSeen:0,moments:[]};
   const me=makeRacer({isPlayer:true,name:state.name,look:{...state.look},vid:state.vid,color:vColor(),idx:0});
-  const names=[...OPP_NAMES].sort(()=>Math.random()-.5).slice(0,5);
+  const names=[...OPP_NAMES].filter(n=>!vs||n!==vs.name).sort(()=>Math.random()-.5).slice(0,vs?4:5);
   const opps=names.map((n,i)=>{const L=randLook();L.name=n;const vid=pick(['scooter','scooter','bike','atv']);return makeRacer({name:n,look:L,vid,color:pick(COLORS),idx:i+1,top:VEH[vid].top*rand(.9,.985)});});
+  // the friend's ghost starts beside the player, in the last row (5th slot)
+  if(vs&&VEH[vs.vid])opps.push(makeRacer({name:vs.name,look:{dog:'none',...vs.look,name:vs.name},vid:vs.vid,color:vs.color,idx:5,ghost:vs}));
   const grid=[[0,-40],[0,40],[-45,-40],[-45,40],[-90,-40],[-90,40]];
   race.racers=[...opps,me];race.racers.forEach((r,i)=>{r.d=grid[i][0];r.x=cx(r.d)+grid[i][1];r.targetX=r.x;r.offset=grid[i][1];});
   race.player=me;race.camX=me.x;
@@ -81,6 +85,17 @@ function bust(){const P=race.player;
   P.busted=true;P.speed=0;race.shake=14;race.phase='busted';cancelAnimationFrame(rRAF);musicStop();
   say(P,['זה לא אני, נשבע!'],false,true);
   showBust(race.stats,()=>{race.phase='race';finishRace();});}
+// a friend's ghost replays their recorded line. They started in the player's slot, so the ghost starts one lane
+// over (80 to the left) and drifts onto its own line over the first three seconds
+const GHOST_HZ=10;
+function ghostStep(r,dt){const g=r.ghost,s=g.s,n=s.length/2,t=race.time;
+  if(t>=g.time){if(!r.finished){r.finished=true;r.finishTime=g.time;}r.d+=r.speed*dt;r.x+=(cx(r.d)+s[2*n-1]-r.x)*Math.min(1,3*dt);return;}
+  const k=Math.min(t*GHOST_HZ,n-1),i=Math.min(Math.floor(k),n-2),f=k-i;
+  const d=s[2*i]+(s[2*i+2]-s[2*i])*f,off=s[2*i+1]+(s[2*i+3]-s[2*i+1])*f,px=r.x;
+  r.speed=Math.max(0,(d-r.d)/Math.max(dt,1e-3));r.d=d;r.x=cx(d)+off-80*Math.max(0,1-t/3);
+  r.lean+=(clamp((r.x-px)/Math.max(dt,1e-3)*.004,-.35,.35)-r.lean)*Math.min(1,10*dt);}
+// the last finished race, ready to become a ghost when the player invites a friend
+let lastRun=null;
 function lowerBound(arr,d){let lo=0,hi=arr.length;while(lo<hi){const m=(lo+hi)>>1;if(arr[m].d<d)lo=m+1;else hi=m;}return lo;}
 
 function update(dt){
@@ -93,6 +108,7 @@ function update(dt){
   if(keys.left)P.targetX-=320*P.veh.handling*dt;if(keys.right)P.targetX+=320*P.veh.handling*dt;
   for(const r of race.racers){
     r.sayCd-=dt;r.bumpCd-=dt;r.solidCd-=dt;r.stun=Math.max(0,r.stun-dt);if(r.turboT>0)r.turboT-=dt;
+    if(r.ghost){if(racing)ghostStep(r,dt);continue;}
     const grass=Math.abs(r.x-cx(r.d))>PW/2;
     let target=0;
     if(racing){
@@ -119,6 +135,8 @@ function update(dt){
     r.lean+=(clamp((r.x-px)/Math.max(dt,1e-3)*.004,-.35,.35)-r.lean)*Math.min(1,10*dt);
     if(!r.finished&&r.d>=race.L){r.finished=true;r.finishTime=race.time-(r.d-race.L)/Math.max(r.speed,1);if(r.isPlayer){race.phase='done';race.doneT=2.6;race.statsAtFinish={...race.stats};}}
   }
+  // the player's line through the race, ten times a second: how far along, and how far off the middle of the path
+  if(racing&&!P.finished&&!P.busted){const k=Math.floor(race.time*GHOST_HZ);while(race.rec.length/2<=k)race.rec.push(Math.round(P.d),Math.round(P.x-cx(P.d)));}
   for(const p of race.peds){
     if(p.gone||Math.abs(p.d-P.d)>1300)continue;
     p.ph+=dt*8;p.nearCd-=dt;p.sayCd-=dt;p.ghost-=dt;
@@ -132,7 +150,7 @@ function update(dt){
     if(off>lim)p.vx=-Math.abs(p.vx)-5;else if(off<-lim)p.vx=Math.abs(p.vx)+5;
     if(p.type==='pigeon'&&!p.fleeChk){for(const r of race.racers){const dd=p.d-r.d;if(dd>0&&dd<95&&Math.abs(p.x-r.x)<55){p.fleeChk=true;if(Math.random()<.7){p.flying=true;p.fly=2.5;p.vx=rand(-110,110);p.vd=rand(40,160);}break;}}}
   }
-  if(racing)for(const r of race.racers){if(r.isPlayer&&r.finished)continue;
+  if(racing)for(const r of race.racers){if(r.isPlayer&&r.finished||r.ghost)continue; // a ghost rides through everything
     for(const p of race.peds){if(p.down||p.gone||p.ghost>0||p.flying)continue;const dd=p.d-r.d;if(dd>40||dd<-40)continue;const dx=p.x-r.x,rs=r.veh.r+p.r,d2=dx*dx+dd*dd;
       if(d2<rs*rs)knock(p,r,dx,dd);
       else if(r.isPlayer&&d2<(rs+22)*(rs+22)&&p.nearCd<=0&&r.speed>220){p.nearCd=5;if(Math.random()<.45)say(p,TXT.near[p.type]||TXT.near.adult,true);}}
@@ -140,7 +158,7 @@ function update(dt){
     for(let i=i0;i<race.statics.length&&race.statics[i].d<r.d+40;i++){const s=race.statics[i];if(!s.col||s.broken)continue;const dx=s.x-r.x,dd=s.d-r.d,rs=r.veh.r+s.col;if(dx*dx+dd*dd<rs*rs)hitStatic(s,r,dx);}
   }
   const RS=race.racers;
-  for(let i=0;i<RS.length;i++)for(let j=i+1;j<RS.length;j++){const a=RS[i],b=RS[j];const dd=b.d-a.d;if(Math.abs(dd)>36)continue;const dx=b.x-a.x,rs=a.veh.r+b.veh.r;
+  for(let i=0;i<RS.length;i++)for(let j=i+1;j<RS.length;j++){const a=RS[i],b=RS[j];if(a.ghost||b.ghost)continue;const dd=b.d-a.d;if(Math.abs(dd)>36)continue;const dx=b.x-a.x,rs=a.veh.r+b.veh.r;
     if(dx*dx+dd*dd<rs*rs){const sg=dx>=0?1:-1,ov=(rs-Math.abs(dx))*.5+.5,wa=b.veh.mass/(a.veh.mass+b.veh.mass);a.x-=sg*ov*wa*1.6;b.x+=sg*ov*(1-wa)*1.6;
       (dd>0?a:b).speed*=.9;
       if(a.bumpCd<=0&&b.bumpCd<=0&&racing){a.bumpCd=b.bumpCd=1.2;if((a.isPlayer||b.isPlayer)&&!P.finished){const o=a.isPlayer?b:a;race.stats.bumps++;race.shake=5;say(o,TXT.oppBump,true,true);race.pending.push({t:.7,owner:P,list:TXT.pBump});}}}}
@@ -193,6 +211,7 @@ function exitRace(){cancelAnimationFrame(rRAF);musicStop();race=null;setStep(0);
 $('#exitBtn').onclick=exitRace;
 
 // ---------- results ----------
+const fmtGap=s=>(Math.round(s*10)/10).toFixed(1);
 function fmt(tm,hund){const cs=Math.floor(tm*100+1e-6);return `${Math.floor(cs/6000)}:${String(Math.floor(cs/100)%60).padStart(2,'0')}.${hund?String(cs%100).padStart(2,'0'):Math.floor(cs%100/10)}`;}
 function finishRace(){
   musicStop();
@@ -209,18 +228,23 @@ function finishRace(){
     if(rc.newScore)badges.push('🏆 שיא נקודות חדש!');if(rc.newTime)badges.push('⏱️ הזמן הכי מהיר שלך!');
     const opened=unlockedBetween(before,Stats.career);opened.slice(0,3).forEach(x=>badges.push(`🔓 פתחת: ${x.label}`));if(opened.length>3)badges.push(`🔓 ועוד ${opened.length-3} פריטים`);
     if(busted)badges.unshift('🚓 נעצרת. אפס נקודות');
+    // a duel against a friend's ghost: who won, and by how much
+    {const G=race.racers.find(r=>r.ghost);if(G){const gap=fmtGap(Math.abs(P.finishTime-G.finishTime));
+      badges.unshift(busted?`⚔️ ${G.name} ניצח, אתה נעצרת`:P.finishTime<G.finishTime?`⚔️ ניצחת את ${G.name} ב-${gap} שניות!`:`⚔️ ${G.name} לקח אותך ב-${gap} שניות`);}}
     // send the race to the champions board; the weekly rank shows up as another badge when it answers
     if(!busted)submitRace({name:state.name,score,pos,time:P.finishTime,look:(({name,...l})=>l)(state.look)}).then(r=>{if(r&&(r.nameTaken||r.nameRequired)){toast(r.nameTaken?`השם ${state.name} כבר תפוס, אז המירוץ לא נכנס לטבלה. בחרו שם אחר במסך הפתיחה`:'כדי להיכנס לטבלת האלופים צריך להוסיף שם אחרי נהוראי');return;}if(!r||!r.week||!r.week.rank)return;const el=$('#resRec'),sp=document.createElement('span');sp.textContent=`🏆 מקום ${r.week.rank} השבוע`;el.appendChild(sp);el.hidden=false;});
-    const el=$('#resRec');el.innerHTML=badges.map(b=>`<span>${b}</span>`).join('');el.hidden=!badges.length;}
+    const el=$('#resRec');el.replaceChildren(...badges.map(b=>{const sp=document.createElement('span');sp.textContent=b;return sp;}));el.hidden=!badges.length;}
   // what you ran over is listed once, with the coins it earned; the score goes up top
   $('#resScore').innerHTML=`<b>${score.toLocaleString('he-IL')}</b> נקודות ערסיות`;
-  {const card={pos,score,title};$('#shareBtn').onclick=()=>shareRace(card);}
+  // a finished race can be raced again by a friend: the shared link carries it as a ghost
+  lastRun=busted||!P.finished?null:{seed:race.seed,track:state.track,time:P.finishTime,vid:state.vid,color:vColor(),name:state.name,look:(({name,...l})=>l)(state.look),s:race.rec};
+  {const card={pos,score,title,run:lastRun};$('#shareBtn').onclick=()=>shareRace(card);}
   $('#verdict').textContent=victims===0?'עברת את כל הפארק בלי לגעת באף אחד. בטוח שאתה נהוראי?':victims<5?'התחלה יפה. העירייה עוד לא שמה לב':victims<13?'יש כבר שלוש תלונות בקבוצת הווטסאפ של השכונה':victims<26?'המשטרה בדרך, והיא לא שמחה':'הפארק סגור עד להודעה חדשה. אגדה.';
   buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} מגנטים מהמירוץ`;
   {const crow=busted?[['🚓','המשטרה החרימה הכל',0]]:calcCoins(pos,S),won=busted?0:crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);
     track('race_finished',{position:pos,score,track:state.track,race_time:Math.round(P.finishTime*10)/10,victims,coins:won,vehicle:state.vid,career_points:Stats.career});}
   // first the standings over the race (everyone on the podium, with what they have to say), then the results and prizes
-  const rows=order.map(r=>({name:r.name,look:{...r.look},busted:!!r.busted,time:r.finished?r.finishTime:null,knocks:r.knocks,me:!!r.isPlayer}));
+  const rows=order.map(r=>({name:r.name,look:{...r.look},busted:!!r.busted,time:r.finished?r.finishTime:null,knocks:r.knocks,me:!!r.isPlayer,ghost:!!r.ghost}));
   render();race=null; // the last frame of the race stays behind the standings, dimmed
   showStandings(rows,fmt,()=>{show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;drawResultsStage();});
 }

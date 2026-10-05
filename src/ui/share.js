@@ -4,6 +4,7 @@
 import { INK, GOLD, PINK, FONT, DISP } from '../core/util.js';
 import { state, vColor } from '../core/state.js';
 import { drawComposition } from './garage.js';
+import { newGid, saveGhost } from '../net/ghost.js';
 
 const SITE='https://nehorace.vercel.app';
 // the image is made while the button is pressed (toDataURL is synchronous), so phones still count the share as a tap
@@ -11,8 +12,9 @@ function fileOf(cv,name){
   const bin=atob(cv.toDataURL('image/png').split(',')[1]),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);
   return new File([a],name,{type:'image/png'});
 }
-function shareImage(cv,text,name){
-  const file=fileOf(cv,name),msg=`${text}\n${SITE}/?from=wa`; // ?from=wa: Amplitude counts who came from a shared link
+// q: more of the address before from=wa, e.g. 'vs=<gid>&' for an invite to race a ghost
+function shareImage(cv,text,name,q=''){
+  const file=fileOf(cv,name),msg=`${text}\n${SITE}/?${q}from=wa`; // ?from=wa: Amplitude counts who came from a shared link
   if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],text:msg}).catch(()=>{});return;}
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank','noopener');
 }
@@ -33,7 +35,10 @@ function drawRaceCard(c,W,H,r){
 }
 function shareRace(r){
   const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;drawRaceCard(cv.getContext('2d'),W,H,r);
-  shareImage(cv,`${state.name} סיים במקום ${r.pos} במירוץ של הנהוראים בפארק, עם ${r.score.toLocaleString('he-IL')} נקודות ערסיות. חושב שתגבר? בוא בוא כנסס נראה אותך`,'nehorace.png');
+  // a finished race goes along as a ghost: the friend who opens the link races against it on the same track.
+  // The id is made here and the upload runs beside the share sheet, so the tap still opens it
+  let q='';if(r.run){const gid=newGid();saveGhost(gid,r.run);q=`vs=${gid}&`;}
+  shareImage(cv,`${state.name} סיים במקום ${r.pos} במירוץ של הנהוראים בפארק, עם ${r.score.toLocaleString('he-IL')} נקודות ערסיות. חושב שתגבר? בוא בוא כנסס נראה אותך`,'nehorace.png',q);
 }
 
 export { SITE, shareImage, shareRace, drawRaceCard };
