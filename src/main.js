@@ -20,7 +20,6 @@ import './album/ui.js';
 import './shop/items.js';
 import { walletLoad } from './shop/ui.js';
 import { Stats, devAddCareer } from './core/stats.js';
-import { nextUnlock } from './core/unlocks.js';
 import { openBoard } from './ui/board.js';
 import './ui/share.js';
 import './ui/collection.js';
@@ -72,11 +71,10 @@ nameHint();
 
 // personal records line on the title screen (hidden until the first race). Numbers are isolated so RTL doesn't flip them
 function renderBest(){const el=$('#bestLine');if(!Stats.races){el.hidden=true;return;}
-  const num=v=>`<b>${v}</b>`,parts=[`השיא שלך: ${num(Stats.bestScore.toLocaleString('he-IL'))} נקודות`,Stats.races===1?'מירוץ אחד':`${num(Stats.races)} מירוצים`];
-  if(Stats.wins)parts.push(Stats.wins===1?'ניצחון אחד':`${num(Stats.wins)} ניצחונות`);if(Stats.bestTime)parts.push(`הכי מהיר: ${num(fmt(Stats.bestTime,true))}`);
-  const nx=nextUnlock();let line=parts.join(' · ')+`<br>🔓 ${num(Stats.career.toLocaleString('he-IL'))} נקודות קריירה`;
-  if(nx)line+=` · הבא: ${nx.label} (עוד ${num((nx.req-Stats.career).toLocaleString('he-IL'))})`;
-  el.innerHTML=line;el.hidden=false;}
+  // one short line, so the Nehorai keeps its place: best score, races, wins, fastest time
+  const num=v=>`<b>${v}</b>`,parts=[`🏆 ${num(Stats.bestScore.toLocaleString('he-IL'))}`,Stats.races===1?'מירוץ אחד':`${num(Stats.races)} מירוצים`];
+  if(Stats.wins)parts.push(`👑 ${num(Stats.wins)}`);if(Stats.bestTime)parts.push(`⏱ ${num(fmt(Stats.bestTime,true))}`);
+  el.innerHTML=parts.join(' · ');el.hidden=false;}
 if(new URLSearchParams(location.search).has('dev')){$('#devBtn').hidden=false;$('#devBtn').onclick=()=>{if(!suffix())$('#nameIn').value='בדיקות';takeName();devQuickRace();};
   $('#devPts').hidden=false;$('#devPts').onclick=()=>{devAddCareer(5000);renderBest();};}
 walletLoad();
