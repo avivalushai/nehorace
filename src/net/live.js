@@ -2,8 +2,8 @@
 // the server's clock (so every phone starts the race at the same moment), and a reconnect if the line drops.
 import { playerId } from './leaderboard.js';
 
-// where the room server runs: on this computer while developing, online once it's deployed (empty: no live races yet)
-const LIVE_URL=/^(localhost|127\.0\.0\.1)$/.test(location.hostname)?'ws://localhost:8788':'';
+// where the room server runs: on this computer while developing (`npm run dev` in live/), otherwise on Cloudflare
+const LIVE_URL=/^(localhost|127\.0\.0\.1)$/.test(location.hostname)?'ws://localhost:8788':'wss://nehorace-live.nehorace-live.workers.dev';
 const liveOn=()=>!!LIVE_URL&&!!playerId();
 // the home button shows only when the room server answers (a quick look, two seconds at most)
 async function liveReady(){if(!liveOn())return false;
