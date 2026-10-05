@@ -16,7 +16,7 @@ import { Wallet, calcCoins, ownedCount, showCoins, walletSave, toast } from '../
 import { shareRace } from '../ui/share.js';
 import { loadYeshiva, raceYeshiva } from '../net/yeshiva.js';
 import { enterYeshiva, inviteFromRace, showYeshivaEnd } from '../ui/yeshiva.js';
-import { showStandings } from '../ui/standings.js';
+import { reopenStandings, showStandings } from '../ui/standings.js';
 import { showBust } from '../ui/bust.js';
 import { Stats, recordRace } from '../core/stats.js';
 import { unlockedBetween } from '../core/unlocks.js';
@@ -312,10 +312,11 @@ async function startRaceFresh(){const vs=state.vs;
   startRace();}
 function devQuickRace(){startRace();race.noCops=true;for(let g=0;g<60*300&&race;g++)update(1/60);}
 // every button on the results screen, one event with the button's name
-const RES_BTN={againBtn:'again',garageBtn:'change_nehorai',shopBtn:'shop',shareBtn:'whatsapp',duelBtn:'race_a_friend',giftBtn:'album',myGarageBtn:'my_garage',resBoardBtn:'leaderboard'};
+const RES_BTN={resTableBtn:'race_table',againBtn:'again',garageBtn:'change_nehorai',shopBtn:'shop',shareBtn:'whatsapp',duelBtn:'race_a_friend',giftBtn:'album',myGarageBtn:'my_garage',resBoardBtn:'leaderboard'};
 $('#results').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&RES_BTN[b.id])track('results_button_clicked',{button:RES_BTN[b.id]});},true);
 $('#againBtn').onclick=startRaceFresh;
 $('#resBoardBtn').onclick=()=>openBoard('week');
+$('#resTableBtn').onclick=reopenStandings;
 $('#garageBtn').onclick=()=>{setStep(0);show('garage');};
 
 export { race, RK, LW, LH, rctx, startRace, startRaceFresh, liveMessage, devQuickRace, lowerBound, fmt };

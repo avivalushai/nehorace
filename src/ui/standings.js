@@ -5,6 +5,7 @@ import { $, INK, GOLD, FONT, DISP } from '../core/util.js';
 import { rr, fitCv } from '../core/draw.js';
 import { drawNeho } from '../art/neho.js';
 import { FINISH_LINES } from '../race/texts.js';
+import { shareStandings } from './share.js';
 
 // draws n lines from a pool without repeats
 function drawLines(pool,n){const a=[...pool];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,n);}
@@ -13,8 +14,9 @@ const lineGroup=(rank,busted)=>busted?'busted':rank===0?'win':rank<3?'mid':'low'
 // left to right: 5th, 3rd, 1st, 2nd, 4th, 6th. 1st is the tallest step and waves; the last one is dizzy
 const SLOT_RANKS=[4,2,0,1,3,5],STEP=[.34,.28,.23,.18,.15,.12],STEP_COL=[GOLD,'#C9CED6','#D9955A','#6A3A99','#5B2F86','#4E2775'];
 const MOOD=['win',undefined,undefined,'angry','angry','dizzy'];
-function drawStandPodium(cv,rows,t){
-  const{c,w,h}=fitCv(cv);c.clearRect(0,0,w,h);
+function drawStandPodium(cv,rows,t){const{c,w,h}=fitCv(cv);c.clearRect(0,0,w,h);paintPodium(c,w,h,rows,t);}
+// the podium itself, on any canvas (the share card draws it too)
+function paintPodium(c,w,h,rows,t){
   const g=c.createRadialGradient(w/2,h*.25,10,w/2,h*.5,w*.75);g.addColorStop(0,'rgba(255,200,61,.22)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,w,h);
   const bw=(w-12)/6,base=h-8;
   SLOT_RANKS.forEach((rank,slot)=>{const r=rows[rank];if(!r)return;
@@ -31,13 +33,14 @@ function drawStandPodium(cv,rows,t){
   });
 }
 
-let raf=0,onNext=null,goT=0;
+let raf=0,onNext=null,goT=0,lastRows=null,lastFmt=null;
 // the results come on their own after 5 seconds, for players who don't tap
 const AUTO=5000;
 function go(){clearTimeout(goT);cancelAnimationFrame(raf);if(!$('#standings').classList.contains('on'))return;$('#standings').classList.remove('on');if(onNext)onNext();}
 // rows: the racers in finishing order: {name, look, time (seconds or null), knocks, me}
-function showStandings(rows,fmt,next){
-  onNext=next;
+// again: opened from the results screen ("the race table"): no timer, and its button goes back to the results
+function showStandings(rows,fmt,next,again){
+  onNext=next;lastRows=rows;lastFmt=fmt;$('#stdNext').textContent=again?'חזרה לתוצאות':'לתוצאות שלי';
   const lines={win:drawLines(FINISH_LINES.win,1),mid:drawLines(FINISH_LINES.mid,2),low:drawLines(FINISH_LINES.low,3),busted:drawLines(FINISH_LINES.busted,1)},used={win:0,mid:0,low:0,busted:0};
   const me=rows.find(r=>r.me),fr=rows.find(r=>r.inviter);let duel=null;
   if(me&&fr){const won=!me.busted&&me.time!=null&&me.time<fr.time;
@@ -59,8 +62,12 @@ function showStandings(rows,fmt,next){
   const cv=$('#stdCv'),reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,t0=performance.now();
   const f=now=>{if(!$('#standings').classList.contains('on'))return;drawStandPodium(cv,rows,reduce?0:Math.max(0,(now-t0)/1000));if(!reduce)raf=requestAnimationFrame(f);};
   requestAnimationFrame(f);
-  clearTimeout(goT);goT=setTimeout(go,AUTO);
+  clearTimeout(goT);if(!again)goT=setTimeout(go,AUTO);
 }
 $('#stdNext').onclick=go;
+// sharing the table to the group: a picture of the podium and the six rows
+$('#stdShare').onclick=()=>{clearTimeout(goT);if(lastRows)shareStandings(lastRows,lastFmt);};
+// the results screen can open the table again (only once there is one)
+const reopenStandings=()=>{if(lastRows)showStandings(lastRows,lastFmt,()=>{},true);};
 
-export { showStandings };
+export { showStandings, reopenStandings, paintPodium };

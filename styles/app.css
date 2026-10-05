@@ -141,7 +141,9 @@ button{cursor:pointer;border:0;background:none}
 .std-list .st b{display:block;font-weight:400;color:var(--gold);direction:ltr;unicode-bidi:isolate;font-size:13px}
 .std-list q{grid-column:2;grid-row:2;font-size:12px;line-height:1.3;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .std-list q:before{content:'”'}.std-list q:after{content:'“'}
-#stdNext{flex:0 0 auto;width:100%}
+.std-actions{flex:0 0 auto;display:grid;grid-template-columns:auto 1fr;gap:8px}
+.std-actions .btn{padding-inline:14px}
+.res-table{width:100%;margin-top:12px}
 @media (min-width:860px){.std{height:auto;max-height:100dvh;justify-content:center;padding-top:32px;padding-bottom:32px}#stdCv{flex:0 0 280px;max-height:none}}
 .res-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
 .res-actions .btn{font-size:15px;padding:12px 6px;white-space:nowrap}
@@ -277,7 +279,12 @@ button{cursor:pointer;border:0;background:none}
 /* ================= LIVE RACE ================= */
 #live.on{display:block;background:radial-gradient(130% 55% at 50% 0%,#4F2180 0%,var(--club) 65%);overflow-y:auto;z-index:33}
 .live-btn{background:var(--pink);color:#fff;box-shadow:0 5px 0 #B3245F}.live-btn:active{box-shadow:0 2px 0 #B3245F}
-#liveBtn[hidden],#liveWait[hidden]{display:none}
+#liveBtn[hidden],#liveWait[hidden],#liveBar[hidden]{display:none}
+/* the 30 seconds of a live race, over the regular garage: time left, and who's ready */
+.live-bar{display:flex;align-items:center;gap:10px;flex:0 0 auto;background:var(--pink);color:#fff;padding:calc(6px + env(safe-area-inset-top)) 14px 6px;font-size:13px;line-height:1.25}
+.live-bar b{font-family:var(--display);font-size:30px;line-height:1;direction:ltr;unicode-bidi:isolate;min-width:44px;text-align:center}
+.live-bar span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#garage:has(#liveBar:not([hidden])) .steps{padding-top:6px}
 /* on short phones the tagline gives its place to the live button */
 @media (max-height:740px){#title:has(#liveBtn:not([hidden])) .tag{display:none}}
 .live-wait{position:absolute;left:50%;top:42%;transform:translateX(-50%);z-index:5;background:rgba(26,11,41,.88);color:var(--gold);border-radius:999px;padding:10px 18px;font-size:16px;white-space:nowrap}

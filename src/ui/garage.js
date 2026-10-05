@@ -126,7 +126,7 @@ function renderPanel(){
         opts.appendChild(b);const{c,w,h}=fitCv(b.querySelector('canvas'));c.strokeStyle=INK;drawSticker(c,st,w/2,h/2,w-8,h-6,0);});
     }
   }
-  $('#nextBtn').textContent=['לבחירת כלי','לעיצוב הכלי','יאללה למירוץ'][step];
+  $('#nextBtn').textContent=['לבחירת כלי','לעיצוב הכלי',finish?finish.label:'יאללה למירוץ'][step];
   $('#backBtn').textContent=step===0?'לשם':'חזרה';
 }
 document.querySelectorAll('.step').forEach(b=>b.onclick=()=>{const s=+b.dataset.s;if(s<=step){step=s;renderPanel();}});
@@ -134,7 +134,12 @@ $('#nextBtn').onclick=()=>{
   if(step===0)track('choose_vehicle_clicked',{changes:changes[0],...(({name,...look})=>look)(state.look)});
   else if(step===1)track('design_vehicle_clicked',{changes:changes[1],vehicle:state.vid});
   else track('start_race_clicked',{changes:changes[2],vehicle:state.vid,color:vColor(),wheels:VEH[state.vid].noWheels?'none':state.wheels,stickers:state.stickers.length});
-  if(step<2){step++;changes[step]=0;renderPanel();}else startRaceFresh();};
+  if(step<2){step++;changes[step]=0;renderPanel();}else if(finish)finish.go();else startRaceFresh();};
 $('#backBtn').onclick=()=>{if(step>0){step--;renderPanel();}else show('title');};
 
-export { drawComposition, step, setStep, startStage, stopStage, renderPanel, previewPart };
+// a live race takes over the garage's last button: "ready" for the room instead of a race alone
+// ({label, go}; null gives it back)
+let finish=null;
+function setGarageFinish(f){finish=f;if($('#garage').classList.contains('on'))renderPanel();}
+
+export { drawComposition, setGarageFinish, step, setStep, startStage, stopStage, renderPanel, previewPart };

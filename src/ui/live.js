@@ -1,15 +1,13 @@
 // "Bring the guys now": a live race with friends, from the home screen. The one who opens it sends a link
 // (?live=<CODE>); whoever opens it types a name and is in the lobby (with the Nehorai they built, or a random one).
-// The host taps "יאללה למירוץ", everyone gets 30 seconds to pick their Nehorai and ride, and the race starts on every
+// The host taps "יאללה למירוץ", everyone gets 30 seconds in the regular garage, and the race starts on every
 // phone at once (src/race/engine.js draws the others from the network). Names are set with textContent only.
 import { $, pick } from '../core/util.js';
 import { state, vColor, saveLook, loadLook } from '../core/state.js';
-import { VEH } from '../core/catalog.js';
-import { isOpen } from '../core/unlocks.js';
 import { trackList, trackOpen } from '../race/tracks.js';
 import { randLook } from '../race/world.js';
 import { startRace, liveMessage } from '../race/engine.js';
-import { drawComposition } from './garage.js';
+import { setGarageFinish, setStep } from './garage.js';
 import { drawAvatar } from './board.js';
 import { shareLive } from './share.js';
 import { liveOn, liveReady, newCode, isCode, connect } from '../net/live.js';
@@ -18,9 +16,9 @@ import { track } from '../net/analytics.js';
 import { show } from '../main.js';
 
 const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;};
-let ui={suffix:()=>'',takeName:()=>{},setHint:()=>{}},conn=null,startedRound=0,peek=null,stageRAF=0,tick=0;
+let ui={suffix:()=>'',takeName:()=>{},setHint:()=>{}},conn=null,startedRound=0,buildRound=0,buildT=0,peek=null;
 const open=()=>{$('#live').classList.add('on');};
-const close=()=>{$('#live').classList.remove('on');cancelAnimationFrame(stageRAF);clearInterval(tick);};
+const close=()=>{$('#live').classList.remove('on');};
 const me=()=>conn&&conn.room&&conn.room.players.find(p=>p.pid===conn.pid);
 const host=()=>conn&&conn.room&&conn.room.players.find(p=>p.host);
 const hello=()=>({name:state.name,look:(({name,...l})=>l)(state.look),vid:state.vid,color:vColor(),wheels:state.wheels});
@@ -49,7 +47,7 @@ function join(nameSuffix){
   $('#nameIn').value=nameSuffix;ui.takeName();
   conn.join(hello());state.live=conn;track('live_joined',{players:peek?peek.players.length:0});
 }
-function leave(){if(conn)conn.close();conn=null;state.live=null;peek=null;close();$('#againBtn').textContent='עוד סיבוב';}
+function leave(){endBuild();if(conn)conn.close();conn=null;state.live=null;peek=null;close();$('#againBtn').textContent='עוד סיבוב';}
 $('#lvClose').onclick=()=>{track('live_left',{phase:conn&&conn.room?conn.room.phase:'join'});leave();if(!$('#title').classList.contains('on')&&!$('#results').classList.contains('on'))show('title');};
 
 // ---------- the room talks ----------
@@ -60,8 +58,11 @@ function onMessage(m){
   if(m.t==='lost'){toast('החיבור למירוץ החי נפל');renderError('החיבור נפל. אפשר לנסות להיכנס שוב מהקישור');return;}
   if(m.t!=='room'||!state.live)return;
   const R=m;
+  // the 30 seconds: the regular garage, with the time and who's ready on top, and "ready" as its last button
+  if(R.phase==='build'&&buildRound!==R.round){buildRound=R.round;close();setStep(0);show('garage');buildTick();}
+  if(R.phase==='build'){garageFinish();return;}
   // the race is set: everyone goes to the track together
-  if(R.phase==='race'&&startedRound!==R.round){startedRound=R.round;close();$('#againBtn').textContent='🔥 עוד סיבוב עם החבר׳ה';startRace();return;}
+  if(R.phase==='race'&&startedRound!==R.round){startedRound=R.round;endBuild();close();$('#againBtn').textContent='🔥 עוד סיבוב עם החבר׳ה';startRace();return;}
   // back in the lobby after a race (the host tapped "again"): the overlay opens for everyone
   if(R.phase==='lobby'&&$('#results').classList.contains('on')&&!$('#live').classList.contains('on'))open();
   if($('#live').classList.contains('on'))render();
@@ -69,18 +70,18 @@ function onMessage(m){
 
 // ---------- the screens ----------
 function render(){
-  const body=$('#lvBody');cancelAnimationFrame(stageRAF);clearInterval(tick);body.replaceChildren();
+  const body=$('#lvBody');body.replaceChildren();
   if(!state.live)return renderJoin(body);
   const R=conn.room;if(!R){$('#lvTitle').textContent='מירוץ חי';body.append(el('p','lv-text','מתחברים...'));return;}
-  if(R.phase==='lobby'||R.phase==='done')return renderLobby(body,R);
-  if(R.phase==='build')return renderBuild(body,R);
+  // after the player's own finish the room can still be racing: the same screen, waiting for the others
+  if(R.phase==='lobby'||R.phase==='done'||R.phase==='race')return renderLobby(body,R);
   body.append(el('p','lv-text','המירוץ מתחיל...'));
 }
 function players(list,max){
   const ul=el('ul','lv-players');
   list.forEach(p=>{const li=el('li',p.pid===conn.pid?'me':'');const cv=el('canvas');
     li.append(cv,el('span','nm',p.name+(p.pid===conn.pid?' (אתה)':'')));
-    if(p.host||p.ready)li.append(el('span','st',p.ready?'✅':'👑'));
+    const mark=conn.room&&conn.room.phase==='race'?(p.finished?'🏁':''):p.ready?'✅':p.host?'👑':'';if(mark)li.append(el('span','st',mark));
     ul.append(li);requestAnimationFrame(()=>drawAvatar(cv,p.look,p.name));});
   for(let i=list.length;i<max;i++)ul.append(el('li','empty','מחכים לחבר...'));
   return ul;
@@ -103,44 +104,37 @@ function renderJoin(body){
 function renderLobby(body,R){
   const mine=me(),h=host(),isHost=mine&&mine.host;
   $('#lvTitle').textContent='תביא את החבר׳ה';
-  $('#lvSub').textContent=R.phase==='done'?'המירוץ נגמר. עוד סיבוב?':isHost?'שולחים לחבר׳ה ומחכים שייכנסו':`${h?h.name:'החבר'} פתח מירוץ חי`;
+  $('#lvSub').textContent=R.phase==='race'?'החבר׳ה עוד במירוץ':R.phase==='done'?(isHost?'כולם פה. עוד סיבוב?':'המירוץ נגמר. עוד סיבוב?'):isHost?'שולחים לחבר׳ה ומחכים שייכנסו':`${h?h.name:'החבר'} פתח מירוץ חי`;
   body.append(players(R.players,6));
   const acts=el('div','lv-actions');
-  if(isHost){
+  if(R.phase==='race')acts.append(el('p','lv-text','מחכים שכולם יגיעו לסיום'));
+  else if(isHost){
     const share=el('button','btn ghost','📲 שולחים לחבר׳ה בוואטסאפ');share.onclick=()=>{track('live_invite_sent',{players:R.players.length});shareLive(conn.code);};
-    const go=el('button','btn',R.phase==='done'?'🔥 עוד סיבוב':'יאללה למירוץ');
-    go.onclick=()=>{if(R.phase==='done'){conn.send({t:'again'});return;}
-      track('live_started',{players:R.players.length});conn.send({t:'start',track:pick(trackList().filter(trackOpen)).id});};
+    // after a race the same button starts the next one: back to the lobby and straight into the 30 seconds
+    const go=el('button','btn','יאללה למירוץ');
+    go.onclick=()=>{if(R.phase==='done')conn.send({t:'again'});
+      track('live_started',{players:R.players.length,again:R.phase==='done'});conn.send({t:'start',track:pick(trackList().filter(trackOpen)).id});};
     acts.append(go,share);
-  }else acts.append(el('p','lv-text',R.phase==='done'?`מחכים ש${h?h.name:'המארח'} יפתח עוד סיבוב`:`מחכים ש${h?h.name:'המארח'} ילחץ יאללה`));
+  }else acts.append(el('p','lv-text',`מחכים ש${h?h.name:'המארח'} ילחץ יאללה`));
   body.append(acts,el('p','lv-code',conn.code));
 }
-// 30 seconds: the Nehorai, the ride, or a random one, and "ready"
-function renderBuild(body,R){
-  const mine=me();$('#lvTitle').textContent='30 שניות להתארגן';
-  $('#lvSub').textContent='בוחרים נהוראי וכלי. כשכולם מוכנים, יוצאים';
-  const timer=el('p','lv-timer'),stage=el('canvas','lv-stage'),rides=el('div','lv-rides');
-  const upd=()=>{const s=Math.max(0,Math.ceil((R.buildUntil-conn.now())/1000));timer.textContent=String(s);};upd();tick=setInterval(upd,250);
-  const send=ready=>conn.send({t:'look',...hello(),ready});
-  Object.values(VEH).filter(v=>isOpen(v.req)).forEach(v=>{const b=el('button','tab'+(state.vid===v.id?' on':''),v.name);
-    b.onclick=()=>{state.vid=v.id;state.color=null;send(!!(mine&&mine.ready));render();};rides.append(b);});
-  const dice=el('button','btn ghost','🎲 נהוראי אחר'),ready=el('button','btn',mine&&mine.ready?'✓ מוכן, מחכים לשאר':'מוכן ✓');
-  dice.onclick=()=>{const n=state.look.name;state.look={...randLook(),name:n};send(!!(mine&&mine.ready));};
-  ready.disabled=!!(mine&&mine.ready);ready.onclick=()=>{saveLook();send(true);track('live_ready');};
-  const acts=el('div','lv-actions');acts.append(ready,dice);
-  const who=el('p','lv-text',R.players.map(p=>`${p.ready?'✅':'⏳'} ${p.name}`).join('   '));
-  body.append(timer,stage,rides,acts,who);
-  const t0=performance.now(),f=now=>{if(!stage.isConnected)return;const r=stage.getBoundingClientRect(),dpr=Math.min(2,devicePixelRatio||1);
-    if(stage.width!==Math.round(r.width*dpr)){stage.width=Math.round(r.width*dpr);stage.height=Math.round(r.height*dpr);}
-    const c=stage.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,r.width,r.height);
-    drawComposition(c,r.width,r.height,{mode:'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:(now-t0)/1000});
-    stageRAF=requestAnimationFrame(f);};stageRAF=requestAnimationFrame(f);
-}
+// ---------- the 30 seconds, in the regular garage ----------
+// what the player has picked so far goes to the room every second, so it races even if the time runs out before "ready"
+function buildTick(){clearInterval(buildT);$('#liveBar').hidden=false;let n=0;
+  const upd=()=>{const R=conn&&conn.room;if(!R||R.phase!=='build'){endBuild();return;}
+    $('#lbTime').textContent=String(Math.max(0,Math.ceil((R.buildUntil-conn.now())/1000)));
+    $('#lbWho').textContent=R.players.map(p=>`${p.ready?'✅':'⏳'} ${p.name.replace(/^נהוראי\s*/,'')||p.name}`).join('  ');
+    if(++n%4===0){const m=me();conn.send({t:'look',...hello(),ready:!!(m&&m.ready)});}};
+  upd();buildT=setInterval(upd,250);garageFinish();}
+function garageFinish(){const m=me(),ready=!!(m&&m.ready);
+  setGarageFinish({label:ready?'✓ מוכן, מחכים לשאר':'מוכן ✓',go:()=>{if(ready)return;saveLook();conn.send({t:'look',...hello(),ready:true});track('live_ready');}});}
+function endBuild(){clearInterval(buildT);$('#liveBar').hidden=true;setGarageFinish(null);}
 function renderError(text){const body=$('#lvBody');body.replaceChildren();$('#lvTitle').textContent='מירוץ חי';$('#lvSub').textContent='';
   const back=el('button','btn','לשחק רגיל');back.onclick=()=>{leave();show('title');};
   body.append(el('p','lv-big','אופס'),el('p','lv-text',text),el('div','lv-actions'));body.lastChild.append(back);open();}
 
-// after a live race: "another round with the guys" goes back to the room instead of a race alone
+// after a live race: "another round with the guys" opens the room with everyone in it (the host starts from there)
+// instead of a race alone
 const againAlone=$('#againBtn').onclick;
 $('#againBtn').onclick=e=>{if(!state.live)return againAlone(e);open();render();};
 

@@ -4,6 +4,8 @@
 import { INK, GOLD, PINK, FONT, DISP } from '../core/util.js';
 import { state, vColor } from '../core/state.js';
 import { drawComposition } from './garage.js';
+import { rr } from '../core/draw.js';
+import { paintPodium } from './standings.js';
 
 const SITE='https://nehorace.vercel.app';
 // the link goes back to where the game is running: the live site, a preview build, or a local dev server
@@ -59,4 +61,24 @@ function shareLive(code){
   shareImage(cv,`${state.name} פתח מירוץ חי ב-NehoRace. בוא עכשיו, עוד רגע יוצאים`,'nehorace-live.png',`live=${code}&`);
 }
 
-export { SITE, shareImage, shareRace, shareYeshivaInvite, sharePassed, shareLive, drawRaceCard };
+// the race table for the group: the six on the podium, then a row each (place, name, time), the player's row in gold
+function shareStandings(rows,fmt){
+  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#4F2180');g.addColorStop(1,'#2A1242');c.fillStyle=g;c.fillRect(0,0,W,H);
+  c.direction='rtl';c.textAlign='center';c.textBaseline='middle';
+  c.fillStyle=GOLD;c.font=`700 110px ${DISP}`;c.fillText('סיום המירוץ',W/2,100);
+  c.save();c.translate(40,170);paintPodium(c,W-80,520,rows,1.2);c.restore();
+  const y0=720,rh=86;
+  rows.slice(0,6).forEach((r,i)=>{const y=y0+i*rh;
+    c.fillStyle=r.me?'rgba(255,200,61,.2)':'rgba(67,31,102,.92)';rr(c,50,y,W-100,rh-12,22);c.fill();if(r.me){c.strokeStyle=GOLD;c.lineWidth=4;c.stroke();}
+    const mid=y+(rh-12)/2;
+    c.fillStyle=GOLD;c.font=`700 56px ${DISP}`;c.textAlign='center';c.direction='ltr';c.fillText(String(i+1),W-100,mid+3);
+    c.fillStyle='#FFF4DC';c.font=`40px ${FONT}`;c.textAlign='right';c.direction='rtl';c.fillText(r.name+(r.me?' (אני)':''),W-160,mid,560);
+    c.fillStyle=GOLD;c.font=`40px ${FONT}`;c.textAlign='left';c.direction='ltr';c.fillText(r.busted?'נעצר':r.time!=null?fmt(r.time,true):'לא סיים',90,mid);});
+  c.textAlign='center';c.direction='ltr';c.fillStyle=PINK;c.font=`700 64px ${DISP}`;c.fillText('NehoRace',W/2,H-80);
+  c.fillStyle=GOLD;c.font=`32px ${FONT}`;c.fillText(SITE.replace('https://',''),W/2,H-34);
+  const me=rows.findIndex(r=>r.me)+1,first=rows[0];
+  shareImage(cv,me===1?`${state.name} לקח את המירוץ ב-NehoRace. בוא בוא כנסס נראה אותך`:`${first.name} לקח את המירוץ, ${state.name} במקום ${me}. בוא בוא כנסס נראה אותך`,'nehorace-table.png');
+}
+
+export { SITE, shareImage, shareRace, shareYeshivaInvite, sharePassed, shareLive, shareStandings, drawRaceCard };

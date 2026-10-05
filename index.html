@@ -53,6 +53,7 @@
 </section>
 
 <section id="garage" class="screen">
+  <div class="live-bar" id="liveBar" hidden><b id="lbTime"></b><span id="lbWho"></span></div>
   <nav class="steps">
     <button class="step" data-s="0">נהוראי</button>
     <button class="step" data-s="1">כלי</button>
@@ -90,6 +91,7 @@
     <button class="gift garage-link" id="myGarageBtn"><span class="gift-ico">🏠</span><span><b>המוסך</b><small>כל מה שעקצתי בנסיעה, תזהר להכנס</small></span></button>
     <button class="gift wa-link" id="shareBtn"><span class="gift-ico">📲</span><span><b>שלח בוואטסה</b><small>שלחח שלח לחבר</small></span></button>
     </div>
+    <button class="btn ghost res-table" id="resTableBtn">🏁 טבלת המירוץ · לשתף לקבוצה</button>
     <div class="res-actions"><button class="btn ghost" id="resBoardBtn">טבלת האלופים</button><button class="btn ghost" id="garageBtn">לשנות נהוראי</button><button class="btn" id="againBtn">עוד סיבוב</button></div>
     </div>
     <div class="res-col res-report">
@@ -115,7 +117,7 @@
     <p class="std-duel" id="stdDuel" hidden></p>
     <canvas id="stdCv"></canvas>
     <ol class="std-list" id="stdList"></ol>
-    <button class="btn" id="stdNext">לתוצאות שלי</button>
+    <div class="std-actions"><button class="btn ghost" id="stdShare">📲 לשתף לקבוצה</button><button class="btn" id="stdNext">לתוצאות שלי</button></div>
   </div>
 </div>
 <div id="board" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2>טבלת האלופים</h2><button class="shopX" id="boardClose">סגירה</button></div><div class="tabs" id="boardTabs"></div></header><p class="board-note" id="boardNote"></p><div id="boardPodium"></div><ol class="board-list" id="boardList"></ol></div></div>
