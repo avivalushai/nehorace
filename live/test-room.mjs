@@ -23,6 +23,8 @@ await sleep(300);
 ok(A.room&&A.room.players.length===2,'both players are in the lobby');
 ok(A.room.players.find(p=>p.pid===A.pid).host,'whoever came first is the host');
 ok(!('x' in A.room.players.find(p=>p.pid===B.pid).look),'unknown look slots are dropped');
+const P=player('peeker');await P.open;P.send({t:'peek'});const pk=await P.wait(m=>m.t==='peek');
+ok(pk&&pk.players.length===2&&pk.players.some(p=>p.host&&p.name==='נהוראי אלף'),'peeking shows who is in and who opened it');await sleep(100);ok(A.room.players.length===2,'peeking does not join');P.ws.close();
 const pong=(A.send({t:'ping',c:123}),await A.wait(m=>m.t==='pong'));ok(pong&&pong.c===123&&pong.now>0,'ping answers with the server clock');
 
 B.send({t:'start',track:'hood'});await sleep(200);ok(A.room.phase==='lobby','only the host can start');

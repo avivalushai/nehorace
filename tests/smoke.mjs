@@ -42,6 +42,10 @@ try {
     viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true,
     reducedMotion: 'reduce', locale: 'he-IL',
   });
+  // the live race server has its own test (live/test-room.mjs). Here it always "answers", so the home screen shows the
+  // live button the same way whether or not the server runs on this computer
+  const liveUp = c => c.route(/localhost:8788/, r => r.fulfill({ status: 200, body: 'NehoRace live' }));
+  await liveUp(ctx);
   // seeded Math.random so static screens are pixel-identical between runs
   await ctx.addInitScript(() => {
     let a = 1234567;
@@ -386,6 +390,7 @@ try {
   if (!process.env.SITE) {
     const expectB = (ok, msg) => { if (!ok) errors.push(`[board] ${msg}`); };
     const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
+    await liveUp(ctx2);
     const p2 = await ctx2.newPage(); p2.setDefaultTimeout(10000);
     p2.on('pageerror', e => errors.push(`[board pageerror] ${e.message}`));
     p2.on('dialog', d => { errors.push('[board] a dialog opened: injected HTML ran'); d.dismiss(); });

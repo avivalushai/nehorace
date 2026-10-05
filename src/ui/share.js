@@ -52,4 +52,11 @@ function sharePassed(y,names){
   shareImage(cv,`${state.name} עקף את ${who} בישיבת ${y.word}. נראה אתכם מחזירים`,'nehorace-yeshiva.png',`vs=${y.cid}&`);
 }
 
-export { SITE, shareImage, shareRace, shareYeshivaInvite, sharePassed, drawRaceCard };
+// "bring the guys now": the link to a live race room
+function shareLive(code){
+  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  drawRaceCard(cv.getContext('2d'),W,H,{line1:'מירוץ חי, עכשיו!',line2:`${state.name} מחכה לך בלובי`});
+  shareImage(cv,`${state.name} פתח מירוץ חי ב-NehoRace. בוא עכשיו, עוד רגע יוצאים`,'nehorace-live.png',`live=${code}&`);
+}
+
+export { SITE, shareImage, shareRace, shareYeshivaInvite, sharePassed, shareLive, drawRaceCard };

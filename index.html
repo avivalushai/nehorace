@@ -48,6 +48,7 @@
     <small class="name-hint" id="nameHint"></small>
   </div>
   <button class="btn" id="startBtn">בונים נהוראי</button>
+  <button class="btn live-btn" id="liveBtn" hidden>🔥 תביא את החבר׳ה עכשיו</button>
   <div class="title-row"><button class="btn ghost" id="boardBtn">🏆 טבלת האלופים</button><button class="btn ghost" id="challengeBtn">🕍 הישיבות שלי<span class="y-badge" id="ysBadge" hidden></span></button></div>
 </section>
 
@@ -67,6 +68,7 @@
 
 <section id="race" class="screen">
   <canvas id="raceCv"></canvas>
+  <p class="live-wait" id="liveWait" hidden>מחכים שכל החבר׳ה יגיעו לסיום...</p>
   <button id="exitBtn">יציאה</button>
   <button id="muteBtn">🔊 מוזיקה</button>
   <button id="turboBtn"><span>טורבו</span><span class="pips" id="pips"></span></button>
@@ -117,6 +119,8 @@
   </div>
 </div>
 <div id="board" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2>טבלת האלופים</h2><button class="shopX" id="boardClose">סגירה</button></div><div class="tabs" id="boardTabs"></div></header><p class="board-note" id="boardNote"></p><div id="boardPodium"></div><ol class="board-list" id="boardList"></ol></div></div>
+<!-- the live race: join, lobby, 30 seconds to build (the race itself is the race screen) -->
+<div id="live" class="overlay" role="dialog" aria-modal="true" aria-labelledby="lvTitle"><div class="board"><header class="board-head"><div class="shop-row"><h2 id="lvTitle">מירוץ חי</h2><button class="shopX" id="lvClose">יציאה</button></div><p class="y-sub" id="lvSub"></p></header><div id="lvBody"></div></div></div>
 <!-- yeshivas: the player's list, one yeshiva's tables, and the screen after a race in one -->
 <div id="yeshivas" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2>הישיבות שלי</h2><button class="shopX" id="ysClose">סגירה</button></div></header><div id="ysBody"></div></div></div>
 <div id="yeshiva" class="overlay"><div class="board"><header class="board-head"><div class="shop-row"><h2 id="yTitle"></h2><button class="shopX" id="yRename" hidden>✏️</button><button class="shopX" id="yClose">סגירה</button></div>

@@ -209,7 +209,7 @@ function render(){
     if(a.isRacer){c.scale(1.25,1.25);
       if(a.look.dog!=='none'){c.save();c.translate(20,8);drawPedTop(c,{type:'dog',id:a.idx,vx:0,vd:1,ph:t*12,fur:dogFur(a.look.dog)},t);c.restore();}
       drawRacerTop(c,a);
-      c.scale(.8,.8);c.font=`12px ${FONT}`;c.textAlign='center';c.direction='rtl';c.lineWidth=3;c.strokeStyle=INK;c.fillStyle=a.isPlayer?GOLD:a.ghost?PINK:'#FFFFFF';const lbl=a.isPlayer?'אתה':a.name;c.strokeText(lbl,0,-34);c.fillText(lbl,0,-34);}
+      c.scale(.8,.8);c.font=`12px ${FONT}`;c.textAlign='center';c.direction='rtl';c.lineWidth=3;c.strokeStyle=INK;c.fillStyle=a.isPlayer?GOLD:a.ghost||a.remote?PINK:'#FFFFFF'; /* friends (a yeshiva's, or live) in pink */const lbl=a.isPlayer?'אתה':a.name;c.strokeText(lbl,0,-34);c.fillText(lbl,0,-34);}
     else drawPedTop(c,a,t);
     c.restore();}
   for(let i=i0;i<race.statics.length&&race.statics[i].d<dTop+60;i++){const s=race.statics[i];if(s.type!=='tree'&&s.type!=='lamp'&&s.type!=='palm'&&s.type!=='umbrella')continue;c.save();c.translate(SX(s.x),SY(s.d));drawStatic(c,s,t,1);c.restore();}

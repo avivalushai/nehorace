@@ -39,6 +39,8 @@ export class Room{
 
   on(ws,m){
     if(m.t==='ping')return this.send(ws,{t:'pong',c:m.c,now:Date.now()}); // the phones line their clocks up with this one
+    // a look before joining: who's in the room and who opened it (the join screen shows it)
+    if(m.t==='peek')return this.send(ws,{t:'peek',phase:this.phase,players:this.roster(),now:Date.now()});
     if(m.t==='hello')return this.hello(ws,m);
     const p=this.who(ws);if(!p)return;
     if(m.t==='look'){p.name=cleanName(m.name);p.look=cleanLook(m.look);p.ride=cleanRide(m);if(this.phase==='build'&&m.ready)p.ready=true;this.lobby();if(this.phase==='build')this.maybeGo();return;}

@@ -7,7 +7,7 @@ import './art/neho.js';
 import './art/dog.js';
 import './art/vehicles.js';
 import './art/stickers.js';
-import { state, vColor } from './core/state.js';
+import { state, vColor, loadLook } from './core/state.js';
 import { drawComposition, renderPanel, setStep, startStage, stopStage } from './ui/garage.js';
 import './race/world.js';
 import './race/engine.js';
@@ -28,6 +28,7 @@ import './ui/bust.js';
 import { checkName, claimName } from './net/leaderboard.js';
 import { track } from './net/analytics.js';
 import { initYeshiva, refreshBadge } from './ui/yeshiva.js';
+import { initLive } from './ui/live.js';
 import { devQuickRace, fmt } from './race/engine.js';
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else{stopStage();if(id!=='race')musicStop();}if(id==='title'){renderBest();refreshBadge();startTitle();}}
@@ -79,9 +80,13 @@ function renderBest(){const el=$('#bestLine');if(!Stats.races){el.hidden=true;re
 if(new URLSearchParams(location.search).has('dev')){$('#devBtn').hidden=false;$('#devBtn').onclick=()=>{if(!suffix())$('#nameIn').value='בדיקות';takeName();devQuickRace();};
   $('#devPts').hidden=false;$('#devPts').onclick=()=>{devAddCareer(5000);renderBest();};}
 walletLoad();
+// the Nehorai and ride built last time come back
+loadLook();
 // yeshivas: the count on the home button, and a ?vs=<cid> link from WhatsApp (src/ui/yeshiva.js)
 const VS=new URLSearchParams(location.search).get('vs');
 initYeshiva({suffix,takeName,setHint});
+// "bring the guys now": the live race button, and a ?live=<CODE> link (src/ui/live.js)
+initLive({suffix,takeName,setHint});
 // ?from=wa marks players who came from a link shared on WhatsApp
 track('game_opened',{returning:!!Stats.races,has_saved_name:!!suffix(),device:matchMedia('(min-width:860px)').matches?'desktop':'phone',from:new URLSearchParams(location.search).get('from')||'direct',invited:!!VS});
 

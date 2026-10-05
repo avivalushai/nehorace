@@ -274,6 +274,33 @@ button{cursor:pointer;border:0;background:none}
 .item.pop{animation:popb .7s ease}
 @keyframes popb{0%{transform:scale(1)}40%{transform:scale(1.06);box-shadow:0 0 0 3px var(--gold),0 0 30px rgba(255,200,61,.6)}100%{transform:scale(1)}}
 #board.on,#yeshivas.on,#yeshiva.on,#yeshivaEnd.on{display:block;background:radial-gradient(130% 55% at 50% 0%,#4F2180 0%,var(--club) 65%);overflow-y:auto}
+/* ================= LIVE RACE ================= */
+#live.on{display:block;background:radial-gradient(130% 55% at 50% 0%,#4F2180 0%,var(--club) 65%);overflow-y:auto;z-index:33}
+.live-btn{background:var(--pink);color:#fff;box-shadow:0 5px 0 #B3245F}.live-btn:active{box-shadow:0 2px 0 #B3245F}
+#liveBtn[hidden],#liveWait[hidden]{display:none}
+/* on short phones the tagline gives its place to the live button */
+@media (max-height:740px){#title:has(#liveBtn:not([hidden])) .tag{display:none}}
+.live-wait{position:absolute;left:50%;top:42%;transform:translateX(-50%);z-index:5;background:rgba(26,11,41,.88);color:var(--gold);border-radius:999px;padding:10px 18px;font-size:16px;white-space:nowrap}
+.lv-big{text-align:center;font-family:var(--display);font-size:44px;line-height:1;color:var(--gold);margin:6px 0 4px}
+.lv-text{text-align:center;font-size:15px;opacity:.88;margin:4px auto 12px;max-width:360px}
+.lv-players{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 14px}
+.lv-players li{background:var(--club2);border-radius:14px;padding:6px 4px 8px;text-align:center;font-size:13px;line-height:1.2;position:relative}
+.lv-players li.me{box-shadow:inset 0 0 0 2px var(--gold)}
+.lv-players li.empty{background:rgba(0,0,0,.18);opacity:.6;display:grid;place-items:center;min-height:118px;font-size:12px}
+.lv-players canvas{display:block;width:100%;height:84px}
+.lv-players .nm{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
+.lv-players .st{position:absolute;top:4px;right:6px;font-size:14px}
+.lv-actions{display:flex;flex-direction:column;gap:10px}
+.lv-actions .btn{width:100%}
+.lv-code{text-align:center;font-size:13px;opacity:.7;margin-top:10px;direction:ltr;unicode-bidi:isolate;letter-spacing:3px}
+.lv-timer{text-align:center;font-family:var(--display);font-size:64px;line-height:1;color:var(--pink);direction:ltr;unicode-bidi:isolate}
+.lv-stage{display:block;width:100%;height:30dvh;min-height:180px;border-radius:18px;background:rgba(0,0,0,.18)}
+.lv-rides{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:10px 0}
+.lv-rides::-webkit-scrollbar{display:none}
+.lv-rides .tab{flex:0 0 auto}
+.lv-join .name-row{margin:6px 0 12px}
+.lv-join .name-row input{flex:1;min-width:0;background:none;border:0;padding:11px 14px;font-size:20px;outline:none;-webkit-user-select:text;user-select:text}
+
 /* ================= YESHIVAS ================= */
 #yeshivaEnd.on{z-index:32}
 #challengeBtn{position:relative;white-space:nowrap}
@@ -340,13 +367,14 @@ button{cursor:pointer;border:0;background:none}
 /* ================= DESKTOP (860px and up). Phones never reach this block ================= */
 @media (min-width:860px){
  /* title: text and form on the right, big composition on the left */
- #title.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);grid-template-rows:1fr auto auto auto auto auto auto 1fr;column-gap:4vw;row-gap:16px;padding:32px 5vw}
+ #title.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);grid-template-rows:1fr auto auto auto auto auto auto auto 1fr;column-gap:4vw;row-gap:16px;padding:32px 5vw}
  #title .logo{grid-column:1;grid-row:2;font-size:clamp(110px,11vw,190px)}
  #title .tag{grid-column:1;grid-row:3;font-size:19px}
  #title .best{grid-column:1;grid-row:4;font-size:17px}
  #title .namefield{grid-column:1;grid-row:5}
  #title .btn{grid-column:1;grid-row:6}
- #title .title-row{grid-column:1;grid-row:7}
+ #title #liveBtn{grid-row:7}
+ #title .title-row{grid-column:1;grid-row:8}
  #title .vs-invite{grid-column:1;grid-row:1;align-self:end}
  #titleCv{grid-column:2;grid-row:1/-1;width:100%;height:min(76vh,680px);border-radius:28px}
 
