@@ -71,14 +71,17 @@ function renderRows(top,unit,list,pod){
   for(const r of top){list.appendChild(row(r,unit));drawAvatar(list.lastChild.querySelector('.av'),r.look,r.name);}
 }
 async function openBoard(tab){
-  group=null;if(tab)boardTab=tab;data=null;$('#board').classList.add('on');$('#board').scrollTop=0;render();
+  group=null;$('#boardDuel').hidden=true;$('#boardClose').textContent='סגירה';if(tab)boardTab=tab;data=null;$('#board').classList.add('on');$('#board').scrollTop=0;render();
   const d=await fetchBoard();data=d||false;if($('#board').classList.contains('on'))render();
 }
 $('#boardClose').onclick=()=>$('#board').classList.remove('on');
 
 // a challenge's table: everyone who raced from the link, best time first
-function openChallenge(v){
-  const n=v.table.length,me=v.table.find(r=>r.me);
+// duel: after a race, who won between the player and the sender ({text, won}), as a big line on top
+function openChallenge(v,duel){
+  const n=v.table.length,me=v.table.find(r=>r.me),d=$('#boardDuel');
+  d.hidden=!duel;d.classList.toggle('won',!!duel&&duel.won);if(duel)d.textContent=duel.text;
+  $('#boardClose').textContent=duel?'לתוצאות':'סגירה'; // after a race, the results wait underneath
   group={title:v.mine?'הישיבה שלך':`הישיבה של ${v.ownerName}`,unit:fmtTime,rows:v.table.map(r=>({...r,score:r.time})),
     note:me?`אתה במקום ${me.rank} מתוך ${n} שהתחרו מהקישור`:(n===1?'רק המזמין התחרה עד עכשיו':`${n} כבר התחרו מהקישור`)};
   $('#board').classList.add('on');$('#board').scrollTop=0;render();

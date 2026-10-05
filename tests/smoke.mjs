@@ -207,8 +207,9 @@ try {
       await friend.goto(`${origin}/index.html?vs=${gid}&dev`);
       await friend.waitForSelector('#vsInvite:not([hidden])', { timeout: 5000 }).catch(() => errors.push('[duel] the invite never showed on the title screen'));
       await friend.click('#devBtn');
-      await friend.waitForSelector('#stdDuel:not([hidden])', { timeout: 15000 }).catch(() => errors.push('[duel] no duel line in the finish table'));
-      await friend.screenshot({ path: path.join(OUT, 'duel-standings.png') });
+      // a yeshiva race ends on the yeshiva's table, with who won against the sender on top
+      await friend.waitForSelector('#board.on #boardDuel:not([hidden])', { timeout: 15000 }).catch(() => errors.push('[duel] no yeshiva table with the duel line'));
+      await friend.screenshot({ path: path.join(OUT, 'duel-yeshiva.png') });
       await friend.close();
     }
     // the events sent to Amplitude (also kept in window.__amp)

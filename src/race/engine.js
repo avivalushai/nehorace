@@ -229,13 +229,16 @@ function finishRace(){
   $('#resRank').textContent=`מקום ${pos}`;$('#resTitle').textContent=title;$('#resTime').textContent=busted?'המירוץ נגמר מוקדם':`זמן: ${fmt(P.finishTime,true)}`;
   const victims=S.people+S.kids+S.seniors+S.dogs+S.cats+S.pigeons;
   const score=busted?0:S.people*10+S.kids*15+S.seniors*12+(S.dogs+S.cats+S.pigeons)*6+S.mangal*25+S.acts*15+S.property*5+S.trees*3+S.bumps*6+S.curses*2+Math.max(0,7-pos)*20;
+  let duel=null;
   {const before=Stats.career,rc=recordRace({score,pos,time:P.finished?P.finishTime:0,victims}),badges=[];
     if(rc.newScore)badges.push('🏆 שיא נקודות חדש!');if(rc.newTime)badges.push('⏱️ הזמן הכי מהיר שלך!');
     const opened=unlockedBetween(before,Stats.career);opened.slice(0,3).forEach(x=>badges.push(`🔓 פתחת: ${x.label}`));if(opened.length>3)badges.push(`🔓 ועוד ${opened.length-3} פריטים`);
     if(busted)badges.unshift('🚓 נעצרת. אפס נקודות');
     // a challenge: who won between the player and the friend who sent it, and by how much
     {const G=race.racers.find(r=>r.ghost&&r.ghost.owner);if(G){const gap=fmtGap(Math.abs(P.finishTime-G.finishTime));
-      badges.unshift(busted?`⚔️ ${G.name} ניצח, אתה נעצרת`:gap==='0.0'?`⚔️ תיקו מושלם עם ${G.name}`:P.finishTime<G.finishTime?`⚔️ ניצחת את ${G.name} ב-${gap} שניות!`:`⚔️ ${G.name} לקח אותך ב-${gap} שניות`);}}
+      const won=!busted&&gap!=='0.0'&&P.finishTime<G.finishTime;
+      duel={won,text:busted?`נעצרת, ו${G.name} לקח את הישיבה`:gap==='0.0'?`תיקו מושלם עם ${G.name}!`:won?`ניצחת את ${G.name} ב-${gap} שניות!`:`${G.name} לקח אותך ב-${gap} שניות`};
+      badges.unshift(`⚔️ ${duel.text}`);}}
     // send the race to the champions board; the weekly rank shows up as another badge when it answers
     if(!busted)submitRace({name:state.name,score,pos,time:P.finishTime,look:(({name,...l})=>l)(state.look)}).then(r=>{if(r&&(r.nameTaken||r.nameRequired)){toast(r.nameTaken?`השם ${state.name} כבר תפוס, אז המירוץ לא נכנס לטבלה. בחרו שם אחר במסך הפתיחה`:'כדי להיכנס לטבלת האלופים צריך להוסיף שם אחרי נהוראי');return;}if(!r||!r.week||!r.week.rank)return;const el=$('#resRec'),sp=document.createElement('span');sp.textContent=`🏆 מקום ${r.week.rank} השבוע`;el.appendChild(sp);el.hidden=false;});
     const el=$('#resRec');el.replaceChildren(...badges.map(b=>{const sp=document.createElement('span');sp.textContent=b;return sp;}));el.hidden=!badges.length;}
@@ -255,19 +258,28 @@ function finishRace(){
   // first the standings over the race (everyone on the podium, with what they have to say), then the results and prizes
   const rows=order.map(r=>({name:r.name,look:{...r.look},busted:!!r.busted,time:r.finished?r.finishTime:null,knocks:r.knocks,me:!!r.isPlayer,inviter:!!(r.ghost&&r.ghost.owner)}));
   render();race=null; // the last frame of the race stays behind the standings, dimmed
-  showStandings(rows,fmt,()=>{show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;drawResultsStage();
-    if(chP)chP.then(v=>{if(!v)return;state.vs={...v,cid:vs.cid};openChallenge(state.vs);});});
+  const toResults=()=>{show('results');$('#results').scrollTop=0;$('.res-panel').scrollTop=0;drawResultsStage();};
+  // a yeshiva race ends on one table, the yeshiva's (the group, with who won against the sender on top); the race's
+  // own standings only when the server doesn't answer in time
+  if(chP)Promise.race([chP,new Promise(r=>setTimeout(()=>r(null),2500))]).then(v=>{
+    if(!v){showStandings(rows,fmt,toResults);return;}
+    state.vs={...v,cid:vs.cid};toResults();openChallenge(state.vs,duel);});
+  else showStandings(rows,fmt,toResults);
 }
 // on a phone the stage is the background of the whole header: the Nehorai stands on the left, the place and badges on the right
 function drawResultsStage(){const{c,w,h}=fitCv($('#resCv')),wide=matchMedia('(min-width:860px)').matches;drawComposition(c,w,h,{focus:wide?null:{x:w*.21,w:w*.42},mode:'veh',look:state.look,vid:state.vid,color:vColor(),wheels:state.wheels,stickers:state.stickers,t:1});}
 // dev shortcut (?dev in the address): simulate a whole race instantly and land on the results screen.
 // The police stay out of it: a simulated race has nobody steering away from people, so it would always end in an arrest
+// friends keep joining a yeshiva: who to race is read again right before the race (waiting a moment at most)
+async function startRaceFresh(){const vs=state.vs;
+  if(vs){const v=await Promise.race([loadChallenge(vs.cid),new Promise(r=>setTimeout(()=>r(null),1500))]);if(v&&state.vs&&state.vs.cid===vs.cid)state.vs={...v,cid:vs.cid};}
+  startRace();}
 function devQuickRace(){startRace();race.noCops=true;for(let g=0;g<60*300&&race;g++)update(1/60);}
 // every button on the results screen, one event with the button's name
 const RES_BTN={againBtn:'again',garageBtn:'change_nehorai',shopBtn:'shop',shareBtn:'whatsapp',duelBtn:'race_a_friend',giftBtn:'album',myGarageBtn:'my_garage',resBoardBtn:'leaderboard'};
 $('#results').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&RES_BTN[b.id])track('results_button_clicked',{button:RES_BTN[b.id]});},true);
-$('#againBtn').onclick=startRace;
+$('#againBtn').onclick=startRaceFresh;
 $('#resBoardBtn').onclick=()=>openBoard('week');
 $('#garageBtn').onclick=()=>{setStep(0);show('garage');};
 
-export { race, RK, LW, LH, rctx, startRace, devQuickRace, lowerBound, fmt };
+export { race, RK, LW, LH, rctx, startRace, startRaceFresh, devQuickRace, lowerBound, fmt };

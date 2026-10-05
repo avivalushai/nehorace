@@ -14,7 +14,7 @@ button{cursor:pointer;border:0;background:none}
 #title{flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center}
 .logo{font-family:var(--display);font-weight:700;font-size:clamp(84px,26vw,170px);line-height:.82;color:var(--gold);text-shadow:4px 5px 0 var(--pink),9px 11px 0 var(--ink);transform:rotate(-5deg);direction:ltr;margin-bottom:6px}
 .tag{font-size:17px;opacity:.85;max-width:30ch}
-#titleCv{width:min(92vw,440px);height:32dvh}
+#titleCv{width:min(92vw,440px);height:32dvh;flex:0 1 32dvh;min-height:96px} /* gives way first when the title gets crowded (an invite, the records line) */
 .namefield{display:flex;flex-direction:column;gap:6px;width:min(88vw,340px);text-align:right}
 .namefield label{font-size:14px;opacity:.75}
 .namefield input{background:rgba(0,0,0,.25);border:2px solid rgba(255,244,220,.25);border-radius:14px;padding:11px 14px;font-size:20px;-webkit-user-select:text;user-select:text}
@@ -24,6 +24,8 @@ button{cursor:pointer;border:0;background:none}
 .name-fixed{display:flex;align-items:center;padding:0 12px 0 8px;font-size:20px;color:var(--gold);background:rgba(255,200,61,.1);border-inline-end:1px solid rgba(255,244,220,.2)}
 .namefield .name-row input{flex:1;min-width:0;background:none;border:0;border-radius:0}
 .name-hint{font-size:13px;color:var(--gold);opacity:.9;min-height:1.3em}
+/* inside a yeshiva the invite line takes the tagline's place, so the buttons stay on screen */
+#title.invited .tag{display:none}
 .vs-invite{display:block;cursor:pointer;font-family:inherit;margin:6px auto 0;max-width:340px;background:var(--pink);color:#fff;border:3px solid var(--ink);border-radius:999px;padding:8px 16px;font-size:16px;line-height:1.25;text-align:center;box-shadow:0 4px 0 var(--ink)}
 .name-hint.ok{color:var(--mint)}.name-hint.bad{color:#FF8FB8}
 #title .btn{width:min(88vw,340px)}
@@ -127,6 +129,7 @@ button{cursor:pointer;border:0;background:none}
 .std-head h2{font-family:var(--display);font-size:40px;line-height:.9;color:var(--gold);font-weight:700;text-shadow:3px 3px 0 var(--pink)}
 .std-kicker{font-size:13px;opacity:.75}
 .std-duel{flex:0 0 auto;background:var(--pink);color:#fff;border:3px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 var(--ink);padding:8px 12px;text-align:center;font-family:var(--display);font-size:30px;line-height:1;font-weight:700}
+.board-duel{margin:12px 14px 0}
 .std-duel.won{background:var(--mint);color:var(--ink)}
 .std-duel b{direction:ltr;unicode-bidi:isolate;color:var(--gold);font-weight:700}.std-duel.won b{color:var(--ink)}
 #stdCv{display:block;width:100%;flex:1 1 auto;min-height:140px;max-height:250px}

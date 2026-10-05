@@ -89,8 +89,10 @@ const VS=new URLSearchParams(location.search).get('vs');
 // friends keep joining: the list of who to race is read again on the way to the garage, before the next race
 function refreshYeshiva(){const vs=state.vs;if(vs)loadChallenge(vs.cid).then(v=>{if(v&&state.vs&&state.vs.cid===vs.cid)state.vs={...v,cid:vs.cid};});}
 function showYeshiva(v){const el=$('#vsInvite'),n=v.table.length,where=trackOf(v.track).name.replace(/^ה/,'');
-  el.textContent=(v.mine?`⚔️ הישיבה שלך ב${where}`:`⚔️ ${v.ownerName} מזמין אותך לישיבה ב${where}`)+(n>1?` · ${n} כבר התחרו`:'');el.hidden=false;
-  el.onclick=()=>openChallenge(state.vs);}
+  el.textContent=(v.mine?`⚔️ הישיבה שלך ב${where}`:`⚔️ ${v.ownerName} מזמין אותך לישיבה ב${where}`)+(n>1?` · ${n} כבר התחרו ›`:'');el.hidden=false;
+  el.onclick=()=>openChallenge(state.vs);
+  // from here every race is in the yeshiva, and the button says so
+  $('#startBtn').textContent='בונים נהוראי לישיבה';$('#title').classList.add('invited');}
 if(VS)loadChallenge(VS).then(v=>{if(!v)return;state.vs={...v,cid:VS};showYeshiva(v);track('invite_opened',{track:v.track,players:v.table.length,mine:v.mine});});
 // "invite to the yeshiva" from here: more friends to the yeshiva the player is in, a new one with their last finished race
 // (kept in this browser), or before any race a new, empty one on a random open track that they join when they race.

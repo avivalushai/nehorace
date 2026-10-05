@@ -8,7 +8,7 @@ import { drawDog } from '../art/dog.js';
 import { drawVehicleSide, drawWheel } from '../art/vehicles.js';
 import { drawSticker } from '../art/stickers.js';
 import { state, vColor } from '../core/state.js';
-import { startRace } from '../race/engine.js';
+import { startRaceFresh } from '../race/engine.js';
 import { Music } from '../music/engine.js';
 import { setStage } from '../music/songs.js';
 import { drawTrophies, toast } from '../shop/ui.js';
@@ -134,7 +134,7 @@ $('#nextBtn').onclick=()=>{
   if(step===0)track('choose_vehicle_clicked',{changes:changes[0],...(({name,...look})=>look)(state.look)});
   else if(step===1)track('design_vehicle_clicked',{changes:changes[1],vehicle:state.vid});
   else track('start_race_clicked',{changes:changes[2],vehicle:state.vid,color:vColor(),wheels:VEH[state.vid].noWheels?'none':state.wheels,stickers:state.stickers.length});
-  if(step<2){step++;changes[step]=0;renderPanel();}else startRace();};
+  if(step<2){step++;changes[step]=0;renderPanel();}else startRaceFresh();};
 $('#backBtn').onclick=()=>{if(step>0){step--;renderPanel();}else show('title');};
 
 export { drawComposition, step, setStep, startStage, stopStage, renderPanel, previewPart };
