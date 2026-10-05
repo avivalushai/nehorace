@@ -7,6 +7,7 @@ index.html             # שלד המסכים, טוען את styles/app.css וא�
 styles/app.css         # כל ה-CSS
 manifest.webmanifest   # שם, אייקונים ומסך מלא ל"הוספה למסך הבית"
 assets/                # אייקונים ו-share.jpg, נוצרים מהקוד (לא לערוך ידנית)
+assets/music/menu.mp3  # המוזיקה של התפריטים (Pixabay), מתנגנת דרך src/music/songs.js
 tools/catalog.html     # קטלוג: כל פריט מקדימה ומאחורה, כל כלי מכל הכיוונים
 tools/images.html      # דף תצוגה מקדימה שמצייר את האייקונים ואת תמונת השיתוף
 api/_lib.mjs           # שרת: חיבור ל-Redis, שבוע (ראשון, שעון ישראל), ניקוי שמות
@@ -44,7 +45,7 @@ src/race/world.js      # PW, RACE_LEN, cx, genWorld, makePed, makeRacer, newDir,
 src/race/engine.js     # startRace, update, knock, hitStatic, say, שליטה (גרירה, מקשים, טורבו), finishRace, מסך תוצאות
 src/race/render.js     # render, drawRacerTop, drawPedTop, drawStatic, drawAct, drawBubble
 src/music/engine.js    # musicInit, mStep, mTick, musicStart, musicStop, toggleMute
-src/music/songs.js     # מוזיקה לכל שלב: setStage, playUser, garageMusic (מוכן לשירים מורשים שיצורפו למשחק)
+src/music/songs.js     # מוזיקה לכל שלב: setStage, playUser, garageMusic. בתפריטים מתנגן assets/music/menu.mp3
 src/album/scenes.js    # כל פונקציות scene*, SKIES, sky, applyFx, drawPhoto
 src/album/build.js     # rec, buildAlbum, capFor, כיתובים וזוויות צילום
 src/album/ui.js        # openAlbum, openLB, שמירת תמונה
