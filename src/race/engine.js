@@ -13,7 +13,7 @@ import { Music, musicStart, musicStop } from '../music/engine.js';
 import { setStage } from '../music/songs.js';
 import { ALBUM, buildAlbum, rec } from '../album/build.js';
 import { Wallet, calcCoins, ownedCount, showCoins, walletSave, toast } from '../shop/ui.js';
-import { shareRace } from '../ui/share.js';
+import { shareDuel, shareRace } from '../ui/share.js';
 import { showStandings } from '../ui/standings.js';
 import { showBust } from '../ui/bust.js';
 import { Stats, recordRace } from '../core/stats.js';
@@ -237,9 +237,10 @@ function finishRace(){
     const el=$('#resRec');el.replaceChildren(...badges.map(b=>{const sp=document.createElement('span');sp.textContent=b;return sp;}));el.hidden=!badges.length;}
   // what you ran over is listed once, with the coins it earned; the score goes up top
   $('#resScore').innerHTML=`<b>${score.toLocaleString('he-IL')}</b> נקודות ערסיות`;
-  // a finished race can be raced again by a friend: the shared link carries it as a ghost
+  // a finished race can be raced by a friend: "race a friend" sends it along in the link
   lastRun=busted||!P.finished?null:{seed:race.seed,track:state.track,time:P.finishTime,vid:state.vid,color:vColor(),name:state.name,look:(({name,...l})=>l)(state.look),s:race.rec};
-  {const card={pos,score,title,run:lastRun};$('#shareBtn').onclick=()=>shareRace(card);}
+  {const card={pos,score,title,run:lastRun,timeText:lastRun?fmt(lastRun.time,true):''},trackName=race.track.name;$('#shareBtn').onclick=()=>shareRace(card);
+    $('#duelBtn').hidden=!lastRun;$('#duelBtn').onclick=()=>{if(lastRun)shareDuel(card,trackName);};}
   $('#verdict').textContent=victims===0?'עברת את כל הפארק בלי לגעת באף אחד. בטוח שאתה נהוראי?':victims<5?'התחלה יפה. העירייה עוד לא שמה לב':victims<13?'יש כבר שלוש תלונות בקבוצת הווטסאפ של השכונה':victims<26?'המשטרה בדרך, והיא לא שמחה':'הפארק סגור עד להודעה חדשה. אגדה.';
   buildAlbum(pos,race.moments||[],order.map(r=>({name:r.name,look:{...r.look},vid:r.vid,color:r.color,time:r.finished?r.finishTime:null,me:!!r.isPlayer})),S);$('#giftSub').textContent=`${ALBUM.length} מגנטים מהמירוץ`;
   {const crow=busted?[['🚓','המשטרה החרימה הכל',0]]:calcCoins(pos,S),won=busted?0:crow.reduce((a,r)=>a+r[2],0);Wallet.coins+=won;walletSave();showCoins(crow,won);
@@ -255,7 +256,7 @@ function drawResultsStage(){const{c,w,h}=fitCv($('#resCv')),wide=matchMedia('(mi
 // The police stay out of it: a simulated race has nobody steering away from people, so it would always end in an arrest
 function devQuickRace(){startRace();race.noCops=true;for(let g=0;g<60*300&&race;g++)update(1/60);}
 // every button on the results screen, one event with the button's name
-const RES_BTN={againBtn:'again',garageBtn:'change_nehorai',shopBtn:'shop',shareBtn:'whatsapp',giftBtn:'album',myGarageBtn:'my_garage',resBoardBtn:'leaderboard'};
+const RES_BTN={againBtn:'again',garageBtn:'change_nehorai',shopBtn:'shop',shareBtn:'whatsapp',duelBtn:'race_a_friend',giftBtn:'album',myGarageBtn:'my_garage',resBoardBtn:'leaderboard'};
 $('#results').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&RES_BTN[b.id])track('results_button_clicked',{button:RES_BTN[b.id]});},true);
 $('#againBtn').onclick=startRace;
 $('#resBoardBtn').onclick=()=>openBoard('week');

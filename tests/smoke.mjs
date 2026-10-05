@@ -187,11 +187,18 @@ try {
     await page.evaluate(() => { window.__shared = []; window.open = u => { window.__shared.push(u); }; });
     await click('#shareBtn');
     const shared = await page.evaluate(() => window.__shared);
-    // the link goes back to the server under test, and a finished race rides along as an invite to a duel
+    // "send on WhatsApp" invites to the game itself, on the server under test
     const origin = new globalThis.URL(URL).origin, msg = decodeURIComponent(shared[0] || '');
-    if (!(shared.length === 1 && shared[0].startsWith('https://wa.me/?text=') && msg.includes(origin))) errors.push(`[share] race share opened ${JSON.stringify(shared)}`);
-    const gid = (msg.match(/[?&]vs=([a-f0-9]{12})/) || [])[1], busted = (await page.textContent('#resTitle')).includes('נעצרת');
-    if (!gid && !busted) errors.push(`[duel] no invite in the shared link: ${msg}`);
+    if (!(shared.length === 1 && shared[0].startsWith('https://wa.me/?text=') && msg.includes(origin) && !msg.includes('vs='))) errors.push(`[share] race share opened ${JSON.stringify(shared)}`);
+    // "race a friend" (only after a finished race) sends the race along: whoever opens the link duels it
+    const busted = (await page.textContent('#resTitle')).includes('נעצרת');let gid = null;
+    if (busted !== await page.isHidden('#duelBtn')) errors.push('[duel] "race a friend" should show exactly when the race was finished');
+    if (!busted) {
+      await click('#duelBtn');
+      const duelMsg = decodeURIComponent((await page.evaluate(() => window.__shared))[1] || '');
+      gid = (duelMsg.match(/[?&]vs=([a-f0-9]{12})/) || [])[1];
+      if (!gid) errors.push(`[duel] no invite in the duel link: ${duelMsg}`);
+    }
     if (gid) {
       // the friend opens the link: the invite shows on the title screen, and the finish table says who won the duel
       const friend = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -236,8 +243,9 @@ try {
     await page.locator('#albumGrid .pol').first().click();
     await page.waitForTimeout(800);
     await shot('lightbox');
+    const sharedBefore = await page.evaluate(() => window.__shared.length);
     await click('#lbShare');
-    if ((await page.evaluate(() => window.__shared.length)) !== 2) errors.push('[share] album photo share did nothing');
+    if ((await page.evaluate(() => window.__shared.length)) !== sharedBefore + 1) errors.push('[share] album photo share did nothing');
     const np = await page.locator('#albumGrid .pol').count();
     for (let i = 1; i < np; i++) { await click('#lbNext'); await page.waitForTimeout(250); }
     await shot('lightbox-last');

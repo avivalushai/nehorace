@@ -37,10 +37,14 @@ function drawRaceCard(c,W,H,r){
 }
 function shareRace(r){
   const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;drawRaceCard(cv.getContext('2d'),W,H,r);
-  // a finished race goes along as a ghost: the friend who opens the link races against it on the same track.
-  // The id is made here and the upload runs beside the share sheet, so the tap still opens it
-  let q='';if(r.run){const gid=newGid();saveGhost(gid,r.run);q=`vs=${gid}&`;}
-  shareImage(cv,`${state.name} סיים במקום ${r.pos} במירוץ של הנהוראים בפארק, עם ${r.score.toLocaleString('he-IL')} נקודות ערסיות. חושב שתגבר? בוא בוא כנסס נראה אותך`,'nehorace.png',q);
+  shareImage(cv,`${state.name} סיים במקום ${r.pos} במירוץ של הנהוראים בפארק, עם ${r.score.toLocaleString('he-IL')} נקודות ערסיות. חושב שתגבר? בוא בוא כנסס נראה אותך`,'nehorace.png');
+}
+// "race a friend": the finished race goes along in the link, and whoever opens it races against it on the same track.
+// The id is made here and the upload runs beside the share sheet, so the tap still opens it
+function shareDuel(r,trackName){
+  const gid=newGid();saveGhost(gid,r.run);
+  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;drawRaceCard(cv.getContext('2d'),W,H,r);
+  shareImage(cv,`${state.name} מזמין אותך לדו-קרב ב${trackName.replace(/^ה/,'')}. סיימתי ב-${r.timeText}, בוא בוא כנסס נראה אותך עוקף`,'nehorace-duel.png',`vs=${gid}&`);
 }
 
-export { SITE, shareImage, shareRace, drawRaceCard };
+export { SITE, shareImage, shareRace, shareDuel, drawRaceCard };
