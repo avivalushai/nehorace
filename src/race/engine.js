@@ -6,7 +6,7 @@ import { COLORS, VEH } from '../core/catalog.js';
 import { OPP_NAMES, TXT } from './texts.js';
 import { state, vColor } from '../core/state.js';
 import { drawComposition, setStep, stopStage } from '../ui/garage.js';
-import { PW, RACE_LEN, cx, genWorld, makeRacer, newDir, randLook, resetPid } from './world.js';
+import { PW, RACE_LEN, cx, genWorld, makeRacer, newDir, newSeed, randLook, resetPid } from './world.js';
 import { trackList, trackOf, trackOpen } from './tracks.js';
 import { render } from './render.js';
 import { Music, musicStart, musicStop } from '../music/engine.js';
@@ -30,7 +30,7 @@ function startRace(){
   // the place picks itself: one of the tracks the player has opened, drawn fresh for every race
   {const open=trackList().filter(trackOpen);state.track=pick(open).id;}
   stopStage();show('race');resizeRace();resetPid();
-  race={track:trackOf(state.track),L:RACE_LEN,t:0,time:0,phase:'count',count:3.4,goT:0,bubbles:[],pending:[],shake:0,doneT:0,tSeg:1,
+  race={track:trackOf(state.track),seed:newSeed(),L:RACE_LEN,t:0,time:0,phase:'count',count:3.4,goT:0,bubbles:[],pending:[],shake:0,doneT:0,tSeg:1,
     stats:{people:0,kids:0,seniors:0,dogs:0,cats:0,pigeons:0,mangal:0,acts:0,property:0,trees:0,bumps:0,curses:0,grass:0},zone:0,zoneT:0,wanted:0,wantedT:0,cop:null,copSeen:0,moments:[]};
   const me=makeRacer({isPlayer:true,name:state.name,look:{...state.look},vid:state.vid,color:vColor(),idx:0});
   const names=[...OPP_NAMES].sort(()=>Math.random()-.5).slice(0,5);
