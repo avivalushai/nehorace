@@ -99,6 +99,7 @@ function enterYeshiva(v){
   const b=$('#vsInvite');b.hidden=false;
   b.textContent=v.mine?`⚔️ ישיבת ${v.word} שלך`+(v.players>1?` · ${v.players} שחקנים ›`:''):`⚔️ ${v.ownerName} מזמין אותך לישיבת ${v.word}`+(v.players>1?` · ${v.players} שחקנים ›`:'');
   b.onclick=()=>openYeshiva(v.cid);
+  dispatchEvent(new Event('resize')); // the invite line moves the title's layout: the Nehorai is drawn again to fit
   if(v.seed==null)loadYeshiva(v.cid).then(f=>{if(f&&state.vs&&state.vs.cid===v.cid)state.vs={...f,cid:v.cid};});
 }
 // ?vs=<cid>: a link from WhatsApp. The yeshiva joins the player's list, and the invite shows on the title screen

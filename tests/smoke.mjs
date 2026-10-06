@@ -44,7 +44,7 @@ try {
   });
   // the live race server has its own test (live/test-room.mjs). Here it always "answers", so the home screen shows the
   // live button the same way whether or not the server runs on this computer
-  const liveUp = c => c.route(/localhost:8788/, r => r.fulfill({ status: 200, body: 'NehoRace live' }));
+  const liveUp = c => c.route(/localhost:8788|nehorace-live\.workers\.dev/, r => r.fulfill({ status: 200, body: 'NehoRace live' }));
   await liveUp(ctx);
   // seeded Math.random so static screens are pixel-identical between runs
   await ctx.addInitScript(() => {

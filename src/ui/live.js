@@ -142,7 +142,8 @@ $('#againBtn').onclick=e=>{if(!state.live)return againAlone(e);open();render();}
 
 // the home button shows only where the room server is reachable; ?live=<CODE> opens the join screen
 function initLive(helpers){
-  ui=helpers;liveReady().then(ok=>{$('#liveBtn').hidden=!ok;});
+  // the button shows a moment after the page loads; the title's layout moves, so the Nehorai is drawn again to fit
+  ui=helpers;liveReady().then(ok=>{$('#liveBtn').hidden=!ok;if(ok)dispatchEvent(new Event('resize'));});
   const code=new URLSearchParams(location.search).get('live');
   if(liveOn()&&isCode(code)){track('live_link_opened');joinFromLink(code);}
 }
