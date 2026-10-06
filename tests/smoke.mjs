@@ -406,7 +406,10 @@ try {
     await p2.locator('#devBtn').click();
     await toResults(p2, 30000);
     await p2.waitForFunction(() => (document.querySelector('#resRec').textContent || '').includes('השבוע'), null, { timeout: 10000 }).catch(() => errors.push('[board] no weekly rank badge after the race'));
-    await p2.locator('#resBoardBtn').click();
+    // "home" on the results screen goes back to the title, and the champions board is there
+    await p2.locator('#resHomeBtn').click();
+    await p2.waitForSelector('#title.on', { timeout: 5000 }).catch(() => errors.push('[results] "home" did not go to the title screen'));
+    await p2.locator('#boardBtn').click();
     await p2.waitForSelector('#boardList li', { timeout: 10000 });
     const rows = await p2.locator('#boardList li:not(.gap)').count();
     expectB(rows >= 2, `expected both players on the weekly board, got ${rows} rows`);
