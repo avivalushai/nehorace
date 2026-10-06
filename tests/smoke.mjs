@@ -42,6 +42,10 @@ try {
     viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true,
     reducedMotion: 'reduce', locale: 'he-IL',
   });
+  // the live race server has its own test (live/test-room.mjs). Here it always "answers", so the home screen shows the
+  // live button the same way whether or not the server runs on this computer
+  const liveUp = c => c.route(/localhost:8788/, r => r.fulfill({ status: 200, body: 'NehoRace live' }));
+  await liveUp(ctx);
   // seeded Math.random so static screens are pixel-identical between runs
   await ctx.addInitScript(() => {
     let a = 1234567;
@@ -187,7 +191,31 @@ try {
     await page.evaluate(() => { window.__shared = []; window.open = u => { window.__shared.push(u); }; });
     await click('#shareBtn');
     const shared = await page.evaluate(() => window.__shared);
-    if (!(shared.length === 1 && shared[0].startsWith('https://wa.me/?text=') && decodeURIComponent(shared[0]).includes('nehorace.vercel.app'))) errors.push(`[share] race share opened ${JSON.stringify(shared)}`);
+    // "send on WhatsApp" invites to the game itself, on the server under test
+    const origin = new globalThis.URL(URL).origin, msg = decodeURIComponent(shared[0] || '');
+    if (!(shared.length === 1 && shared[0].startsWith('https://wa.me/?text=') && msg.includes(origin) && !msg.includes('vs='))) errors.push(`[share] race share opened ${JSON.stringify(shared)}`);
+    // "race a friend" (after a finished race) opens a yeshiva with it: whoever opens the link races in it
+    const busted = (await page.textContent('#resTitle')).includes('נעצרת');let gid = null;
+    if (busted !== await page.isHidden('#duelBtn')) errors.push('[duel] "race a friend" should show exactly when the race was finished');
+    if (!busted) {
+      await click('#duelBtn');
+      const duelMsg = decodeURIComponent((await page.evaluate(() => window.__shared))[1] || '');
+      gid = (duelMsg.match(/[?&]vs=([a-f0-9]{12})/) || [])[1];
+      if (!gid) errors.push(`[duel] no invite in the duel link: ${duelMsg}`);
+    }
+    if (gid) {
+      // the friend opens the link: the invite shows on the title screen, and the finish table says who won the duel
+      const friend = await browser.newPage({ viewport: { width: 390, height: 844 } });
+      friend.on('pageerror', e => errors.push(`[duel] ${e.message}`));
+      await page.waitForTimeout(500); // the upload runs beside the share
+      await friend.goto(`${origin}/index.html?vs=${gid}&dev`);
+      await friend.waitForSelector('#vsInvite:not([hidden])', { timeout: 5000 }).catch(() => errors.push('[duel] the invite never showed on the title screen'));
+      await friend.click('#devBtn');
+      // a race in a yeshiva ends on the yeshiva's screen: where you moved to, and this round's table
+      await friend.waitForSelector('#yeshivaEnd.on #yeList li', { timeout: 15000 }).catch(() => errors.push('[duel] no yeshiva screen after the race'));
+      await friend.screenshot({ path: path.join(OUT, 'duel-yeshiva.png') });
+      await friend.close();
+    }
     // the events sent to Amplitude (also kept in window.__amp)
     const amp = await page.evaluate(() => window.__amp.map(e => e.event_type));
     for (const ev of ['game_opened', 'build_nehorai_clicked', 'choose_vehicle_clicked', 'design_vehicle_clicked', 'start_race_clicked', 'race_finished', 'results_button_clicked'])
@@ -220,8 +248,9 @@ try {
     await page.locator('#albumGrid .pol').first().click();
     await page.waitForTimeout(800);
     await shot('lightbox');
+    const sharedBefore = await page.evaluate(() => window.__shared.length);
     await click('#lbShare');
-    if ((await page.evaluate(() => window.__shared.length)) !== 2) errors.push('[share] album photo share did nothing');
+    if ((await page.evaluate(() => window.__shared.length)) !== sharedBefore + 1) errors.push('[share] album photo share did nothing');
     const np = await page.locator('#albumGrid .pol').count();
     for (let i = 1; i < np; i++) { await click('#lbNext'); await page.waitForTimeout(250); }
     await shot('lightbox-last');
@@ -361,6 +390,7 @@ try {
   if (!process.env.SITE) {
     const expectB = (ok, msg) => { if (!ok) errors.push(`[board] ${msg}`); };
     const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
+    await liveUp(ctx2);
     const p2 = await ctx2.newPage(); p2.setDefaultTimeout(10000);
     p2.on('pageerror', e => errors.push(`[board pageerror] ${e.message}`));
     p2.on('dialog', d => { errors.push('[board] a dialog opened: injected HTML ran'); d.dismiss(); });
@@ -376,7 +406,10 @@ try {
     await p2.locator('#devBtn').click();
     await toResults(p2, 30000);
     await p2.waitForFunction(() => (document.querySelector('#resRec').textContent || '').includes('השבוע'), null, { timeout: 10000 }).catch(() => errors.push('[board] no weekly rank badge after the race'));
-    await p2.locator('#resBoardBtn').click();
+    // "home" on the results screen goes back to the title, and the champions board is there
+    await p2.locator('#resHomeBtn').click();
+    await p2.waitForSelector('#title.on', { timeout: 5000 }).catch(() => errors.push('[results] "home" did not go to the title screen'));
+    await p2.locator('#boardBtn').click();
     await p2.waitForSelector('#boardList li', { timeout: 10000 });
     const rows = await p2.locator('#boardList li:not(.gap)').count();
     expectB(rows >= 2, `expected both players on the weekly board, got ${rows} rows`);

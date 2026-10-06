@@ -7,7 +7,7 @@ import './art/neho.js';
 import './art/dog.js';
 import './art/vehicles.js';
 import './art/stickers.js';
-import { state, vColor } from './core/state.js';
+import { state, vColor, loadLook } from './core/state.js';
 import { drawComposition, renderPanel, setStep, startStage, stopStage } from './ui/garage.js';
 import './race/world.js';
 import './race/engine.js';
@@ -20,16 +20,17 @@ import './album/ui.js';
 import './shop/items.js';
 import { walletLoad } from './shop/ui.js';
 import { Stats, devAddCareer } from './core/stats.js';
-import { nextUnlock } from './core/unlocks.js';
 import { openBoard } from './ui/board.js';
 import './ui/share.js';
 import './ui/collection.js';
 import './ui/bust.js';
 import { checkName, claimName } from './net/leaderboard.js';
 import { track } from './net/analytics.js';
+import { initYeshiva, refreshBadge } from './ui/yeshiva.js';
+import { initLive } from './ui/live.js';
 import { devQuickRace, fmt } from './race/engine.js';
 
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else if(id==='title'){stopStage();titleMusic();}else{stopStage();leaveMenu();if(id!=='race')musicStop();}if(id==='title'){renderBest();startTitle();}}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));if(id==='garage'){renderPanel();startStage();garageMusic();}else if(id==='title'){stopStage();titleMusic();}else{stopStage();leaveMenu();if(id!=='race')musicStop();}if(id==='title'){renderBest();refreshBadge();startTitle();}}
 // on the title screen the Nehorai idles: steps in place, drifts along the deck, swings his arms and waves now and then.
 // Static (t=0, no pose) when the player prefers reduced motion
 let titleAnim=false,titleT0=0,titleRAF=0;
@@ -70,16 +71,22 @@ nameHint();
 
 // personal records line on the title screen (hidden until the first race). Numbers are isolated so RTL doesn't flip them
 function renderBest(){const el=$('#bestLine');if(!Stats.races){el.hidden=true;return;}
-  const num=v=>`<b>${v}</b>`,parts=[`השיא שלך: ${num(Stats.bestScore.toLocaleString('he-IL'))} נקודות`,Stats.races===1?'מירוץ אחד':`${num(Stats.races)} מירוצים`];
-  if(Stats.wins)parts.push(Stats.wins===1?'ניצחון אחד':`${num(Stats.wins)} ניצחונות`);if(Stats.bestTime)parts.push(`הכי מהיר: ${num(fmt(Stats.bestTime,true))}`);
-  const nx=nextUnlock();let line=parts.join(' · ')+`<br>🔓 ${num(Stats.career.toLocaleString('he-IL'))} נקודות קריירה`;
-  if(nx)line+=` · הבא: ${nx.label} (עוד ${num((nx.req-Stats.career).toLocaleString('he-IL'))})`;
-  el.innerHTML=line;el.hidden=false;}
+  // one short line, so the Nehorai keeps its place: best score, races, wins, fastest time
+  const num=v=>`<b>${v}</b>`,parts=[`🏆 ${num(Stats.bestScore.toLocaleString('he-IL'))}`,Stats.races===1?'מירוץ אחד':`${num(Stats.races)} מירוצים`];
+  if(Stats.wins)parts.push(`👑 ${num(Stats.wins)}`);if(Stats.bestTime)parts.push(`⏱ ${num(fmt(Stats.bestTime,true))}`);
+  el.innerHTML=parts.join(' · ');el.hidden=false;}
 if(new URLSearchParams(location.search).has('dev')){$('#devBtn').hidden=false;$('#devBtn').onclick=()=>{if(!suffix())$('#nameIn').value='בדיקות';takeName();devQuickRace();};
   $('#devPts').hidden=false;$('#devPts').onclick=()=>{devAddCareer(5000);renderBest();};}
 walletLoad();
+// the Nehorai and ride built last time come back
+loadLook();
+// yeshivas: the count on the home button, and a ?vs=<cid> link from WhatsApp (src/ui/yeshiva.js)
+const VS=new URLSearchParams(location.search).get('vs');
+initYeshiva({suffix,takeName,setHint});
+// "bring the guys now": the live race button, and a ?live=<CODE> link (src/ui/live.js)
+initLive({suffix,takeName,setHint});
 // ?from=wa marks players who came from a link shared on WhatsApp
-track('game_opened',{returning:!!Stats.races,has_saved_name:!!suffix(),device:matchMedia('(min-width:860px)').matches?'desktop':'phone',from:new URLSearchParams(location.search).get('from')||'direct'});
+track('game_opened',{returning:!!Stats.races,has_saved_name:!!suffix(),device:matchMedia('(min-width:860px)').matches?'desktop':'phone',from:new URLSearchParams(location.search).get('from')||'direct',invited:!!VS});
 
 renderBest();
 startTitle();

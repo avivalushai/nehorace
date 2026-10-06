@@ -29,6 +29,8 @@ function showCoins(rows,won){
   $('#coinRows').innerHTML=rows.map(([ic,l,v])=>`<li><span>${ic} ${l}</span><b>+${v}</b></li>`).join('');
   const el=$('#coinsWon'),t0=performance.now(),dur=1300;const step=now=>{const k=Math.min(1,(now-t0)/dur);el.textContent='+'+Math.round(won*(1-Math.pow(1-k,3))).toLocaleString('he-IL');if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);updWalletUI();
 }
+// coins from outside a race (a yeshiva bonus): into the wallet, saved, and shown wherever the wallet is
+function addCoins(n){Wallet.coins+=n;walletSave();updWalletUI();}
 function toast(msg){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);}t.textContent=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2200);}
 function drawItemCard(c,w,h,it){
   const T=tierOf(it.price),g=c.createRadialGradient(w/2,h*.45,4,w/2,h*.5,Math.max(w,h)*.7);g.addColorStop(0,T.col+'70');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,w,h);
@@ -73,4 +75,4 @@ function drawTrophies(c,w,h,gy){
   spots.forEach(([id,x])=>{if(x==null||!has(id))return;c.save();c.translate(x,gy-S*.1);drawItem(c,id,S*.22);c.restore();});
 }
 
-export { toast, Wallet, walletLoad, walletSave, calcCoins, ownedCount, showCoins, drawTrophies, drawItemCard };
+export { addCoins, toast, Wallet, walletLoad, walletSave, calcCoins, ownedCount, showCoins, drawTrophies, drawItemCard };
