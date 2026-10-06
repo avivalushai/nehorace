@@ -211,7 +211,7 @@ button{cursor:pointer;border:0;background:none}
 .shop-head h2{font-family:var(--display);font-size:clamp(28px,8.5vw,44px);line-height:.9;color:var(--gold);flex:1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .shop-wallet{background:var(--club2);border-radius:999px;padding:6px 14px;display:flex;align-items:center}
 .shop-wallet b{font-family:var(--display);font-size:30px;line-height:1}
-.shopX{background:rgba(255,255,255,.12);border-radius:999px;padding:8px 12px;font-size:14px}
+.shopX{background:rgba(255,255,255,.12);border-radius:999px;padding:8px 14px;font-size:14px;min-height:40px} /* every "close" in the windows: big enough for a thumb */
 .shop .tabs{margin-bottom:6px}
 .shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 @media (min-width:560px){.shop-grid{grid-template-columns:repeat(3,1fr)}}

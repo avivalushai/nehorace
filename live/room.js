@@ -35,7 +35,9 @@ export class Room{
   who(ws){for(const p of this.players.values())if(p.ws===ws)return p;return null;}
   // what everyone sees of everyone
   roster(){return [...this.players.values()].map(p=>({pid:p.pid,name:p.name,look:p.look,...p.ride,host:p.pid===this.host,ready:p.ready,here:!!p.ws,finished:p.time!=null,time:p.time}));}
-  lobby(){this.all({t:'room',phase:this.phase,round:this.round,players:this.roster(),seed:this.seed,track:this.track,buildUntil:this.buildUntil,raceAt:this.raceAt});}
+  // the host leads; while the host's phone is away (asleep, a tunnel), anyone in the room can start the next race
+  canLead(p){return p.pid===this.host||!this.players.get(this.host)?.ws;}
+  lobby(){this.all({t:'room',phase:this.phase,round:this.round,hostHere:!!this.players.get(this.host)?.ws,players:this.roster(),seed:this.seed,track:this.track,buildUntil:this.buildUntil,raceAt:this.raceAt});}
 
   on(ws,m){
     if(m.t==='ping')return this.send(ws,{t:'pong',c:m.c,now:Date.now()}); // the phones line their clocks up with this one
@@ -44,7 +46,7 @@ export class Room{
     if(m.t==='hello')return this.hello(ws,m);
     const p=this.who(ws);if(!p)return;
     if(m.t==='look'){p.name=cleanName(m.name);p.look=cleanLook(m.look);p.ride=cleanRide(m);if(this.phase==='build'&&m.ready)p.ready=true;this.lobby();if(this.phase==='build')this.maybeGo();return;}
-    if(m.t==='start'&&p.pid===this.host&&this.phase==='lobby')return this.build(m.track);
+    if(m.t==='start'&&this.canLead(p)&&this.phase==='lobby')return this.build(m.track);
     if(m.t==='pos'&&this.phase==='race'){
       // where this racer is: distance along the track, offset from its middle, speed, lean, turbo
       this.all({t:'pos',pid:p.pid,d:num(m.d,30000),x:num(m.x,2000),s:num(m.s,2000),l:num(m.l,1),b:m.b?1:0,k:num(m.k,1e6)},ws);return;}
@@ -54,7 +56,7 @@ export class Room{
       this.all({t:'finished',pid:p.pid,time:p.time,busted:p.busted});
       if(!this.graceTimer)this.graceTimer=setTimeout(()=>this.done(),FINISH_GRACE_MS);
       this.maybeDone();return;}
-    if(m.t==='again'&&p.pid===this.host&&this.phase==='done'){this.reset();this.lobby();return;}
+    if(m.t==='again'&&this.canLead(p)&&this.phase==='done'){this.reset();this.lobby();return;}
   }
 
   hello(ws,m){
@@ -70,7 +72,7 @@ export class Room{
       p={pid:m.pid,ws,name:cleanName(m.name),look:cleanLook(m.look),ride:cleanRide(m),ready:false,time:null,done:false};
       this.players.set(p.pid,p);
     }
-    if(!this.host||!this.players.get(this.host)?.ws)this.host=p.pid;
+    if(!this.host||!this.players.has(this.host))this.host=p.pid;
     this.send(ws,{t:'welcome',pid:p.pid,now:Date.now()});
     this.lobby();
   }
@@ -79,7 +81,8 @@ export class Room{
     const p=this.who(ws);if(!p)return;p.ws=null;
     // in the lobby someone who left is gone; once the race is set they stay (their racer finishes or stops where it was)
     if(this.phase==='lobby')this.players.delete(p.pid);
-    if(p.pid===this.host){const next=[...this.players.values()].find(q=>q.ws);this.host=next?next.pid:null;}
+    // the host passes on only when they're gone for good (left the lobby); otherwise they're the host when they're back
+    if(p.pid===this.host&&!this.players.has(p.pid)){const next=[...this.players.values()].find(q=>q.ws);this.host=next?next.pid:null;}
     this.all({t:'left',pid:p.pid});this.lobby();
     if(this.phase==='build')this.maybeGo();
     if(this.phase==='race')this.maybeDone();

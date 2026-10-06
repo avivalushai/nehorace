@@ -55,6 +55,15 @@ await sleep(100);ok(A.room.phase==='done','the room is done');
 A.send({t:'again'});await sleep(200);
 ok(A.room.phase==='lobby'&&A.room.players.length===2&&A.room.players.every(p=>!p.ready&&!p.finished),'"again" takes everyone back to the lobby');
 
+// the host's phone sleeps after a race: the others can start the next one, and the host is the host again when back
+A.send({t:'start',track:'park'});await sleep(200);A.send({t:'look',name:A.name,ready:true});B.send({t:'look',name:B.name,ready:true});await sleep(200);
+A.send({t:'finish',time:44});B.send({t:'finish',time:46});await A.wait(m=>m.t==='standings'&&m!==st);await sleep(100);
+A.ws.close();await sleep(300);
+ok(B.room.phase==='done'&&!B.room.hostHere,'the host is away: the room says so');
+B.send({t:'again'});await sleep(200);ok(B.room.phase==='lobby','with the host away, another player can start the next round');
+const A2=player('A again');await A2.open;A2.send({t:'hello',pid:A.pid,name:A.name});await sleep(300);
+ok(A2.room&&A2.room.players.find(p=>p.pid===A.pid).host&&A2.room.hostHere,'the host comes back and is the host again');
+A.ws=A2.ws;A.room=A2.room;A2.ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.t==='room')A.room=m;};
 B.ws.close();await sleep(300);ok(A.room.players.length===1,'leaving the lobby removes the player');
 A.ws.close();C.ws.close();
 console.log(fails.length?`FAIL (${fails.length})`:'PASS');process.exit(fails.length?1:0);

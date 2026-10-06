@@ -55,7 +55,8 @@ function onMessage(m){
   if(['pos','knock','finished','left','standings'].includes(m.t)){liveMessage(m);if(m.t!=='left')return;}
   if(m.t==='peek'){peek=m;render();return;}
   if(m.t==='error'){renderError(m.error==='started'?'המירוץ כבר התחיל. בפעם הבאה מהר יותר 😉':m.error==='full'?'המירוץ מלא, כבר יש שישה נהוראים':'משהו השתבש בכניסה למירוץ');return;}
-  if(m.t==='lost'){toast('החיבור למירוץ החי נפל');renderError('החיבור נפל. אפשר לנסות להיכנס שוב מהקישור');return;}
+  // the line is down and not coming back on its own: say so; it tries again when the page is back on screen or on the next tap
+  if(m.t==='lost'){toast('אין חיבור למירוץ החי. מנסים שוב...');return;}
   if(m.t!=='room'||!state.live)return;
   const R=m;
   // the 30 seconds: the regular garage, with the time and who's ready on top, and "ready" as its last button
@@ -102,7 +103,8 @@ function renderJoin(body){
   box.append(nr,hint,el('div','lv-actions'));box.lastChild.append(go);body.append(box);
 }
 function renderLobby(body,R){
-  const mine=me(),h=host(),isHost=mine&&mine.host;
+  // the host leads; while the host is away (their phone asleep), anyone here can
+  const mine=me(),h=host(),isHost=mine&&(mine.host||!R.hostHere);
   $('#lvTitle').textContent='תביא את החבר׳ה';
   $('#lvSub').textContent=R.phase==='race'?'החבר׳ה עוד במירוץ':R.phase==='done'?(isHost?'כולם פה. עוד סיבוב?':'המירוץ נגמר. עוד סיבוב?'):isHost?'שולחים לחבר׳ה ומחכים שייכנסו':`${h?h.name:'החבר'} פתח מירוץ חי`;
   body.append(players(R.players,6));
